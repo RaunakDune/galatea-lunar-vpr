@@ -1,0 +1,50 @@
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+  font=\footnotesize,
+  box/.style={draw, rounded corners=2pt, align=center, minimum height=0.9cm, inner sep=3pt},
+  st1/.style={box, fill=blue!7},
+  st2/.style={box, fill=orange!10},
+  io/.style={box, fill=gray!10},
+  ar/.style={-{Latex[length=2mm]}, thick},
+]
+% stage 1
+\node[io] (img) {Query\\image};
+\node[st1, right=0.45cm of img] (vit) {DINOv2\\ViT-B/14\\(frozen)};
+\node[st1, right=0.45cm of vit, yshift=0.6cm] (score) {score MLP\\$\bar{\mathbf S}=[\mathbf S\,|\,z]$};
+\node[st1, right=0.45cm of vit, yshift=-0.6cm] (feat) {feature MLP\\$\mathbf f_i\in\mathbb R^{\ell}$};
+\node[st1, right=0.45cm of score, fill=blue!15] (uot) {$\lambda$-scaled Sinkhorn\\(semi-relaxed UOT, \cref{alg:uot})};
+\node[st1, right=0.45cm of uot, yshift=-0.6cm] (agg) {$V_{jk}=\sum_i P_{ij}f_{ik}$\\$+$ scene token, $\ell_2$};
+\node[io, right=0.45cm of agg] (db) {cosine top-$K$\\vs.\ database};
+\draw[ar] (img) -- (vit);
+\draw[ar] (vit.east) -- ++(0.15,0) |- (score.west);
+\draw[ar] (vit.east) -- ++(0.15,0) |- (feat.west);
+\draw[ar] (score) -- (uot);
+\draw[ar] (uot.east) -- ++(0.1,0) |- (agg.west);
+\draw[ar] (feat.east) -- (agg.west |- feat.east);
+\draw[ar] (agg) -- (db);
+\begin{scope}[on background layer]
+\node[draw=blue!50, dashed, rounded corners, fit=(vit)(score)(feat)(uot)(agg), inner sep=4pt,
+  label={[blue!60!black]above:Stage 1: global retrieval with unbalanced OT aggregation}] {};
+\end{scope}
+% stage 2
+\node[st2, below=1.25cm of feat, xshift=-0.3cm] (sp) {SuperPoint\\keypoints};
+\node[st2, right=0.45cm of sp] (fgw) {partial fused\\Gromov--Wasserstein\\(appearance $+$ layout)};
+\node[st2, right=0.45cm of fgw] (ver) {mutual matches\\$+$ MAGSAC++\\$\Rightarrow s_\ell$};
+\node[st2, right=0.45cm of ver, fill=orange!20] (fuse) {$s=s_g+\beta\,\frac{s_\ell}{s_\ell+\kappa}$};
+\node[io, right=0.45cm of fuse] (out) {re-ranked\\places};
+\draw[ar] (db.south) |- ($(fuse.north)+(0,0.35)$) -- (fuse.north);
+\node[font=\scriptsize, right=1pt] at ($(db.south)+(0,-0.35)$) {$s_g$, top-$K$};
+\draw[ar] (sp) -- (fgw); \draw[ar] (fgw) -- (ver); \draw[ar] (ver) -- (fuse); \draw[ar] (fuse) -- (out);
+\begin{scope}[on background layer]
+\node[draw=orange!70, dashed, rounded corners, fit=(sp)(fgw)(ver)(fuse), inner sep=4pt,
+  label={[orange!60!black]below:Stage 2: training-free structure-aware re-ranking and global--local fusion}] {};
+\end{scope}
+\end{tikzpicture}
+\caption{Galatea. Stage~1 assigns ViT tokens to $m$ clusters and a dust-bin by semi-relaxed
+unbalanced OT with a learned relaxation $\lambda$ ($\lambda{=}0$: NetVLAD assignment,
+$\lambda{=}1$: SALAD), then aggregates them into a global descriptor. Stage~2 re-scores the top-$K$
+candidates with a partial fused Gromov--Wasserstein matching of keypoints and fuses local and
+global scores.}
+\label{fig:arch}
+\end{figure*}

@@ -1,0 +1,21 @@
+\begin{table*}[t]
+\centering
+\caption{Recall (\%) on the LunarSim-VPR test set (3 unseen scenes, 3150 queries). Lunar-trained heads share the frozen DINOv2 backbone and training protocol; mean$\pm$std over 3 seeds. Per-condition columns give R@1 (conditions in \cref{tab:conds}).}
+\label{tab:main}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llr ccc ccccccc@{}}
+\toprule
+& Method & Dim. & R@1 & R@5 & R@10 & C0 & C1 & C2 & C3 & C4 & C5 & C6 \\
+\midrule
+\multirow{3}{*}{\rotatebox{90}{\scriptsize zero-shot}} & CosPlace-R50~\cite{berton2022cosplace} & 512 & 26.8 & 50.3 & 60.8 & 66.9 & 35.8 & 17.6 & 24.9 & 17.6 & 10.4 & 14.4 \\
+ & EigenPlaces-R50~\cite{berton2023eigenplaces} & 2048 & 28.1 & 53.0 & 64.1 & 64.9 & 34.2 & 17.1 & 25.3 & 22.2 & 15.6 & 17.1 \\
+ & DINOv2-SALAD~\cite{izquierdo2024optimal} & 8448 & 35.8 & 65.4 & 77.7 & 66.4 & 46.7 & 21.3 & 31.6 & 35.8 & 24.9 & 24.0 \\
+\midrule
+\multirow{4}{*}{\rotatebox{90}{\scriptsize lunar-trained}} & GeM & 1280 & 31.5{\scriptsize$\pm$0.4} & 64.7{\scriptsize$\pm$0.3} & 79.4{\scriptsize$\pm$0.2} & 55.0 & 34.8 & 19.8 & 35.3 & 30.1 & 25.1 & 20.3 \\
+ & NetVLAD & 8448 & 58.2{\scriptsize$\pm$0.7} & 86.6{\scriptsize$\pm$0.4} & 94.6{\scriptsize$\pm$0.2} & 79.0 & 67.5 & 46.1 & 65.2 & 56.0 & 48.3 & 45.6 \\
+ & SALAD ($\lambda{=}1$) & 8448 & 59.4{\scriptsize$\pm$0.7} & \textbf{87.3{\scriptsize$\pm$0.7}} & \textbf{94.8{\scriptsize$\pm$0.2}} & 77.6 & 68.4 & \textbf{46.4} & 65.4 & 58.6 & 52.7 & \textbf{46.7} \\
+ & Galatea, learned $\lambda$ & 8448 & \textbf{59.8{\scriptsize$\pm$0.8}} & \textbf{87.3{\scriptsize$\pm$0.5}} & 94.6{\scriptsize$\pm$0.2} & \textbf{79.3} & \textbf{69.0} & 44.4 & \textbf{67.3} & \textbf{60.4} & \textbf{54.7} & 43.7 \\
+\bottomrule
+\end{tabular}
+\end{table*}

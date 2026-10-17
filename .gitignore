@@ -1,0 +1,21 @@
+# Large or regenerable artefacts
+data/lunarsim/**/feats.pt
+results/runs/**/desc_*.pt
+results/rerank/partial_*.npy
+weights/
+third_party/
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+# LaTeX build files
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
+# OS
+.DS_Store

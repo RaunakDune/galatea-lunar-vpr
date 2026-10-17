@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use this code or the LunarSim-VPR benchmark, please cite it as below."
+title: "Galatea and LunarSim-VPR: optimal-transport visual place recognition for extraterrestrial surfaces"
+type: software
+license: MIT
+repository-code: "https://github.com/RaunakDune/galatea-lunar-vpr"
+date-released: 2026-10-17
+version: 1.0.0
+keywords:
+  - visual place recognition
+  - optimal transport
+  - lunar navigation
+  - space robotics
+  - Gromov-Wasserstein
+authors:
+  - family-names: Sarbajna
+    given-names: Raunak
+    orcid: "https://orcid.org/0000-0002-3184-7226"
+    affiliation: "Department of Computer Science, University of Houston"
+preferred-citation:
+  type: article
+  title: "Galatea: Merging Local and Global Descriptors with Optimal Transport for Visual Place Recognition on Extraterrestrial Surfaces"
+  authors:
+    - family-names: Sarbajna
+      given-names: Raunak
+      orcid: "https://orcid.org/0000-0002-3184-7226"
+      affiliation: "Department of Computer Science, University of Houston"
+    - family-names: Eick
+      given-names: Christoph F.
+      affiliation: "Department of Computer Science, University of Houston"
+  year: 2026
+  notes: "Manuscript under preparation."

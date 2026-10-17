@@ -1,0 +1,57 @@
+\documentclass[letterpaper,journal]{IEEEtran}
+% Target: IEEE Robotics and Automation Letters (RA-L), 6 pages + up to 2 extra.
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc}
+\usepackage[hidelinks]{hyperref}
+\usepackage[capitalise,nameinlink]{cleveref}
+\usepackage{url}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\newtheorem{proposition}{Proposition}
+\crefname{proposition}{Prop.}{Props.}
+\crefname{algorithm}{Alg.}{Algs.}
+\crefname{section}{Sec.}{Secs.}
+\crefname{table}{Table}{Tables}
+\crefname{figure}{Fig.}{Figs.}
+
+% Set to \realdatatrue to include the real-imagery (Despina / Apollo) evaluation subsection.
+\newif\ifrealdata
+\realdatafalse
+
+\input{numbers}
+\begin{document}
+
+\title{Galatea: Merging Local and Global Descriptors with Optimal Transport for Visual Place
+Recognition on Extraterrestrial Surfaces}
+
+\author{Raunak Sarbajna and Christoph F. Eick%
+\thanks{The authors are with the Department of Computer Science, University of Houston,
+Houston, TX, USA.}}
+
+\markboth{Preprint}{Sarbajna and Eick: Galatea}
+
+\maketitle
+
+\input{sec_abstract}
+
+\input{sec_intro}
+\input{sec_method}
+\input{fig_arch}
+\input{sec_bench}
+\input{sec_exp}
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+% Proofs are provided in the supplementary material (supplement.tex) to respect the RA-L page limit.
+
+\end{document}

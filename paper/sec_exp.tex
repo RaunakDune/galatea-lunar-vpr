@@ -1,0 +1,76 @@
+% ======================================================================
+\section{Experiments}\label{sec:exp}
+% ======================================================================
+\input{sec_exp_setup}
+
+\input{fig_conditions}
+\input{tab_main}
+
+\subsection{Terrestrial models under lunar illumination change}\label{sec:zeroshot}
+\Cref{tab:main} (top) shows that all three terrestrial models perform reasonably when only the
+viewpoint changes: at C0, R@1 is $\zsEigCzero$--$\zsCosCzero\%$. They degrade sharply as soon as the
+Sun moves. DINOv2-SALAD, the strongest of them, falls from $\zsSaladCzero\%$ at C0 to
+$\zsSaladCtwo\%$ under grazing illumination (C2) and to $\zsSaladCfive\%$ when the shadows flip (C5).
+The CNN-based CosPlace and EigenPlaces fare worse, with C5 values of $\zsCosCfive\%$ and $\zsEigCfive\%$.
+Even a foundation-model backbone pre-trained on 142M images therefore does not provide
+illumination-invariant place descriptors on regolith. Local re-ranking does not close the gap
+either. Fusing MNN+MAGSAC++ matches into the top-10 zero-shot SALAD candidates (selected on
+validation as in \cref{sec:rerank}) raises R@1 to $\zsRRRone\%$. That is still below the lunar-trained
+stage~1 \emph{without} re-ranking, and only $\zsRRHard\%$ on the hardest conditions, because the
+correct place is often not among the candidates at all.
+
+\subsection{Lunar-adapted OT aggregation}\label{sec:stage1}
+Training only the aggregation head on illumination-diverse LunarSim scenes (backbone frozen) lifts
+R@1 from $\zsSaladRone\%$ to $\galRone\%$ (Galatea, mean of three seeds). On the paired test queries
+this is a gain of $\gainZsMean$ points (95\% CI $[\gainZsLo,\gainZsHi]$). The largest gains are under
+illumination change. Mean R@1 over the three hardest conditions (C2, C5, C6) rises from $\zsSaladHard\%$
+to $\galHard\%$. The three cluster-based heads (NetVLAD, SALAD and Galatea) clearly beat every zero-shot model.
+GeM pooling of the same frozen tokens does not ($\gemRone\%$). Without fine-tuning the backbone,
+global pooling cannot separate place-specific tokens from illumination-dependent ones, while
+cluster-based aggregation can~\cite{izquierdo2024optimal}.
+
+Galatea and SALAD are statistically indistinguishable: the paired difference in R@1 is
+$\galVsSalMean$ points (95\% CI $[\galVsSalLo,\galVsSalHi]$). This is what \cref{prop:colinv} predicts.
+After intra-normalisation, the cluster-side constraint affects the descriptor only through token
+weights. The two heads differ sharply in how they spend mass. The balanced head sends
+$\salDust\%$ of all token mass to the dust-bin, and its total dust-bin mass correlates with the sky
+fraction of the image ($\rho=\salSkyCorr$). The learned unbalanced head ($\bar\lambda=\galLam$)
+discards only $\galDust\%$ and concentrates the remaining mass on a few clusters (coefficient of
+variation of cluster mass $\galCV$ vs.\ $\salCV$). Their retrieval performance is nevertheless the
+same. On this data, therefore, the assignment's marginal constraints are not the bottleneck; the
+training distribution is. We return to this in \cref{sec:ablation}.
+
+\input{tab_rerank}
+
+\subsection{Global--local fusion with OT re-ranking}\label{sec:rerank}
+\Cref{tab:rerank} re-ranks the top-10 candidates of Galatea (seed 0, R@1 $\rrGlobRone\%$).
+Two findings stand out. First, ranking by the local score alone barely helps and can hurt: no scorer
+improves R@1 by more than about two points, and several lose ground. The reason is that SuperPoint
+responses on regolith are dominated by shadow edges, which move with the Sun. Second, fusing local
+and global evidence with \cref{eq:fusion} helps every scorer. With partial FGW, R@1 rises to
+$\rrFgwRone\%$, a gain of $\rrGainMean$ points (95\% CI $[\rrGainLo,\rrGainHi]$), and on the hardest
+conditions from $\galSzeroHard\%$ to $\rrFgwHard\%$, the best of all scorers on that subset.
+Differences between scorers in the fused setting are small and within the confidence intervals:
+FGW vs.\ LightGlue $\fgwVsLgMean$ $[\fgwVsLgLo,\fgwVsLgHi]$, and FGW vs.\ appearance-only OT
+$\fgwVsUotMean$ $[\fgwVsUotLo,\fgwVsUotHi]$. The training-free structural matcher thus performs as
+well as a learned terrestrial matcher. MAGSAC++ helps MNN and LightGlue but not the OT matchers, whose dust-bins already reject outliers.
+The effect is robust across stage-1 seeds. Repeating the protocol on all three Galatea seeds
+(re-tuning $\beta,\kappa$ on validation each time), fusion gains $\msFgwGain\pm\msFgwGainsd$ points R@1
+with FGW, $\msMnnRGain\pm\msMnnRGainsd$ with MNN+MAGSAC++ and $\msMnnGain\pm\msMnnGainsd$ with plain MNN.
+The practical lesson is that, on the Moon, \emph{how local and global evidence are combined matters
+more than which local matcher is used}.
+
+\input{tab_ablation}
+
+\subsection{Ablations}\label{sec:ablation}
+\input{sec_ablation_text}
+
+\subsection{Run time}\label{sec:runtime}
+\input{sec_runtime_text}
+
+\ifrealdata
+\subsection{Real lunar imagery}\label{sec:real}
+% AUTHOR: insert the re-run Despina / Apollo evaluation here (Recall@1/5/10, same protocol).
+\fi
+
+\input{sec_limits}

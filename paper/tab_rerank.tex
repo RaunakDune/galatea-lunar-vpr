@@ -1,0 +1,24 @@
+\begin{table}[t]
+\centering
+\caption{Stage-2 re-ranking of the top-10 Galatea candidates (test, \%). \emph{Local}: sort by the local score only. \emph{Fused}: \cref{eq:fusion} with $(\beta,\kappa)$ chosen on the validation scene.}
+\label{tab:rerank}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+& \multicolumn{2}{c}{Local} & \multicolumn{2}{c}{Fused} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Local scorer & R@1 & R@5 & R@1 & R@5 \\
+\midrule
+none (global ranking) & \multicolumn{2}{c}{--} & 60.8 & 88.0 \\
+MNN & 59.2 & 88.2 & 66.0 & 89.5 \\
+MNN + MAGSAC++ & 62.4 & 89.2 & \textbf{67.2} & 90.0 \\
+OT, appearance only & 57.0 & 89.5 & 65.8 & 90.4 \\
+OT, appearance only + MAGSAC++ & 61.0 & 88.3 & 63.0 & 88.6 \\
+LightGlue~\cite{lindenberger2023lightglue} (learned) & 57.5 & 87.4 & 65.3 & 89.6 \\
+LightGlue~\cite{lindenberger2023lightglue} (learned) + MAGSAC++ & 60.0 & 89.0 & 65.7 & 89.8 \\
+Partial FGW (ours) & 59.8 & 90.1 & 66.0 & 90.1 \\
+Partial FGW (ours) + MAGSAC++ & 63.0 & 88.6 & 63.8 & 88.7 \\
+\bottomrule
+\end{tabular}
+\end{table}

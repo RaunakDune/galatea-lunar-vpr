@@ -1,0 +1,94 @@
+% ======================================================================
+\section{Introduction}\label{sec:intro}
+% ======================================================================
+Surface missions to the Moon need to know where they are without GNSS. Wheel and visual
+odometry~\cite{maimone2007mer} drift without bound, so a rover periodically needs an absolute fix
+or a loop closure. One way to get it is to recognise that the current view shows a place that is
+already in a reference set, either imagery from an earlier traverse or views rendered from orbital
+digital elevation models (DEMs)~\cite{johnson2008trn,ceresoli2025optical}. This is
+\emph{visual place recognition} (VPR), usually posed as image retrieval against a geo-tagged
+database~\cite{lowry2015visual,schubert2023tutorial}.
+
+Modern VPR systems reach high recall on street-level benchmarks by aggregating deep local
+features into a compact global descriptor~\cite{arandjelovic2016netvlad,radenovic2019gem,berton2022cosplace,berton2023eigenplaces,izquierdo2024optimal},
+optionally followed by local-feature re-ranking~\cite{hausler2021patch}. The lunar surface
+removes almost every cue these systems rely on:
+\begin{itemize}
+\item \textbf{Illumination.} There is no atmosphere to scatter light, so shadows are black and
+sharp. Over a lunar day the Sun's elevation and azimuth sweep through large ranges, and the
+same place can look entirely different at two times (\cref{fig:conds}).
+\item \textbf{Self-similarity.} Craters and boulders follow power-law size--frequency
+distributions~\cite{neukum2001cratering,melosh1989impact}, so terrain is statistically repetitive
+at every scale and individual features are weakly discriminative~\cite{torii2013visual}.
+\item \textbf{Photometry.} Regolith is strongly non-Lambertian, with phase-dependent limb
+darkening and an opposition surge~\cite{mcewen1991photometric,hapke2012theory}, which violates the
+brightness-constancy assumptions built into terrestrial descriptors.
+\item \textbf{Data.} There is no large, pose-annotated lunar VPR dataset to train on.
+\end{itemize}
+
+This paper presents \textbf{Galatea}, a two-stage lunar VPR system built on optimal transport (OT)
+at both stages. Its global stage aggregates foundation-model tokens with an OT assignment, and its
+local stage re-ranks candidates with an OT matching that also respects geometry. Our contributions
+are:
+\begin{enumerate}
+\item \textbf{A semi-relaxed unbalanced OT aggregator} (\cref{sec:uot}). We show that one learnable
+scalar $\lambda\in[0,1]$ interpolates \emph{exactly} between the NetVLAD soft-assignment
+($\lambda=0$) and the balanced Sinkhorn assignment of SALAD~\cite{izquierdo2024optimal}
+($\lambda=1$). We prove linear convergence with rate $\lambda$ for the truncated iterations and
+characterise the dust-bin as a logistic gate on cluster affinity
+(\cref{prop:uot,prop:contraction,prop:dustbin}).
+\item \textbf{Global--local fusion with partial fused Gromov--Wasserstein re-ranking}
+(\cref{sec:fgw,sec:fusion}). A training-free local stage scores both the appearance and the
+relative layout of keypoints and is invariant to similarity transforms (\cref{prop:inv}). A
+saturating fusion combines it with the global similarity. We also show that the column-scale
+invariance of intra-normalised descriptors (\cref{prop:colinv}) explains why balanced and
+unbalanced assignments behave alike.
+\item \textbf{LunarSim-VPR} (\cref{sec:bench}). This is an open, procedurally generated benchmark
+with a physically motivated renderer (crater size--frequency statistics, lunar-Lambert photometry
+with opposition surge, cast shadows from local and regional relief). Its protocol separates
+viewpoint change from controlled changes in solar elevation and azimuth.
+\item \textbf{A controlled evaluation} (\cref{sec:exp}). We evaluate terrestrial state-of-the-art
+models zero-shot, compare aggregation heads trained under identical conditions, and test four
+re-ranking strategies, with seed variation and paired-bootstrap confidence intervals. The results
+show that illumination-diverse lunar training and global--local fusion drive the gains, while the
+choice of assignment relaxation and of local matcher matters little.
+\end{enumerate}
+
+% ======================================================================
+\section{Related Work}\label{sec:related}
+% ======================================================================
+\paragraph*{Global descriptors for VPR}
+VLAD~\cite{jegou2010vlad} and its trainable counterpart NetVLAD~\cite{arandjelovic2016netvlad}
+softly assign local features to clusters and sum their residuals. GeM pooling~\cite{radenovic2019gem}
+and classification-based training at scale (CosPlace~\cite{berton2022cosplace},
+EigenPlaces~\cite{berton2023eigenplaces}) give strong compact descriptors. MixVPR~\cite{alibey2023mixvpr}
+mixes feature maps with MLPs. AnyLoc~\cite{keetha2024anyloc} showed that unsupervised aggregation of
+DINOv2~\cite{oquab2024dinov2} features generalises across domains, including aerial and underwater
+imagery. SALAD~\cite{izquierdo2024optimal} recast NetVLAD's assignment as balanced entropic OT
+with a dust-bin on top of a partially fine-tuned DINOv2 backbone. Our aggregator generalises SALAD
+to unbalanced OT and contains NetVLAD's assignment as a limiting case.
+
+\paragraph*{Re-ranking and matching}
+Two-stage pipelines re-rank global candidates with local evidence, for example multi-scale patch
+descriptors~\cite{hausler2021patch} or keypoint matching with geometric verification. Learned
+matchers such as SuperGlue~\cite{sarlin2020superglue} and LightGlue~\cite{lindenberger2023lightglue}
+solve (or approximate) an OT problem with dust-bins over attention-refined
+SuperPoint~\cite{detone2018superpoint} features. They are trained on terrestrial imagery and assume
+that the descriptors carry enough appearance information. Our re-ranker is training-free. It adds a
+Gromov--Wasserstein structural term~\cite{memoli2011gromov,peyre2016gromov}, in the fused form of
+\cite{vayer2019fgw} and with partial mass~\cite{chapel2020partial}, so that matches must preserve
+relative keypoint geometry.
+
+\paragraph*{Optimal transport}
+Entropic regularisation and the Sinkhorn algorithm~\cite{cuturi2013sinkhorn,peyre2019computational}
+made OT differentiable and fast. Unbalanced OT replaces hard marginal constraints with divergence
+penalties and keeps Sinkhorn-like scaling algorithms~\cite{chizat2018scaling}.
+The Earth Mover's Distance~\cite{rubner2000earth} brought OT to image retrieval.
+
+\paragraph*{Planetary localisation}
+Rovers have relied on visual odometry~\cite{maimone2007mer}. Landing systems use terrain-relative
+navigation against orbital maps~\cite{johnson2008trn}. Recent work renders synthetic optical images
+from DTMs for lunar navigation~\cite{ceresoli2025optical} and retrieves lunar crater images with
+visual and depth features~\cite{lunarcomplexfeatures}. Surface-level lunar place recognition
+under controlled illumination change has received little systematic study. LunarSim-VPR is meant
+as a reproducible test bed for it.

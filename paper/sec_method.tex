@@ -1,0 +1,234 @@
+% ======================================================================
+\section{Problem Formulation}\label{sec:problem}
+% ======================================================================
+Let $\mathcal{D}=\{(\mathbf{I}^{\mathrm{db}}_r,\mathbf{x}_r,\psi_r)\}_{r=1}^{N}$ be a database of
+reference images with known planar position $\mathbf{x}_r\in\mathbb{R}^2$ and heading $\psi_r$, and let
+$\mathbf{I}^{q}$ be a query image taken at an unknown pose $(\mathbf{x}^q,\psi^q)$, generally under a
+different illumination. A database image is a \emph{true match} of the query if
+$\|\mathbf{x}_r-\mathbf{x}^q\|_2<\rho$ and $|\psi_r-\psi^q|_{\circ}<\vartheta$, where
+$|\cdot|_\circ$ is the wrapped angular difference (we use $\rho=10$\,m, $\vartheta=60^\circ$).
+VPR is posed as retrieval~\cite{lowry2015visual,schubert2023tutorial}: an encoder
+$\Phi$ maps every image to a unit-norm global descriptor and the database is ranked by
+cosine similarity $s_g(q,r)=\langle\Phi(\mathbf{I}^q),\Phi(\mathbf{I}^{\mathrm{db}}_r)\rangle$.
+A two-stage system additionally re-scores the top-$K$ candidates with a local score
+$s_\ell(q,r)$ computed from keypoint correspondences. Performance is measured by
+Recall@$k$, the fraction of queries with at least one true match among the top-$k$ results:
+\begin{equation}
+\mathrm{R@}k=\frac{1}{|\mathcal{Q}|}\sum_{q\in\mathcal{Q}}\mathbb{1}\big[\exists\, r\in\mathrm{top}_k(q):\ r \text{ is a true match of } q\big].
+\label{eq:recall}
+\end{equation}
+
+% ======================================================================
+\section{Method}\label{sec:method}
+% ======================================================================
+\Cref{fig:arch} gives an overview. Stage~1 aggregates the patch tokens of a vision transformer into
+a global descriptor by solving a \emph{semi-relaxed unbalanced} optimal-transport (UOT) problem
+between tokens and a set of learned clusters plus a dust-bin (\cref{sec:uot}). Stage~2 re-ranks the
+$K$ best candidates with a \emph{partial fused Gromov--Wasserstein} (FGW) matching of
+keypoints, which scores both what the keypoints look like and how they are arranged
+(\cref{sec:fgw}). The final ranking fuses the global and local scores (\cref{sec:fusion}).
+
+\subsection{Tokens, scores and the assignment problem}\label{sec:tokens}
+A DINOv2 ViT-B/14 backbone~\cite{oquab2024dinov2} produces $n$ patch tokens
+$\mathbf{t}_1,\dots,\mathbf{t}_n\in\mathbb{R}^{d}$ and a class token $\mathbf{t}_{n+1}$
+($d=768$; $n=300$ for a $210\times280$ input). Following~\cite{izquierdo2024optimal}, two small
+MLPs map each token to an assignment score vector
+$\mathbf{s}_i=(s_{i1},\dots,s_{im})\in\mathbb{R}^m$ over $m$ clusters and to a reduced feature
+$\mathbf{f}_i\in\mathbb{R}^{\ell}$:
+\begin{equation}
+\mathbf{s}_i=\mathbf{W}_{s_2}\,\sigma(\mathbf{W}_{s_1}\mathbf{t}_i+\mathbf{b}_{s_1})+\mathbf{b}_{s_2},\qquad
+\mathbf{f}_i=\mathbf{W}_{f_2}\,\sigma(\mathbf{W}_{f_1}\mathbf{t}_i+\mathbf{b}_{f_1})+\mathbf{b}_{f_2}.
+\label{eq:mlps}
+\end{equation}
+Unlike NetVLAD~\cite{arandjelovic2016netvlad}, the score layer is randomly initialised (no
+$k$-means centroids), so no geometric prior on the clusters is imposed. A learnable scalar $z$
+scores every token against an extra \emph{dust-bin} column, giving the augmented score matrix
+$\bar{\mathbf{S}}=[\mathbf{S}\,|\,z\mathbf{1}_n]\in\mathbb{R}^{n\times(m+1)}$. Each token carries
+unit mass, $\mathbf{a}=\mathbf{1}_n$, and the clusters and dust-bin have nominal capacities
+$\mathbf{b}=(\mathbf{1}_m^\top,\,n-m)^\top$ (this requires $n>m$). We write
+$H(\mathbf{P})=-\sum_{ij}P_{ij}(\log P_{ij}-1)$ for the entropy and
+$\mathrm{KL}(\mathbf{x}\|\mathbf{y})=\sum_j x_j\log(x_j/y_j)-x_j+y_j$.
+
+\paragraph{Two known special cases}
+NetVLAD distributes each token's mass independently over the clusters with a softmax,
+$P_{ij}=\mathrm{softmax}_j(s_{ij}/\varepsilon)$. This constrains only the rows of $\mathbf{P}$
+(feature$\to$cluster) and ignores how much mass each cluster receives
+(cluster$\to$feature). SALAD~\cite{izquierdo2024optimal} constrains both marginals by solving the
+balanced entropic OT problem~\cite{cuturi2013sinkhorn}
+\begin{equation}
+\mathbf{P}^{\mathrm{bal}}=\argmax_{\mathbf{P}\ge 0,\ \mathbf{P}\mathbf{1}=\mathbf{a},\ \mathbf{P}^\top\mathbf{1}=\mathbf{b}}
+\ \langle\bar{\mathbf{S}},\mathbf{P}\rangle+\varepsilon H(\mathbf{P}).
+\label{eq:balanced}
+\end{equation}
+At convergence, with $n=300$ and $m=64$, \eqref{eq:balanced} puts exactly one unit of mass into
+every cluster and $n-m=236$ units ($79\%$ of all mass) into the dust-bin, regardless of image
+content. A priori this is a questionable prior on the lunar surface, where the fraction of
+uninformative tokens (black sky, featureless regolith, saturated slopes) varies widely with the
+horizon position and the Sun elevation. In practice SALAD truncates Sinkhorn after $L=3$
+iterations, which relaxes the constraint somewhat (\cref{sec:stage1}). The formulation below makes
+the relaxation explicit and controllable.
+
+\subsection{Galatea: semi-relaxed unbalanced OT assignment}\label{sec:uot}
+We keep the token constraint hard (every token distributes exactly its unit mass) but replace
+the cluster/dust-bin constraint with a KL penalty of strength $\tau>0$~\cite{chizat2018scaling}:
+\begin{equation}
+\mathbf{P}^{\tau}=\argmax_{\mathbf{P}\ge 0,\ \mathbf{P}\mathbf{1}_{m+1}=\mathbf{a}}
+\ \langle\bar{\mathbf{S}},\mathbf{P}\rangle+\varepsilon H(\mathbf{P})-\tau\,\mathrm{KL}\big(\mathbf{P}^\top\mathbf{1}_n\,\big\|\,\mathbf{b}\big).
+\label{eq:uot}
+\end{equation}
+Define $\lambda=\tau/(\tau+\varepsilon)\in(0,1)$ and the log-sum-exp
+$\mathrm{LSE}_j(x_j)=\log\sum_j e^{x_j}$. Proofs of all propositions are given in the supplementary material.
+
+\begin{proposition}[Structure, limits]\label{prop:uot}
+Problem~\eqref{eq:uot} has a unique solution of the form
+$P^{\tau}_{ij}=\exp\big((\bar S_{ij}+f_i+g_j)/\varepsilon\big)$, where the potentials
+$(\mathbf{f},\mathbf{g})$ satisfy
+\begin{align}
+f_i &= \varepsilon\log a_i-\varepsilon\,\mathrm{LSE}_j\big((\bar S_{ij}+g_j)/\varepsilon\big),\label{eq:f}\\
+g_j &= \lambda\big[\varepsilon\log b_j-\varepsilon\,\mathrm{LSE}_i\big((\bar S_{ij}+f_i)/\varepsilon\big)\big].\label{eq:g}
+\end{align}
+(i) As $\tau\to0$ ($\lambda\to0$), $\mathbf{g}\to\mathbf{0}$ and
+$P^{\tau}_{ij}\to a_i\,\mathrm{softmax}_j(\bar S_{ij}/\varepsilon)$: the NetVLAD soft-assignment,
+augmented with a dust-bin.
+(ii) As $\tau\to\infty$ ($\lambda\to1$), \eqref{eq:f}--\eqref{eq:g} become the balanced Sinkhorn
+fixed-point equations and $\mathbf{P}^{\tau}\to\mathbf{P}^{\mathrm{bal}}$ of \eqref{eq:balanced}.
+\end{proposition}
+Hence a single scalar $\lambda$ interpolates continuously between NetVLAD-style and
+SALAD-style assignment. Galatea \emph{learns} $\lambda=\mathrm{sigmoid}(\theta)$ jointly with the
+rest of the head. Alternating \eqref{eq:f} and \eqref{eq:g} gives \cref{alg:uot}, which is SALAD's
+Sinkhorn loop with the cluster-side update multiplied by $\lambda$; it costs $O(Lnm)$.
+
+\begin{proposition}[Linear convergence]\label{prop:contraction}
+Let $\Phi$ map $\mathbf{g}$ to the value of \eqref{eq:g} after substituting $\mathbf{f}(\mathbf{g})$
+from \eqref{eq:f}. Then $\|\Phi(\mathbf{g})-\Phi(\mathbf{g}')\|_\infty\le\lambda\|\mathbf{g}-\mathbf{g}'\|_\infty$.
+For $\lambda<1$ the iterates of \cref{alg:uot} therefore converge linearly,
+$\|\mathbf{g}^{(L)}-\mathbf{g}^\star\|_\infty\le\lambda^{L}\|\mathbf{g}^{(0)}-\mathbf{g}^\star\|_\infty$,
+at a rate independent of $\varepsilon$, $n$ and $m$.
+\end{proposition}
+For the balanced case ($\lambda=1$) the same map is only non-expansive in $\|\cdot\|_\infty$. Its
+convergence is usually proved in Hilbert's projective metric, with a rate that depends on
+$\varepsilon$ and on the dynamic range of $\bar{\mathbf{S}}$~\cite{peyre2019computational}.
+\Cref{prop:contraction} instead gives an explicit, data-independent rate for every $\lambda<1$.
+Numerically the bound is tight: on random score matrices the measured error ratio between
+successive iterations approaches $\lambda$. With learned values of $\lambda$ (\cref{sec:exp}), a
+small fixed $L$ is therefore justified.
+
+\begin{proposition}[Dust-bin gating]\label{prop:dustbin}
+For every $\lambda\in[0,1]$, after any token-side update \eqref{eq:f} (in particular at the
+output of \cref{alg:uot}), the fraction of token $i$'s mass sent to the dust-bin is
+\begin{equation}
+P_{i,m+1}=\mathrm{sigmoid}\!\Big(\tfrac{1}{\varepsilon}\big[z+g_{m+1}-\varepsilon\,\mathrm{LSE}_{j\le m}\big((s_{ij}+g_j)/\varepsilon\big)\big]\Big),
+\label{eq:gate}
+\end{equation}
+which, for fixed potentials $\mathbf{g}$, is strictly decreasing in every cluster score $s_{ij}$ and increasing in $z$.
+\end{proposition}
+The dust-bin therefore acts as a learned soft gate on the token's \emph{soft-max cluster affinity}.
+Tokens that resemble no cluster, such as sky, smooth regolith or noise, are suppressed before
+aggregation. In the relaxed problem, the potential $g_{m+1}$, and with it the total discarded
+mass, adapts to the image instead of being fixed at $n-m$.
+
+The next result shows which part of the transport plan the descriptor actually sees. It explains
+the empirical behaviour reported in \cref{sec:ablation}.
+
+\begin{proposition}[Column-scale invariance]\label{prop:colinv}
+Let the descriptor be built from $\mathbf{P}$ by \eqref{eq:agg} followed by per-cluster (intra-)
+$\ell_2$-normalisation. Then $\Phi$ is invariant to $\mathbf{P}\mapsto\mathbf{P}\,\mathrm{diag}(\mathbf{c})$
+for any $\mathbf{c}>0$. In particular, for any plan of the form of \cref{prop:uot}, $\Phi$ depends on the
+cluster potentials $\mathbf{g}_{1:m}$ \emph{only through} the token weights
+$w_i=e^{f_i/\varepsilon}=a_i\big/\sum_{j\le m+1}e^{(\bar S_{ij}+g_j)/\varepsilon}$:
+\begin{equation}
+\frac{\mathbf{V}_{j,:}}{\|\mathbf{V}_{j,:}\|}=\frac{\sum_i w_i e^{s_{ij}/\varepsilon}\mathbf{f}_i}{\big\|\sum_i w_i e^{s_{ij}/\varepsilon}\mathbf{f}_i\big\|}.
+\label{eq:colinv}
+\end{equation}
+\end{proposition}
+Balanced and unbalanced assignments therefore differ only in how they \emph{weight tokens}, through
+$w_i$. How much total mass each cluster receives is removed by intra-normalisation. Equation~\eqref{eq:colinv}
+also shows that NetVLAD with a dust-bin ($\lambda=0$) is SALAD-style aggregation with the simplest
+weights, $w_i=1/(\sum_{j}e^{s_{ij}/\varepsilon}+e^{z/\varepsilon})$.
+
+\begin{algorithm}[t]
+\caption{$\lambda$-scaled log-domain Sinkhorn (Galatea assignment)}\label{alg:uot}
+\begin{algorithmic}[1]
+\Require scores $\bar{\mathbf{S}}\in\mathbb{R}^{n\times(m+1)}$, marginals $\mathbf{a},\mathbf{b}$, $\lambda\in[0,1]$, iterations $L$
+\State $\mathbf{f}\gets\mathbf{0}_n,\ \mathbf{g}\gets\mathbf{0}_{m+1}$ \Comment{$\varepsilon$ absorbed in $\bar{\mathbf{S}}$}
+\For{$\ell=1,\dots,L$}
+  \State $g_j\gets\lambda\,[\log b_j-\mathrm{LSE}_i(\bar S_{ij}+f_i)]$ \Comment{clusters + dust-bin (relaxed)}
+  \State $f_i\gets\log a_i-\mathrm{LSE}_j(\bar S_{ij}+g_j)$ \Comment{tokens (hard)}
+\EndFor
+\State \Return $\mathbf{P}=\exp(\bar{\mathbf{S}}+\mathbf{f}\mathbf{1}^\top+\mathbf{1}\mathbf{g}^\top)$ with the dust-bin column removed
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Aggregation and training}\label{sec:agg}
+With $\mathbf{P}\in\mathbb{R}^{n\times m}$ (the dust-bin column dropped), the aggregated
+descriptor is the matrix $\mathbf{V}\in\mathbb{R}^{m\times\ell}$ with entries
+\begin{equation}
+V_{j,k}=\sum_{i=1}^{n}P_{i,j}\,f_{i,k},\qquad j=1,\dots,m,\ \ k=1,\dots,\ell .
+\label{eq:agg}
+\end{equation}
+As in~\cite{izquierdo2024optimal}, centroids are not subtracted. A scene descriptor
+$\mathbf{g}_{\mathrm{sc}}=\mathbf{W}_{g_2}\sigma(\mathbf{W}_{g_1}\mathbf{t}_{n+1}+\mathbf{b}_{g_1})+\mathbf{b}_{g_2}$
+summarises the class token. Each row of $\mathbf{V}$ is $\ell_2$-normalised (intra-normalisation),
+$\mathbf{g}_{\mathrm{sc}}$ is $\ell_2$-normalised, and the concatenation
+$[\mathbf{g}_{\mathrm{sc}};\mathrm{vec}(\mathbf{V})]$ is $\ell_2$-normalised again to give
+$\Phi(\mathbf{I})\in\mathbb{R}^{256+m\ell}$ ($8448$-D for $m=64,\ell=128$).
+We train with the multi-similarity loss and miner~\cite{wang2019ms} on batches of $P$ places
+$\times$ $4$ views. Images of \emph{different} places closer than $15$\,m are masked out of the
+negative set, because adjacent places along a traverse overlap visually.
+
+\subsection{Stage 2: partial fused Gromov--Wasserstein re-ranking}\label{sec:fgw}
+Repetitive crater and boulder fields make individual local descriptors ambiguous: two places may
+share many similar-looking craters. What distinguishes them is \emph{where} those craters lie
+relative to one another~\cite{torii2013visual}. Let $\{(\mathbf{u}_i,\mathbf{d}_i)\}_{i=1}^{p}$
+and $\{(\mathbf{v}_k,\mathbf{e}_k)\}_{k=1}^{p'}$ be SuperPoint keypoints~\cite{detone2018superpoint}
+(pixel positions and unit descriptors) of the query and a candidate. We define the appearance cost
+$M_{ik}=1-\langle\mathbf{d}_i,\mathbf{e}_k\rangle$ and scale-normalised intra-image distance matrices
+$C^{q}_{ii'}=\|\mathbf{u}_i-\mathbf{u}_{i'}\|/\mu_q$ and $C^{c}_{kk'}=\|\mathbf{v}_k-\mathbf{v}_{k'}\|/\mu_c$,
+where $\mu$ is the mean pairwise distance in each image. The partial FGW
+problem~\cite{vayer2019fgw,chapel2020partial} trades appearance against preservation of the
+keypoint geometry:
+\begin{multline}
+\min_{\mathbf{T}\in\bar{\mathcal{U}}}\ (1-\alpha)\langle\mathbf{M},\mathbf{T}\rangle\\
++\alpha\!\!\sum_{i,i',k,k'}\!\!\big(C^{q}_{ii'}-C^{c}_{kk'}\big)^2T_{ik}T_{i'k'}
+-\varepsilon_\ell H(\bar{\mathbf{T}}),
+\label{eq:fgw}
+\end{multline}
+where $\bar{\mathbf{T}}\in\mathbb{R}^{(p+1)\times(p'+1)}$ augments $\mathbf{T}$ with dust-bins that
+absorb non-co-visible keypoints~\cite{sarlin2020superglue}, and $\bar{\mathcal{U}}$ fixes unit mass per
+keypoint, with $p'$ and $p$ units for the bins. We minimise \eqref{eq:fgw} by entropic mirror
+descent~\cite{peyre2016gromov}. Each step linearises the quadratic term at the current transported
+part $\mathbf{T}^{(r)}$ (normalised to unit mass, with marginals $\boldsymbol{\pi},\boldsymbol{\pi}'$):
+\begin{equation}
+\mathbf{G}^{(r)}=(\mathbf{C}^{q})^{\odot2}\boldsymbol{\pi}\mathbf{1}^\top+\mathbf{1}\boldsymbol{\pi}'^\top(\mathbf{C}^{c})^{\odot2}-2\,\mathbf{C}^{q}\mathbf{T}^{(r)}\mathbf{C}^{c\top}.
+\label{eq:gwgrad}
+\end{equation}
+(this is the gradient of the quadratic term up to a factor $2$, absorbed into $\alpha$). It then solves an entropic OT problem with dust-bins on the fused cost
+$(1-\alpha)\mathbf{M}+\alpha\mathbf{G}^{(r)}$ with the log-domain Sinkhorn algorithm. The initial plan
+uses $\mathbf{M}$ alone. Correspondences are mutual arg-maxima of $\mathbf{T}$ with confidence
+above $0.2$. They are verified with a MAGSAC++~\cite{barath2020magsac} fundamental-matrix
+fit, and the local score $s_\ell$ is the number of inliers.
+
+\begin{proposition}[Invariances of the structural term]\label{prop:inv}
+The objective \eqref{eq:fgw}, and hence $s_\ell$ before geometric verification, is invariant to
+any similarity transformation (rotation, translation, isotropic scaling) applied to the keypoint
+positions of either image, and to any permutation of the keypoints.
+\end{proposition}
+Unlike homography- or epipolar-based scoring, the structural term thus needs no camera model.
+It rewards candidates in which matched keypoints keep their \emph{relative} layout, which is
+exactly the cue that separates two crater fields with similar statistics.
+
+\subsection{Fusing global and local evidence}\label{sec:fusion}
+The final score of candidate $r$ for query $q$ is
+\begin{equation}
+s(q,r)=s_g(q,r)+\beta\,\frac{s_\ell(q,r)}{s_\ell(q,r)+\kappa},
+\label{eq:fusion}
+\end{equation}
+where the saturating map keeps one very textured candidate from dominating. $\beta$ and $\kappa$
+are selected on the validation terrain. With $\beta\to\infty$ the method reduces to pure local
+re-ranking, and with $\beta=0$ to the global ranking.
+
+\subsection{Complexity}\label{sec:complexity}
+\Cref{alg:uot} costs $O(Lnm)$ (about $6\cdot10^{4}$ operations for $L=3$), which is negligible
+next to the ViT forward pass. Each FGW step costs $O(p^2p'+pp'^2)$ for \eqref{eq:gwgrad} plus
+$O(p\,p')$ per Sinkhorn iteration. Re-ranking $K$ candidates with $R$ outer steps therefore costs
+$O(KR\,p^3)$ for $p\approx p'$. Measured run times are reported in \cref{sec:runtime}.

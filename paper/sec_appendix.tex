@@ -1,0 +1,61 @@
+% ======================================================================
+\section*{Appendix: Proofs}\label{app:proofs}
+% ======================================================================
+\paragraph*{Proof of \cref{prop:uot}}
+The objective of \eqref{eq:uot} is strictly concave (the entropy is strictly concave and the KL term
+is concave in $\mathbf{P}$ because it is the negative of a convex function of the linear map
+$\mathbf{P}\mapsto\mathbf{P}^\top\mathbf{1}$). The feasible set is convex and non-empty, and the
+objective is coercive because $-P\log P$ dominates the linear term, so the maximiser exists and is
+unique. The entropy forces $P_{ij}>0$, so only the equality constraints are active. With multipliers
+$-f_i/\varepsilon$ for the rows and $\mathbf{q}=\mathbf{P}^\top\mathbf{1}$, stationarity gives
+$\bar S_{ij}-\varepsilon\log P_{ij}-\tau\log(q_j/b_j)+f_i=0$, that is,
+$P_{ij}=\exp\big((\bar S_{ij}+f_i+g_j)/\varepsilon\big)$ with $g_j:=\tau\log(b_j/q_j)$.
+Summing over $i$ gives $q_j=e^{g_j/\varepsilon}\sum_i e^{(\bar S_{ij}+f_i)/\varepsilon}$. Substituting
+into the definition of $g_j$ gives
+$g_j(1+\tau/\varepsilon)=\tau[\log b_j-\mathrm{LSE}_i((\bar S_{ij}+f_i)/\varepsilon)]$, which is
+\eqref{eq:g} with $\lambda=\tau/(\tau+\varepsilon)$. The row constraint
+$\sum_j P_{ij}=a_i$ is \eqref{eq:f}.
+(i) Let $\Phi$ be the composed map of \cref{prop:contraction}, which is $\lambda$-Lipschitz. At the
+fixed point, $\|\mathbf{g}^\star\|_\infty\le\|\Phi(\mathbf{g}^\star)-\Phi(\mathbf{0})\|_\infty+\|\Phi(\mathbf{0})\|_\infty
+\le\lambda\|\mathbf{g}^\star\|_\infty+\|\Phi(\mathbf{0})\|_\infty$, and $\|\Phi(\mathbf{0})\|_\infty=O(\lambda)$ by
+\eqref{eq:g}. Hence $\|\mathbf{g}^\star\|_\infty\le\|\Phi(\mathbf{0})\|_\infty/(1-\lambda)=O(\lambda)$, so
+$\mathbf{g}^\star\to\mathbf{0}$ as $\lambda\to0$. Substituting $\mathbf{g}=\mathbf{0}$ into \eqref{eq:f} gives
+$P_{ij}=a_i e^{\bar S_{ij}/\varepsilon}/\sum_k e^{\bar S_{ik}/\varepsilon}$. At $\tau=0$ this holds
+exactly, because the problem decouples over rows into independent entropy-regularised linear
+programs on scaled simplices.
+(ii) As $\tau\to\infty$, $\tau\,\mathrm{KL}(\cdot\|\mathbf{b})$ $\Gamma$-converges to the indicator of
+$\{\mathbf{P}^\top\mathbf{1}=\mathbf{b}\}$. Since the objectives are equi-coercive and the maximisers
+unique, $\mathbf{P}^\tau\to\mathbf{P}^{\mathrm{bal}}$~\cite{chizat2018scaling}. Setting $\lambda=1$
+in \eqref{eq:f}--\eqref{eq:g} gives the balanced Sinkhorn equations.\hfill$\square$
+
+\paragraph*{Proof of \cref{prop:contraction}}
+For any vector $\mathbf{x}$ and perturbation $\boldsymbol{\delta}$,
+$|\mathrm{LSE}(\mathbf{x}+\boldsymbol{\delta})-\mathrm{LSE}(\mathbf{x})|\le\|\boldsymbol{\delta}\|_\infty$,
+because $\nabla\mathrm{LSE}$ is a probability vector. Hence the map $\mathbf{g}\mapsto\mathbf{f}(\mathbf{g})$ of
+\eqref{eq:f} is $1$-Lipschitz in $\|\cdot\|_\infty$, and the map $\mathbf{f}\mapsto\mathbf{g}$ of
+\eqref{eq:g} is $\lambda$-Lipschitz. Their composition $\Phi$ is $\lambda$-Lipschitz. For
+$\lambda<1$ it is a contraction on $(\mathbb{R}^{m+1},\|\cdot\|_\infty)$, so by Banach's theorem it has a
+unique fixed point $\mathbf{g}^\star$ (the potential of \cref{prop:uot}), and
+$\|\mathbf{g}^{(L)}-\mathbf{g}^\star\|_\infty\le\lambda^L\|\mathbf{g}^{(0)}-\mathbf{g}^\star\|_\infty$.
+The rate does not depend on $\varepsilon$, $n$ or $m$, because the Lipschitz bounds do not.\hfill$\square$
+
+\paragraph*{Proof of \cref{prop:dustbin}}
+After \eqref{eq:f} with $a_i=1$, $e^{f_i/\varepsilon}=1/\sum_{j\le m+1}e^{(\bar S_{ij}+g_j)/\varepsilon}$, so
+$P_{i,m+1}=e^{(z+g_{m+1})/\varepsilon}\big/\big(e^{(z+g_{m+1})/\varepsilon}+\sum_{j\le m}e^{(s_{ij}+g_j)/\varepsilon}\big)$,
+which equals \eqref{eq:gate}. The argument of the sigmoid is strictly decreasing in each $s_{ij}$,
+because $\partial\,\mathrm{LSE}/\partial x_j>0$, and increasing in $z$.\hfill$\square$
+
+\paragraph*{Proof of \cref{prop:colinv}}
+By \eqref{eq:agg}, $\mathbf{V}_{j,:}=\sum_iP_{ij}\mathbf{f}_i$. Replacing $P_{ij}$ by $c_jP_{ij}$ multiplies row
+$j$ of $\mathbf{V}$ by $c_j>0$, which intra-normalisation removes. The scene token does not depend on
+$\mathbf{P}$, so $\Phi$ is unchanged. For $P_{ij}=e^{(\bar S_{ij}+f_i+g_j)/\varepsilon}$, take
+$c_j=e^{-g_j/\varepsilon}$ to obtain \eqref{eq:colinv}, with $w_i=e^{f_i/\varepsilon}$ given by \eqref{eq:f}.
+For $\lambda=0$, $\mathbf{g}=\mathbf{0}$ and $a_i=1$.\hfill$\square$
+
+\paragraph*{Proof of \cref{prop:inv}}
+For a similarity transform $\mathbf{u}\mapsto c\mathbf{R}\mathbf{u}+\mathbf{t}$, all pairwise distances
+scale by $c$ and so does their mean $\mu$, which leaves $\mathbf{C}^{q}$ unchanged. The appearance cost
+$\mathbf{M}$ does not depend on positions. A permutation of keypoints permutes rows and columns of
+$\mathbf{M}$, $\mathbf{C}$ and $\mathbf{T}$ consistently and leaves \eqref{eq:fgw} and its dust-bin
+constraints invariant. The mutual-arg-max correspondences, and hence their number, are therefore
+unchanged.\hfill$\square$

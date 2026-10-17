@@ -1,0 +1,24 @@
+{
+ "salad_s0": {
+  "dust_frac_mean": 0.8329836953183015,
+  "dust_frac_std": 0.011544905087385786,
+  "dust_frac_min": 0.7892700433731079,
+  "dust_frac_max": 0.8647474050521851,
+  "corr_sky_dust": 0.625428011599241,
+  "sky_tok_dust": 0.867481391786833,
+  "gnd_tok_dust": 0.8202533592283726,
+  "cluster_mass_cv": 0.18108679921055834,
+  "n_images": 1200
+ },
+ "galatea_s0": {
+  "dust_frac_mean": 0.0038465813108875106,
+  "dust_frac_std": 0.002711411927822997,
+  "dust_frac_min": 0.0011225884081795812,
+  "dust_frac_max": 0.030169446021318436,
+  "corr_sky_dust": -0.3388585946765159,
+  "sky_tok_dust": 0.0036829570052607195,
+  "gnd_tok_dust": 0.003962278214773202,
+  "cluster_mass_cv": 6.440735294818878,
+  "n_images": 1200
+ }
+}
