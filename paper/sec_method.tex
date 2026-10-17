@@ -14,7 +14,7 @@ A two-stage system additionally re-scores the top-$K$ candidates with a local sc
 $s_\ell(q,r)$ computed from keypoint correspondences. Performance is measured by
 Recall@$k$, the fraction of queries with at least one true match among the top-$k$ results:
 \begin{equation}
-\mathrm{R@}k=\frac{1}{|\mathcal{Q}|}\sum_{q\in\mathcal{Q}}\mathbb{1}\big[\exists\, r\in\mathrm{top}_k(q):\ r \text{ is a true match of } q\big].
+\mathrm{R@}k=\frac{1}{|\mathcal{Q}|}\sum_{q\in\mathcal{Q}}\mathbf{1}\big[\exists\, r\in\mathrm{top}_k(q):\ r \text{ is a true match of } q\big].
 \label{eq:recall}
 \end{equation}
 
@@ -36,8 +36,10 @@ MLPs map each token to an assignment score vector
 $\mathbf{s}_i=(s_{i1},\dots,s_{im})\in\mathbb{R}^m$ over $m$ clusters and to a reduced feature
 $\mathbf{f}_i\in\mathbb{R}^{\ell}$:
 \begin{equation}
-\mathbf{s}_i=\mathbf{W}_{s_2}\,\sigma(\mathbf{W}_{s_1}\mathbf{t}_i+\mathbf{b}_{s_1})+\mathbf{b}_{s_2},\qquad
-\mathbf{f}_i=\mathbf{W}_{f_2}\,\sigma(\mathbf{W}_{f_1}\mathbf{t}_i+\mathbf{b}_{f_1})+\mathbf{b}_{f_2}.
+\begin{aligned}
+\mathbf{s}_i&=\mathbf{W}_{s_2}\,\sigma(\mathbf{W}_{s_1}\mathbf{t}_i+\mathbf{b}_{s_1})+\mathbf{b}_{s_2},\\
+\mathbf{f}_i&=\mathbf{W}_{f_2}\,\sigma(\mathbf{W}_{f_1}\mathbf{t}_i+\mathbf{b}_{f_1})+\mathbf{b}_{f_2}.
+\end{aligned}
 \label{eq:mlps}
 \end{equation}
 Unlike NetVLAD~\cite{arandjelovic2016netvlad}, the score layer is randomly initialised (no
