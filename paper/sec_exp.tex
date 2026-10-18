@@ -30,9 +30,7 @@ global pooling cannot separate place-specific tokens from illumination-dependent
 cluster-based aggregation can~\cite{izquierdo2024optimal}.
 
 Galatea and SALAD are statistically indistinguishable: the paired difference in R@1 is
-$\galVsSalMean$ points (95\% CI $[\galVsSalLo,\galVsSalHi]$). This is what \cref{prop:colinv} predicts.
-After intra-normalisation, the cluster-side constraint affects the descriptor only through token
-weights. The two heads differ sharply in how they spend mass. The balanced head sends
+$\galVsSalMean$ points (95\% CI $[\galVsSalLo,\galVsSalHi]$), as \cref{prop:colinv} predicts. The two heads differ sharply in how they spend mass. The balanced head sends
 $\salDust\%$ of all token mass to the dust-bin, and its total dust-bin mass correlates with the sky
 fraction of the image ($\rho=\salSkyCorr$). The learned unbalanced head ($\bar\lambda=\galLam$)
 discards only $\galDust\%$ and concentrates the remaining mass on a few clusters (coefficient of

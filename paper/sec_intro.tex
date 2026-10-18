@@ -83,12 +83,11 @@ relative keypoint geometry.
 Entropic regularisation and the Sinkhorn algorithm~\cite{cuturi2013sinkhorn,peyre2019computational}
 made OT differentiable and fast. Unbalanced OT replaces hard marginal constraints with divergence
 penalties and keeps Sinkhorn-like scaling algorithms~\cite{chizat2018scaling}.
-The Earth Mover's Distance~\cite{rubner2000earth} brought OT to image retrieval.
 
 \paragraph*{Planetary localisation}
-Rovers have relied on visual odometry~\cite{maimone2007mer}. Landing systems use terrain-relative
-navigation against orbital maps~\cite{johnson2008trn}. Recent work renders synthetic optical images
-from DTMs for lunar navigation~\cite{ceresoli2025optical} and retrieves lunar crater images with
-visual and depth features~\cite{lunarcomplexfeatures}. Surface-level lunar place recognition
-under controlled illumination change has received little systematic study. LunarSim-VPR is meant
-as a reproducible test bed for it.
+Rovers rely on visual odometry~\cite{maimone2007mer}, and landers on terrain-relative navigation
+against orbital maps~\cite{johnson2008trn}. Synthetic optical images rendered from DTMs support lunar
+navigation~\cite{ceresoli2025optical}. Our DESPINA~\cite{nelsonarcher2026despina} synthesises
+photorealistic horizon views for a given location and heading with DEM-conditioned diffusion.
+Lunar crater images have been retrieved with visual and depth features~\cite{lunarcomplexfeatures}.
+Surface-level place recognition under controlled illumination change remains largely unstudied.

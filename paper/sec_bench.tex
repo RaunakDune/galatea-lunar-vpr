@@ -5,7 +5,8 @@ No public lunar surface dataset combines dense pose ground truth with systematic
 coverage. We therefore built a lightweight, reproducible renderer that targets the three properties
 that make lunar VPR hard: self-similar relief, hard shadows and non-Lambertian photometry. It does
 not replace real data (\cref{sec:limits}), but it lets us vary one factor at a time with exact
-ground truth.
+ground truth. It complements DESPINA~\cite{nelsonarcher2026despina}, which produces realistic
+appearance for real sites from LRO DEMs but does not expose explicit control of the Sun direction.
 
 \paragraph*{Terrain}
 Each scene combines a \emph{regional} DEM ($16$\,m/px, $16.4$\,km) and a \emph{local} DEM

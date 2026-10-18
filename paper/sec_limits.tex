@@ -14,18 +14,13 @@ keypoints to 3-D with DEM depth is a natural extension.
 % ======================================================================
 \section{Conclusion}\label{sec:conclusion}
 % ======================================================================
-Galatea treats both stages of lunar place recognition as optimal-transport problems. For
-aggregation, a semi-relaxed unbalanced formulation unifies the NetVLAD and SALAD assignments under
-one parameter. It comes with an explicit convergence rate, a closed-form view of the dust-bin, and
-an invariance result showing that intra-normalised descriptors see the plan only through token
-weights. For re-ranking, partial fused Gromov--Wasserstein matching adds the relative layout of
-keypoints to their appearance, and a saturating fusion merges local and global evidence. On the
-LunarSim-VPR benchmark, three findings are useful for practitioners:
+Galatea casts both stages of lunar place recognition as optimal transport: a semi-relaxed
+unbalanced assignment that unifies NetVLAD and SALAD, and partial fused Gromov--Wasserstein
+re-ranking fused with the global score. On LunarSim-VPR,
 (i)~terrestrial models, including foundation-model ones, lose more than half their recall under
 large Sun changes;
-(ii)~illumination-diverse training data is worth far more than the choice of aggregation layer,
-and, as predicted by the theory, balanced and unbalanced assignments perform alike;
-(iii)~fusing local with global evidence adds five to seven points of Recall@1 regardless of the
-local matcher, whereas re-ranking by local evidence alone helps little.
-The next steps are evaluation on DEM-registered real imagery, joint fine-tuning of the backbone,
-and 3-D structural terms that use the database's DEM depth.
+(ii)~illumination-diverse training matters far more than the aggregation layer, and balanced and
+unbalanced assignments perform alike, as the theory predicts;
+(iii)~fusing local with global evidence adds five to seven points of Recall@1 for every local
+matcher. Next steps are real imagery, with DESPINA-synthesised reference views of real
+sites~\cite{nelsonarcher2026despina}, joint backbone fine-tuning, and 3-D structural terms from DEM depth.
