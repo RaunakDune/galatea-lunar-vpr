@@ -30,3 +30,20 @@ preferred-citation:
       affiliation: "Department of Computer Science, University of Houston"
   year: 2026
   notes: "Manuscript under preparation."
+references:
+  - type: article
+    title: "DESPINA: Synthesis of High-Fidelity Planetary Horizon Reconstructions Using DEM-Guided Diffusion"
+    authors:
+      - family-names: Nelson-Archer
+        given-names: Adam
+      - family-names: Sarbajna
+        given-names: Raunak
+        orcid: "https://orcid.org/0000-0002-3184-7226"
+      - family-names: Eick
+        given-names: Christoph F.
+    journal: "ISPRS Annals of the Photogrammetry, Remote Sensing and Spatial Information Sciences"
+    volume: "XI-2-2026"
+    start: 881
+    end: 890
+    year: 2026
+    doi: "10.5194/isprs-annals-XI-2-2026-881-2026"

@@ -109,6 +109,25 @@ python3 train_eval.py --name galatea_s0 --head ot --mode learn --steps 500 --P 2
 To reproduce everything (every number, table, figure and the paper PDF), run `bash scripts/reproduce_all.sh`.
 Details are in [`docs/REPRODUCE.md`](docs/REPRODUCE.md).
 
+## Related project: DESPINA
+
+[DESPINA](https://doi.org/10.5194/isprs-annals-XI-2-2026-881-2026) (Nelson-Archer, Sarbajna and Eick,
+ISPRS Annals 2026) synthesises photorealistic lunar horizon views for a given location and heading. It
+works from LRO elevation models with DEM-conditioned diffusion (SDXL with a lunar LoRA, plus depth and
+soft-edge ControlNets). DESPINA and LunarSim complement each other:
+
+- LunarSim gives exact ground truth and explicit control of the Sun direction, for controlled
+  illumination studies.
+- DESPINA gives realistic appearance for *real* sites, but does not expose Sun-direction control.
+
+Code: [UH-DAIS/DESPINA_technical_details](https://github.com/UH-DAIS/DESPINA_technical_details) ·
+Data: [UH-DAIS/DESPINA_dataset](https://github.com/UH-DAIS/DESPINA_dataset)
+
+**Planned:** a real-imagery evaluation of Galatea. Its reference database will be DESPINA-synthesised
+views of LRO elevation-model poses at the Apollo 17 Taurus–Littrow site, and its queries will be Apollo 17
+surface photographs taken at stations with published coordinates. This depends on the DESPINA diffusion
+weights, which are not yet public.
+
 ## Documentation
 
 - [`docs/BENCHMARK.md`](docs/BENCHMARK.md): the LunarSim-VPR dataset card (renderer, splits, protocol, file format).
@@ -129,6 +148,20 @@ Details are in [`docs/REPRODUCE.md`](docs/REPRODUCE.md).
 ```
 
 GitHub's "Cite this repository" button uses [`CITATION.cff`](CITATION.cff).
+
+If you use DESPINA-generated imagery, please also cite:
+
+```bibtex
+@article{nelsonarcher2026despina,
+  title   = {{DESPINA}: Synthesis of High-Fidelity Planetary Horizon Reconstructions Using {DEM}-Guided Diffusion},
+  author  = {Nelson-Archer, Adam and Sarbajna, Raunak and Eick, Christoph F.},
+  journal = {ISPRS Annals of the Photogrammetry, Remote Sensing and Spatial Information Sciences},
+  volume  = {XI-2-2026},
+  pages   = {881--890},
+  year    = {2026},
+  doi     = {10.5194/isprs-annals-XI-2-2026-881-2026}
+}
+```
 
 ## License and third-party code
 

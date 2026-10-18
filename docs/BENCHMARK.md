@@ -80,6 +80,15 @@ FIXED_SUN=1 python3 gen_dataset.py     # train_fixed ablation
 
 To add scenes or conditions, edit `TEST_CONDS` and the `specs` list in `gen_dataset.py`.
 
+## Relation to DESPINA
+
+[DESPINA](https://doi.org/10.5194/isprs-annals-XI-2-2026-881-2026) generates photorealistic horizon
+views of real lunar sites from LRO elevation models with DEM-conditioned diffusion. It does not control
+the Sun direction, and its published dataset has no camera poses. LunarSim-VPR covers the complementary
+need: paired views of the same pose under known Sun directions, with exact ground truth. A planned
+extension uses DESPINA views of real Apollo 17 elevation-model poses as a reference database for
+evaluation with real query photographs.
+
 ## Known limitations
 
 - Near-field rocks smaller than the 0.3 m DEM spacing are not resolved.
