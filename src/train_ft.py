@@ -159,6 +159,8 @@ for step in range(args.steps):
     ign = torch.tensor(near, device=DEV) & (L[:, None] != L[None, :])
     D = head(suffix(Z[idx].to(DEV, non_blocking=True).float()))
     loss = ms_loss(D, L, ign)
+    if not torch.is_tensor(loss):          # no informative pair mined in this batch: skip the update
+        sched.step(); continue
     opt.zero_grad(); loss.backward(); opt.step(); sched.step()
     if step % 50 == 0 or step == args.steps - 1:
         extra = f' lam={float(head.lam()):.3f} z={float(head.dust_bin):.2f}' if args.head == 'ot' else ''

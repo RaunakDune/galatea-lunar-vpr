@@ -127,6 +127,8 @@ for step in range(args.steps):
     ign = torch.tensor(near, device=DEV) & (L[:, None] != L[None, :])
     D = net(fetch(idx))
     loss = ms_loss(D, L, ign)
+    if not torch.is_tensor(loss):          # no informative pair mined in this batch: skip the update
+        sched.step(); continue
     opt.zero_grad(); loss.backward(); opt.step(); sched.step()
     if step % 50 == 0 or step == args.steps - 1:
         extra = f' lam={float(net.lam()):.3f} z={float(net.dust_bin):.2f}' if args.head == 'ot' else ''
