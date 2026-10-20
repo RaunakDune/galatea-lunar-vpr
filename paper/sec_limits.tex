@@ -17,9 +17,10 @@ Galatea treats lunar visual place recognition as optimal transport at both stage
 semi-relaxed unbalanced assignments for global aggregation, which contains the NetVLAD and SALAD
 assignments and a learned relaxation, and a partial fused Gromov--Wasserstein matcher whose evidence
 is fused with the global score by a rule with bounded override. The theory of the assignment family
-predicted, and LunarSim-VPR confirmed, that its members are equivalent on a frozen backbone; once the
-backbone is fine-tuned, the end points are preferable and residual aggregation is best. Global--local
-fusion improved every stage-1 model and every local matcher, because it keeps most of what local
+predicted, and LunarSim-VPR confirmed, that its members are equivalent on a frozen backbone and that a learned
+relaxation would not move; once the backbone is fine-tuned the family spreads only slightly, learning
+$\lambda$ brings no benefit over fixing it, and residual aggregation is best. Global--local
+fusion improved every stage-1 model and every local matcher, because it keeps about half of what local
 evidence rescues without overturning confident global decisions. Illumination-diverse training
 remained the largest single factor. Next steps are real imagery, with DESPINA-synthesised reference
 views of real sites~\cite{nelsonarcher2026despina}, and 3-D structural terms from DEM depth.

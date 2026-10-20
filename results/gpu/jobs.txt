@@ -92,3 +92,9 @@ ft1e-4_lam0.25_s1|train_ft.py --head ot --mode fixed --lam0 0.25 --seed 1 --bb_l
 ft1e-4_lam0.75_s1|train_ft.py --head ot --mode fixed --lam0 0.75 --seed 1 --bb_lr 1e-4 --steps 1000
 ft1e-4_lam0.25_s2|train_ft.py --head ot --mode fixed --lam0 0.25 --seed 2 --bb_lr 1e-4 --steps 1000
 ft1e-4_lam0.75_s2|train_ft.py --head ot --mode fixed --lam0 0.75 --seed 2 --bb_lr 1e-4 --steps 1000
+lam0.5_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode fixed --lam0 0.5 --seed 0
+lam0.5_s1|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode fixed --lam0 0.5 --seed 1
+lam0.5_s2|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode fixed --lam0 0.5 --seed 2
+ft1e-4_lam0.5_s0|train_ft.py --head ot --mode fixed --lam0 0.5 --seed 0 --bb_lr 1e-4 --steps 1000
+ft1e-4_lam0.5_s1|train_ft.py --head ot --mode fixed --lam0 0.5 --seed 1 --bb_lr 1e-4 --steps 1000
+ft1e-4_lam0.5_s2|train_ft.py --head ot --mode fixed --lam0 0.5 --seed 2 --bb_lr 1e-4 --steps 1000

@@ -35,14 +35,40 @@ learning rate 1e-4 selected on the validation scene; mean ± std over 3 seeds, N
 
 - Fine-tuning gains (R@1): GeM +19.2, NetVLAD +18.2, SALAD +14.1, Galatea +11.5 (95% CI [10.2, 12.8]).
 - Paired differences: NetVLAD − SALAD +2.9 [+1.9, +3.9]; Galatea − SALAD −2.2 [−3.2, −1.2];
-  λ=0 − Galatea +1.8 [+0.9, +2.8]. With a fine-tuned backbone the end points λ ∈ {0, 1} beat a learned
-  intermediate λ; NetVLAD's residual aggregation is best.
+  λ=0 − Galatea +1.8 [+0.9, +2.8]. See the assignment-family table below: fixed λ values lie within 1.5
+  points, a learned λ matches fixed λ = 0.5, and NetVLAD's residual aggregation is best.
 - Global–local fusion on the fine-tuned Galatea (3 seeds): +3.1 ± 0.4 (FGW, R@1 74.5 ± 0.8),
-  +3.3 ± 0.6 (MNN + MAGSAC++). Fine-tuned NetVLAD + FGW fusion (seed 0): **R@1 79.4**, R@5 95.4.
+  +3.3 ± 0.6 (MNN + MAGSAC++). Fine-tuned NetVLAD + FGW fusion (3 seeds): **R@1 78.8 ± 0.5**, R@5 95.3
+  (fusion gain +2.4 ± 0.2; MNN + MAGSAC++ +1.9 ± 0.2).
 - Single-illumination training with fine-tuning: Galatea 51.2 (−21.5 vs. seed-0 reference 72.8; hard 24.7 vs. 60.9),
   SALAD 54.0.
 - Backbone learning-rate sweep (validation R@1, Galatea seed 0): 1e-5: 68.4, 3e-5: 70.4, **1e-4: 76.6**,
   3e-4: 68.9, 1e-3: 18.4.
+
+### The assignment family (GPU, 3 seeds each)
+
+| Assignment | Frozen R@1 | Frozen hard | Fine-tuned R@1 | Fine-tuned hard |
+|---|---|---|---|---|
+| λ=0, dust-bin | 60.1 ± 0.9 | 48.1 | 73.1 ± 1.1 | 61.9 |
+| λ=0, no dust-bin | 60.3 ± 1.0 | 48.9 | 71.9 ± 1.4 | 61.2 |
+| λ=0.25 | 60.0 ± 1.1 | 48.1 | 73.0 ± 1.4 | 62.4 |
+| λ=0.5 | 59.4 ± 0.9 | 47.3 | 72.0 ± 0.8 | 60.7 |
+| learned λ (Galatea, init. 0.5) | 59.5 ± 1.3 | 47.4 | 71.3 ± 1.2 | 60.1 |
+| λ=0.75 | 58.6 ± 1.0 | 47.2 | 73.3 ± 0.1 | 61.6 |
+| λ=1 (SALAD), dust-bin | 59.6 ± 0.4 | 48.7 | 73.5 ± 0.5 | 62.2 |
+| λ=1, no dust-bin | 55.8 ± 1.5 | 44.1 | 74.4 ± 0.9 | 62.9 |
+| NetVLAD (residual, k-means) | 57.8 ± 0.7 | 46.3 | 76.4 ± 0.7 | 64.3 |
+
+The OT rows share SALAD's aggregation and differ only in the assignment. Paired differences (95% CI):
+without vs. with dust-bin at λ = 0: frozen +0.1 [−0.5, +0.7], fine-tuned −1.2 [−2.1, −0.2]; at λ = 1:
+frozen −3.8 [−4.8, −2.7], fine-tuned +0.8 [−0.1, +1.8]. Learned λ vs. fixed λ = 0.5: frozen +0.2 [−0.3, +0.7],
+fine-tuned −0.6 [−1.6, +0.3]. Fine-tuned NetVLAD vs. λ = 0 without dust-bin: +4.5 [+3.5, +5.5].
+
+### Why fusion works (Galatea seed 0, % of test queries)
+
+Local-only ranking with FGW rescues 15.0% of queries but breaks 16.0%; fused, it rescues 7.6% and breaks 2.4%
+(frozen stage 1). With the fine-tuned stage 1, local-only ranking breaks 17.6–21.0% and fusion 1.8–3.0%.
+Overrides that break a correct result overturn a median global margin of 0.106, twice that of rescues (0.050).
 
 ### Cross-hardware reproduction of the frozen-backbone runs
 

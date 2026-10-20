@@ -8,8 +8,8 @@ $\zsSaladHard\%$ to $\galHard\%$ (\cref{tab:main}). All cluster-based heads clea
 zero-shot model, whereas GeM pooling of the same frozen tokens does not ($\gemRone\%$): global pooling
 cannot separate place-specific from illumination-dependent tokens~\cite{izquierdo2024optimal}.
 
-\Cref{tab:family} (left) confirms predictions (P1) and (P2). Every member of the OT family, from
-$\lambda=0$ to $\lambda=1$, reaches the same R@1 within seed noise (spread across fixed $\lambda$:
+\Cref{tab:family} (left) confirms predictions (P1) and (P2). With a dust-bin, every value of $\lambda$
+from $0$ to $1$ reaches the same R@1 within seed noise (spread across fixed $\lambda$:
 $\famFrLamRange$ points), and Galatea's learned head is statistically indistinguishable from SALAD
 ($\galVsSalMean$ points, CI $[\galVsSalLo,\galVsSalHi]$). A learned $\lambda$ barely leaves its
 initialisation ($\bar\lambda=\galLam$); even with a $25\times$ larger learning rate on $\lambda$ and
@@ -30,14 +30,19 @@ below the OT heads on frozen tokens ($\famFrNv\%$).
 Fine-tuning the last four backbone blocks together with the head (\cref{tab:main}, bottom) improves
 every head substantially: GeM by $\ftGemGain$, NetVLAD by $\ftNvGain$, SALAD by $\ftSalGain$ and the
 Galatea head by $\ftGalGain$ points R@1 (CI $[\ftGainLo,\ftGainHi]$; hard conditions:
-$\galHard\%\to\ftGalHard\%$). The family no longer collapses completely (\cref{tab:family}, right),
-but its structure is simple. All \emph{fixed} values of $\lambda$ remain equivalent
-(spread $\famFtLamRange$ points), and the dust-bin changes R@1 by about one point at most
+$\galHard\%\to\ftGalHard\%$). Within the OT family the spread stays small (\cref{tab:family},
+right): the fixed values of $\lambda$ lie within $\famFtLamRange$ points of each other, and the dust-bin changes R@1 by about one point at most
 ($\lambda=0$: $\famFtNDvsDMean$ $[\famFtNDvsDLo,\famFtNDvsDHi]$; $\lambda=1$:
 $\famFtSalNDvsDMean$ $[\famFtSalNDvsDLo,\famFtSalNDvsDHi]$), presumably because the backbone learns to
-make uninformative tokens harmless. The \emph{learned} $\lambda$, which again stays near its
-initialisation ($\bar\lambda=\ftGalLam$), is the one member that falls behind
-($\famFtGal\%$; $\famFtGalVsSalMean$, CI $[\famFtGalVsSalLo,\famFtGalVsSalHi]$ vs.\ SALAD). LAMHALF
+make uninformative tokens harmless. The learned head is the weakest member ($\famFtGal\%$;
+$\famFtGalVsSalMean$, CI $[\famFtGalVsSalLo,\famFtGalVsSalHi]$ vs.\ SALAD), but the control with
+$\lambda$ fixed at its initial value $0.5$ shows that learning is not the cause: $\lambda$ again stays
+near its initialisation ($\bar\lambda=\ftGalLam$), and the learned head matches the fixed one
+($\famFtLamH\%$; $\famFtGalVsHalfMean$, CI $[\famFtGalVsHalfLo,\famFtGalVsHalfHi]$), as it does on a
+frozen backbone ($\famFrGalVsHalfMean$, CI $[\famFrGalVsHalfLo,\famFrGalVsHalfHi]$). Learning $\lambda$
+therefore neither helps nor hurts; it simply does not move away from a value that, with a fine-tuned
+backbone, happens to sit at the low end of a narrow range. Whether that dip at $\lambda=0.5$ is real or
+seed noise cannot be decided with three seeds.
 
 The largest difference is not inside the OT family at all. NetVLAD, which aggregates residuals to
 $k$-means-initialised centroids, becomes the best head ($\ftNvRone\pm\ftNvRonesd\%$). Its closest

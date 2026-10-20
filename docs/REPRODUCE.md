@@ -28,7 +28,8 @@ fine-tuning run (`train_ft.py`) about 25 min. The fine-tuning runs of the paper 
 ```bash
 GALATEA_RESULTS=results/gpu bash scripts/gpu_queue.sh scripts/finetune_jobs.txt "0 1 2 3"
 GALATEA_RESULTS=results/gpu bash scripts/rerank_parallel.sh 16 ft1e-4_galatea_s0:mnn,uot,fgw,lg \
-    ft1e-4_galatea_s1:mnn,fgw ft1e-4_galatea_s2:mnn,fgw ft1e-4_netvlad_s0:mnn,fgw
+    ft1e-4_galatea_s1:mnn,fgw ft1e-4_galatea_s2:mnn,fgw ft1e-4_netvlad_s0:mnn,fgw \
+    ft1e-4_netvlad_s1:mnn,fgw ft1e-4_netvlad_s2:mnn,fgw
 ```
 
 `gpu_queue.sh` skips finished runs and can be re-launched safely. Fine-tuning is deterministic on a given

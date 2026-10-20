@@ -61,9 +61,10 @@ and without fusion, and the effect of training illumination. We distil the resul
 guidelines for lunar VPR.
 \end{enumerate}
 
-The findings are not all in favour of the most flexible model. With a frozen backbone every member of
-the family performs alike, exactly as \cref{prop:colinv} predicts. With a fine-tuned backbone the end
-points of the family beat a learned intermediate $\lambda$ and residual NetVLAD aggregation is best.
+The findings are not all in favour of the most flexible model. With a frozen backbone every value of
+$\lambda$ performs alike, exactly as \cref{prop:colinv} predicts. With a fine-tuned backbone the
+family spreads only slightly, a learned $\lambda$ is no better than fixing it at its initial value, and
+residual NetVLAD aggregation, a different design axis, pulls ahead.
 Fusion, in contrast, helps every stage-1 model, and how local and global evidence are combined matters
 more than which local matcher is used.
 

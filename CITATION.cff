@@ -19,7 +19,7 @@ authors:
     affiliation: "Department of Computer Science, University of Houston"
 preferred-citation:
   type: article
-  title: "Galatea: Merging Local and Global Descriptors with Optimal Transport for Visual Place Recognition on Extraterrestrial Surfaces"
+  title: "Galatea: An Optimal Transport Framework for Merging Global and Local Descriptors in Visual Place Recognition on Extraterrestrial Surfaces"
   authors:
     - family-names: Sarbajna
       given-names: Raunak

@@ -2,7 +2,7 @@
 
 Code, benchmark and paper source for
 
-> **Galatea: Merging Local and Global Descriptors with Optimal Transport for Visual Place Recognition on Extraterrestrial Surfaces**
+> **Galatea: An Optimal Transport Framework for Merging Global and Local Descriptors in Visual Place Recognition on Extraterrestrial Surfaces**
 > Raunak Sarbajna and Christoph F. Eick, University of Houston. Manuscript in preparation, targeting IEEE RA-L.
 
 Galatea is a two-stage visual place recognition (VPR) system for GNSS-denied lunar surface navigation:
@@ -37,7 +37,7 @@ illumination alone.
 | λ=0 OT head, fine-tuned backbone | 73.1 ± 1.1 | 61.9 |
 | Galatea (learned λ), fine-tuned backbone | 71.3 ± 1.2 | 60.1 |
 | Galatea (fine-tuned) + FGW fusion | 74.5 ± 0.8 | 63.0 |
-| **NetVLAD (fine-tuned) + FGW fusion** | **79.4** (seed 0) | **67.7** |
+| **NetVLAD (fine-tuned) + FGW fusion** | **78.8 ± 0.5** | **66.9** |
 
 Trained rows give the mean ± std over 3 seeds. "Frozen": only the aggregation head is trained; "fine-tuned":
 the last four DINOv2 blocks are trained with the head (GPU). "Hardest" averages conditions C2 (grazing Sun),
@@ -46,11 +46,13 @@ C5 (shadows reversed) and C6 (both). The main findings:
 - Illumination-diverse training is worth +24 points over the best terrestrial model with a frozen backbone.
   A single training Sun direction costs 13.6 points frozen and 21.5 points fine-tuned.
 - Joint backbone fine-tuning adds 11–19 points of R@1 for every head.
-- With a frozen backbone, balanced and unbalanced OT assignment perform alike; the paper proves why (after
-  intra-normalisation the descriptor sees the transport plan only through per-token weights). With
-  fine-tuning, the end points λ ∈ {0, 1} beat a learned intermediate λ, and NetVLAD is the best head.
-- Fusing local and global evidence adds 3–7 points for every local matcher. Re-ranking by local evidence
-  alone helps little.
+- With a frozen backbone, every value of λ performs alike; the paper proves why (after intra-normalisation
+  the descriptor sees the transport plan only through per-token weights). With fine-tuning the OT family
+  stays within about two points, a learned λ behaves like a fixed λ at its initial value, and NetVLAD's
+  residual aggregation pulls ahead (+4.5 over the matching OT head).
+- Fusing local and global evidence adds 2–7 points for every stage-1 model and local matcher. Local-only
+  re-ranking rescues ~15% of queries but breaks as many; fusion keeps about half the rescues and breaks
+  2–5% (it can only override small global margins).
 
 The full tables and ablations are in [`docs/RESULTS.md`](docs/RESULTS.md).
 
@@ -159,8 +161,8 @@ weights, which are not yet public.
 
 ```bibtex
 @misc{sarbajna2026galatea,
-  title  = {Galatea: Merging Local and Global Descriptors with Optimal Transport for
-            Visual Place Recognition on Extraterrestrial Surfaces},
+  title  = {Galatea: An Optimal Transport Framework for Merging Global and Local Descriptors
+            in Visual Place Recognition on Extraterrestrial Surfaces},
   author = {Sarbajna, Raunak and Eick, Christoph F.},
   year   = {2026},
   note   = {Manuscript in preparation. Code: https://github.com/RaunakDune/galatea-lunar-vpr}

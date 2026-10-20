@@ -12,12 +12,13 @@ training-free partial fused Gromov--Wasserstein matching scores both the appeara
 keypoints, and a saturating fusion rule provably overrides the global ranking only where the global
 margin is small. On LunarSim-VPR, a physically motivated benchmark that renders the same query poses
 under seven Sun conditions, terrestrial models fall from about $\zsSaladCzero\%$ to $\zsSaladHard\%$
-Recall@1 under large Sun changes. With a frozen backbone, every member of the OT family reaches
+Recall@1 under large Sun changes. With a frozen backbone, every value of $\lambda$ gives
 $\approx\galRone\%$ (zero-shot: $\zsSaladRone\%$), as the theory predicts. Fine-tuning the last
-backbone blocks adds $11$--$19$ points and separates the family: the end points beat a learned
-intermediate $\lambda$, and NetVLAD-style residual aggregation is best ($\ftNvRone\%$). Fusion adds
-$3$--$7$ points for every stage-1 model and local matcher, because it keeps most of the queries that
-local evidence rescues while breaking few that the global ranking already had right; the full system
+backbone blocks adds $11$--$19$ points; within the OT family the assignments stay within about two points and a
+learned $\lambda$ stays at its initial value, behaving like a fixed one, while NetVLAD-style residual
+aggregation pulls ahead ($\ftNvRone\%$). Fusion adds
+$2$--$7$ points for every stage-1 model and local matcher, because it keeps about half of the queries
+that local evidence rescues while breaking few that the global ranking already had right; the full system
 reaches $\msnvFgwRone\%$. Illumination-diverse training remains the largest single factor.
 \end{abstract}
 

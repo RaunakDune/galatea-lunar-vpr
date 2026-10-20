@@ -14,10 +14,12 @@ diversity and backbone fine-tuning have to go together.
 Fine-tuning the last four blocks adds $11$--$19$ points for every head. The aggregation matters only
 at the coarse level (cluster-based aggregation beats global pooling by more than $20$ points) and,
 once the backbone is trained, at the level of residual vs.\ OT aggregation. Within the OT family the
-assignment is a weak design lever: all members are equivalent on a frozen backbone (P1, P2), and on
-a fine-tuned backbone the end points are preferable to a learned intermediate value. The cheapest
+assignment is a weak design lever: all values of $\lambda$ are equivalent on a frozen backbone (P1, P2), and on
+a fine-tuned backbone the fixed members stay within $\famFtLamRange$ points of each other while a
+learned $\lambda$ behaves like a fixed $\lambda$ at its initial value. The cheapest
 member, $\lambda=0$, needs no Sinkhorn loop and matches SALAD's balanced assignment within seed noise. A
-learnable $\lambda$ adds a parameter that the loss barely constrains (P2), so it should be fixed.
+learnable $\lambda$ adds a parameter that the loss barely constrains (P2), so it should be fixed;
+$\lambda=0$ is the natural choice for speed, and no fixed value is clearly better than another.
 
 \paragraph*{Fusion, not the matcher}
 Local evidence on the Moon is abundant but unreliable, because shadow edges dominate keypoint
