@@ -6,25 +6,24 @@ Every value of $\lambda$ gives the same accuracy within seed noise. R@1 is $\lam
 $\lambda=0$ (three seeds), $\galRone\%$ with learned $\lambda$, and $\salRone\%$ at $\lambda=1$. When
 $\lambda$ is learned, it barely leaves its initialisation ($\bar\lambda=\galLam$). Even with a
 $25\times$ larger learning rate on $\lambda$ and $z$ it only reaches $\galFastLam$, at unchanged
-accuracy ($\galFastRone\%$). Both observations follow from \cref{prop:colinv}. Once descriptors
-are intra-normalised, $\lambda$ acts only through the token weights $w_i$, a second-order effect that
-yields a weak training signal. The practical implication is that the cheaper $\lambda=0$ assignment
-(a single softmax, no Sinkhorn loop) is as good as balanced OT for this task.
+accuracy ($\galFastRone\%$). Both follow from \cref{prop:colinv}: after intra-normalisation $\lambda$ acts
+only through the token weights $w_i$, a weak training signal. The cheaper $\lambda=0$ assignment (one
+softmax, no Sinkhorn loop) is thus as good as balanced OT here.
 
 \paragraph*{Dust-bin, iterations and clusters}
-Removing the dust-bin does not hurt here ($\noDustRone\%$ vs.\ $\galSzeroRone\%$, single seed). In
-LunarSim the uninformative sky is near-black, so its tokens are already near-constant and cheap to
-ignore. This may not hold for real imagery with stray light or lens flare. Changing the number of Sinkhorn iterations ($L=1$: $\LoneRone\%$, $L=10$: $\LtenRone\%$) moves R@1
+Removing the dust-bin does not hurt ($\noDustRone\%$ vs.\ $\galSzeroRone\%$, single seed), since the
+near-black sky is cheap to ignore; real stray light may change this. Changing the number of Sinkhorn iterations ($L=1$: $\LoneRone\%$, $L=10$: $\LtenRone\%$) moves R@1
 by less than seed noise, in line with the fast contraction of \cref{prop:contraction}. Halving the
-clusters to $m=32$ ($4352$-D) costs nothing ($\mThirtytwoRone\%$), which is attractive for
-bandwidth-limited rovers. With $m=16$ ($2304$-D), R@1 drops to $\mSixteenRone\%$.
+clusters to $m=32$ ($4352$-D) costs nothing ($\mThirtytwoRone\%$). With $m=16$ ($2304$-D), R@1 drops to $\mSixteenRone\%$.
 
 \paragraph*{Illumination-diverse training}
-By far the largest effect comes from the training data. We re-rendered the five training scenes
-with the \emph{same} poses but a single Sun direction (that of the database). Galatea then reaches
+Re-rendering the training scenes with the \emph{same} poses but a single (database) Sun direction
+has by far the largest effect: Galatea then reaches
 only $\fixIllRone\%$ R@1, $\fixIllDrop$ points below illumination-diverse training, and SALAD drops
 the same way ($\salFixIllRone\%$). The single-illumination model is slightly \emph{better} when the
 query light matches its training light (C0: $\fixIllCzero\%$ vs.\ $\galSzeroCzero\%$), but on the
-three hardest conditions it falls to $\fixIllHardVal\%$, against $\galSzeroHard\%$. For lunar VPR, an
-illumination sweep in the training data, as provided by renderers such as LunarSim or DEM-based
-pipelines, matters far more than the choice of aggregation layer.
+three hardest conditions it falls to $\fixIllHardVal\%$, against $\galSzeroHard\%$. Fine-tuning makes
+this worse: with a single training Sun the fine-tuned Galatea reaches $\ftFixIllRone\%$ ($-\ftFixIllDrop$;
+hard $\ftFixIllHard\%$ vs.\ $\ftGalSzeroHard\%$) and SALAD $\ftSalFixIllRone\%$, since a more flexible
+model fits the training light more closely. An illumination sweep in the training data matters far
+more than the aggregation layer.

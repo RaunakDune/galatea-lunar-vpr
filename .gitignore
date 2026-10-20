@@ -19,3 +19,7 @@ paper/*.fdb_latexmk
 paper/*.synctex.gz
 # OS
 .DS_Store
+results/gpu/runs/**/head.pt
+results/gpu/runs/**/desc_*.pt
+results/gpu/rerank/partial_*.npy
+/logs/

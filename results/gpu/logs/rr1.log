@@ -1,0 +1,7 @@
+4 partial tasks
+ok ft1e-4_galatea_s0 val mnn,uot,fgw,lg t901
+ok ft1e-4_galatea_s0 test mnn,uot,fgw,lg t1002
+ok ft1e-4_galatea_s0 test mnn,uot,fgw,lg t1001
+ok ft1e-4_galatea_s0 test mnn,uot,fgw,lg t1003
+done ft1e-4_galatea_s0_val_mnn-uot-fgw-lg_a0.3_c0.25 0s
+done ft1e-4_galatea_s0_test_mnn-uot-fgw-lg_a0.3_c0.25 0s

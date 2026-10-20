@@ -61,21 +61,17 @@ dataset.
 
 \begin{table}[t]
 \centering
-\caption{Query illumination conditions. The database is rendered at azimuth $135^\circ$,
-elevation $30^\circ$.}
+\caption{Query illumination conditions (Sun azimuth/elevation in degrees). The database is rendered at
+azimuth $135^\circ$, elevation $30^\circ$.}
 \label{tab:conds}
-\footnotesize
-\begin{tabular}{@{}llrrl@{}}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lccccccc@{}}
 \toprule
-ID & Name & Az. & El. & Change w.r.t.\ database \\
+ & C0 & C1 & C2 & C3 & C4 & C5 & C6 \\
 \midrule
-C0 & same            & 135 & 30 & viewpoint only \\
-C1 & el15            & 135 & 15 & lower Sun \\
-C2 & el6             & 135 &  6 & grazing Sun, long shadows \\
-C3 & el60            & 135 & 60 & high Sun, low contrast \\
-C4 & az+90           & 225 & 30 & shadows rotate $90^\circ$ \\
-C5 & az+180          & 315 & 30 & shadows flip \\
-C6 & az+180, el8     & 315 &  8 & flip + grazing (hardest) \\
+Az./El. & 135/30 & 135/15 & 135/6 & 135/60 & 225/30 & 315/30 & 315/8 \\
+Change & view & lower & grazing & high & rot.\ $90^\circ$ & flip & flip+graz.\ \\
 \bottomrule
 \end{tabular}
 \end{table}

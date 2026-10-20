@@ -1,0 +1,29 @@
+dino load: <All keys matched successfully>
+salad load: <All keys matched successfully>
+train: 4800 imgs, 1200 places, cached in 63s
+step 0 loss 1.8029 lam=0.500 z=1.00 2s
+step 50 loss 1.4415 lam=0.501 z=1.00 70s
+step 100 loss 1.3259 lam=0.502 z=1.01 138s
+step 150 loss 1.2209 lam=0.504 z=1.02 205s
+step 200 loss 1.1747 lam=0.505 z=1.02 272s
+step 250 loss 1.1960 lam=0.506 z=1.02 339s
+step 300 loss 1.1182 lam=0.507 z=1.03 406s
+step 350 loss 1.1723 lam=0.509 z=1.03 473s
+step 400 loss 1.1306 lam=0.510 z=1.03 539s
+step 450 loss 1.0370 lam=0.511 z=1.03 605s
+step 500 loss 1.1509 lam=0.511 z=1.04 671s
+step 550 loss 1.0570 lam=0.512 z=1.04 736s
+step 600 loss 1.0505 lam=0.512 z=1.04 802s
+step 650 loss 1.0327 lam=0.513 z=1.04 867s
+step 700 loss 1.0243 lam=0.513 z=1.04 932s
+step 750 loss 0.8731 lam=0.513 z=1.04 996s
+step 800 loss 0.9073 lam=0.513 z=1.04 1061s
+step 850 loss 0.8687 lam=0.513 z=1.04 1125s
+step 900 loss 0.9916 lam=0.513 z=1.04 1190s
+step 950 loss 0.9838 lam=0.513 z=1.04 1254s
+step 999 loss 1.1189 lam=0.513 z=1.04 1317s
+val {'R@1': 68.4, 'R@5': 91.1, 'R@10': 97.4}
+val per-cond R@1 {'C0': 80.0, 'C1': 70.0, 'C2': 58.0, 'C3': 73.0, 'C4': 75.0, 'C5': 68.0, 'C6': 55.0}
+test {'R@1': 69.3, 'R@5': 92.2, 'R@10': 96.6}
+test per-cond R@1 {'C0': 87.6, 'C1': 75.6, 'C2': 52.9, 'C3': 79.1, 'C4': 72.7, 'C5': 64.4, 'C6': 52.9}
+DONE ftsweep_galatea_lr1e-5_s0

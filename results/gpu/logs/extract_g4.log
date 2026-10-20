@@ -1,0 +1,10 @@
+dino load: <All keys matched successfully>
+salad load: <All keys matched successfully>
+/storage/home/rsarbajn/galatea/galatea-lunar-vpr/weights/cosplace_r50.pth <All keys matched successfully>
+/storage/home/rsarbajn/galatea/galatea-lunar-vpr/weights/eigenplaces_r50.pth <All keys matched successfully>
+../data/lunarsim/train/t4: 960 imgs in 13s
+dino load: <All keys matched successfully>
+salad load: <All keys matched successfully>
+/storage/home/rsarbajn/galatea/galatea-lunar-vpr/weights/cosplace_r50.pth <All keys matched successfully>
+/storage/home/rsarbajn/galatea/galatea-lunar-vpr/weights/eigenplaces_r50.pth <All keys matched successfully>
+../data/lunarsim/val/t901: 800 imgs in 20s

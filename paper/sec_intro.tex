@@ -12,19 +12,14 @@ database~\cite{lowry2015visual,schubert2023tutorial}.
 Modern VPR systems reach high recall on street-level benchmarks by aggregating deep local
 features into a compact global descriptor~\cite{arandjelovic2016netvlad,radenovic2019gem,berton2022cosplace,berton2023eigenplaces,izquierdo2024optimal},
 optionally followed by local-feature re-ranking~\cite{hausler2021patch}. The lunar surface
-removes almost every cue these systems rely on:
-\begin{itemize}
-\item \textbf{Illumination.} There is no atmosphere to scatter light, so shadows are black and
-sharp. Over a lunar day the Sun's elevation and azimuth sweep through large ranges, and the
-same place can look entirely different at two times (\cref{fig:conds}).
-\item \textbf{Self-similarity.} Craters and boulders follow power-law size--frequency
-distributions~\cite{neukum2001cratering,melosh1989impact}, so terrain is statistically repetitive
-at every scale and individual features are weakly discriminative~\cite{torii2013visual}.
-\item \textbf{Photometry.} Regolith is strongly non-Lambertian, with phase-dependent limb
-darkening and an opposition surge~\cite{mcewen1991photometric,hapke2012theory}, which violates the
-brightness-constancy assumptions built into terrestrial descriptors.
-\item \textbf{Data.} There is no large, pose-annotated lunar VPR dataset to train on.
-\end{itemize}
+removes almost every cue these systems rely on. \emph{Illumination:} without an atmosphere, shadows
+are black and sharp, and as the Sun's elevation and azimuth sweep through large ranges over a lunar
+day the same place can look entirely different (\cref{fig:conds}). \emph{Self-similarity:} craters
+and boulders follow power-law size--frequency distributions~\cite{neukum2001cratering,melosh1989impact},
+so terrain is repetitive at every scale and individual features are weakly
+discriminative~\cite{torii2013visual}. \emph{Photometry:} regolith is strongly non-Lambertian, with
+phase-dependent limb darkening and an opposition surge~\cite{mcewen1991photometric,hapke2012theory}.
+\emph{Data:} there is no large, pose-annotated lunar VPR dataset to train on.
 
 This paper presents \textbf{Galatea}, a two-stage lunar VPR system built on optimal transport (OT)
 at both stages. Its global stage aggregates foundation-model tokens with an OT assignment, and its
@@ -50,8 +45,8 @@ viewpoint change from controlled changes in solar elevation and azimuth.
 \item \textbf{A controlled evaluation} (\cref{sec:exp}). We evaluate terrestrial state-of-the-art
 models zero-shot, compare aggregation heads trained under identical conditions, and test four
 re-ranking strategies, with seed variation and paired-bootstrap confidence intervals. The results
-show that illumination-diverse lunar training and global--local fusion drive the gains, while the
-choice of assignment relaxation and of local matcher matters little.
+show that illumination-diverse lunar training, backbone fine-tuning and global--local fusion drive
+the gains, while the choice of assignment relaxation and of local matcher matters little.
 \end{enumerate}
 
 % ======================================================================
@@ -79,10 +74,9 @@ Gromov--Wasserstein structural term~\cite{memoli2011gromov,peyre2016gromov}, in 
 \cite{vayer2019fgw} and with partial mass~\cite{chapel2020partial}, so that matches must preserve
 relative keypoint geometry.
 
-\paragraph*{Optimal transport}
-Entropic regularisation and the Sinkhorn algorithm~\cite{cuturi2013sinkhorn,peyre2019computational}
-made OT differentiable and fast. Unbalanced OT replaces hard marginal constraints with divergence
-penalties and keeps Sinkhorn-like scaling algorithms~\cite{chizat2018scaling}.
+Entropic regularisation and Sinkhorn iterations~\cite{cuturi2013sinkhorn,peyre2019computational}
+made OT differentiable and fast; unbalanced OT replaces hard marginals with divergence penalties and
+keeps Sinkhorn-like scaling algorithms~\cite{chizat2018scaling}.
 
 \paragraph*{Planetary localisation}
 Rovers rely on visual odometry~\cite{maimone2007mer}, and landers on terrain-relative navigation

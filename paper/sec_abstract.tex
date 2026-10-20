@@ -12,10 +12,13 @@ saturating score fuses this local evidence with the global similarity. We also i
 LunarSim-VPR, a physically motivated procedural benchmark in which the same query poses are
 rendered under seven Sun conditions. Terrestrial state-of-the-art models fall from about
 $\zsSaladCzero\%$ Recall@1 at fixed illumination to $\zsSaladHard\%$ on the hardest Sun changes.
-Lunar-adapted OT aggregation raises overall Recall@1 from $\zsSaladRone\%$ to $\galRone\%$, and
-global--local fusion adds a further $\msFgwGain\pm\msFgwGainsd$ points (three seeds). Consistent with
-the theory, balanced and unbalanced assignments perform alike. How local and global evidence are
-fused matters more than which local matcher is used.
+Training only the OT aggregation head on illumination-diverse lunar scenes raises overall Recall@1
+from $\zsSaladRone\%$ to $\galRone\%$, and jointly fine-tuning the last backbone blocks lifts every
+head by a further $11$--$19$ points (best: $\ftNvRone\%$). Global--local fusion adds
+$\msFgwGain\pm\msFgwGainsd$ points on top of the frozen model and $\ftFgwGain\pm\ftFgwGainsd$ on top of
+the fine-tuned one (three seeds). With a frozen backbone, balanced and unbalanced assignments perform
+alike, as the theory predicts. The dominant factor is illumination-diverse training: a single training
+Sun direction costs $\fixIllDrop$ points frozen and $\ftFixIllDrop$ fine-tuned.
 \end{abstract}
 
 \begin{IEEEkeywords}

@@ -1,0 +1,29 @@
+dino load: <All keys matched successfully>
+salad load: <All keys matched successfully>
+train: 4800 imgs, 1200 places, cached in 63s
+step 0 loss 1.7763 2s
+step 50 loss 1.4138 70s
+step 100 loss 1.3782 138s
+step 150 loss 1.2937 205s
+step 200 loss 1.3777 272s
+step 250 loss 1.2294 340s
+step 300 loss 1.2985 407s
+step 350 loss 1.3157 474s
+step 400 loss 1.3555 540s
+step 450 loss 1.2294 605s
+step 500 loss 1.2562 672s
+step 550 loss 1.2776 737s
+step 600 loss 1.1059 803s
+step 650 loss 1.1183 868s
+step 700 loss 1.1240 933s
+step 750 loss 0.9170 998s
+step 800 loss 0.9890 1062s
+step 850 loss 1.2767 1127s
+step 900 loss 1.1915 1191s
+step 950 loss 1.1974 1255s
+step 999 loss 1.2589 1318s
+val {'R@1': 47.6, 'R@5': 79.3, 'R@10': 89.1}
+val per-cond R@1 {'C0': 59.0, 'C1': 54.0, 'C2': 40.0, 'C3': 56.0, 'C4': 37.0, 'C5': 48.0, 'C6': 39.0}
+test {'R@1': 52.1, 'R@5': 82.4, 'R@10': 91.4}
+test per-cond R@1 {'C0': 66.4, 'C1': 56.9, 'C2': 37.6, 'C3': 59.8, 'C4': 52.2, 'C5': 50.2, 'C6': 41.8}
+DONE ft1e-4_gem_s1

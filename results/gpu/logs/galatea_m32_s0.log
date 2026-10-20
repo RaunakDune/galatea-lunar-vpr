@@ -1,0 +1,16 @@
+train: 4800 imgs, 1200 places
+step 0 loss 1.8063 lam=0.500 z=1.00 1s
+step 50 loss 1.4003 lam=0.501 z=1.01 12s
+step 100 loss 1.4199 lam=0.502 z=1.01 22s
+step 150 loss 1.3751 lam=0.502 z=1.01 33s
+step 200 loss 1.3394 lam=0.503 z=1.02 43s
+step 250 loss 1.3487 lam=0.503 z=1.02 53s
+step 300 loss 1.3208 lam=0.504 z=1.02 63s
+step 350 loss 1.3175 lam=0.504 z=1.02 73s
+step 400 loss 1.3021 lam=0.504 z=1.02 83s
+step 450 loss 1.2766 lam=0.504 z=1.02 93s
+step 499 loss 1.3266 lam=0.504 z=1.02 102s
+val {'R@1': 60.3, 'R@5': 88.7, 'R@10': 95.4}
+val per-cond R@1 {'C0': 76.0, 'C1': 67.0, 'C2': 52.0, 'C3': 64.0, 'C4': 59.0, 'C5': 51.0, 'C6': 53.0}
+test {'R@1': 60.2, 'R@5': 87.8, 'R@10': 95.5}
+test per-cond R@1 {'C0': 81.3, 'C1': 68.2, 'C2': 43.1, 'C3': 68.7, 'C4': 63.6, 'C5': 52.0, 'C6': 44.4}

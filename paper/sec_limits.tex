@@ -2,12 +2,10 @@
 All quantitative results come from simulation. LunarSim reproduces the statistical character of
 lunar relief and the dominant photometric effects, but it omits several things: resolved near-field rocks below the $0.3$\,m DEM spacing (\cref{fig:apollo}), multiple
 scattering beyond a constant ambient term, rover self-shadowing and dust, lens flare, exposure
-bracketing, and the full range of geological units. Absolute recall values should therefore not be
-read as predictions of on-Moon performance. The \emph{relative} comparisons are made under
-identical conditions and with paired queries. Because the backbone is frozen and no method sees
-test scenes, we expect these comparisons to carry over better than the absolute values, but this
-must be confirmed on real imagery. The backbone was frozen because of compute constraints, and
-joint fine-tuning may change the ranking between heads. The FGW structural term uses image-plane
+bracketing, and the full range of geological units. Absolute recall values are therefore not predictions of on-Moon
+performance. The \emph{relative} comparisons use identical conditions and paired queries on unseen
+scenes, so we expect them to carry over better, but this must be confirmed on real imagery. Fine-tuning used a single learning rate selected on one
+validation scene and four of twelve blocks; full fine-tuning or larger backbones were not explored. The FGW structural term uses image-plane
 distances, which are only approximately preserved under large viewpoint changes. Lifting database
 keypoints to 3-D with DEM depth is a natural extension.
 
@@ -19,8 +17,9 @@ unbalanced assignment that unifies NetVLAD and SALAD, and partial fused Gromov--
 re-ranking fused with the global score. On LunarSim-VPR,
 (i)~terrestrial models, including foundation-model ones, lose more than half their recall under
 large Sun changes;
-(ii)~illumination-diverse training matters far more than the aggregation layer, and balanced and
-unbalanced assignments perform alike, as the theory predicts;
-(iii)~fusing local with global evidence adds five to seven points of Recall@1 for every local
+(ii)~illumination-diverse training matters far more than the aggregation layer; with a frozen
+backbone balanced and unbalanced assignments perform alike, as the theory predicts, and joint
+fine-tuning adds $11$--$19$ points for every head;
+(iii)~fusing local with global evidence adds three to seven points of Recall@1 for every local
 matcher. Next steps are real imagery, with DESPINA-synthesised reference views of real
-sites~\cite{nelsonarcher2026despina}, joint backbone fine-tuning, and 3-D structural terms from DEM depth.
+sites~\cite{nelsonarcher2026despina}, and 3-D structural terms from DEM depth.

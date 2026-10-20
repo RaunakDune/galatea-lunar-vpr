@@ -1,0 +1,7 @@
+dino load: <All keys matched successfully>
+salad load: <All keys matched successfully>
+train: 4800 imgs, 1200 places, cached in 63s
+step 0 loss 1.5702 2s
+step 50 loss 1.4009 68s
+step 100 loss 1.2664 134s
+step 150 loss 1.2129 200s

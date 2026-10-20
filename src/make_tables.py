@@ -270,12 +270,16 @@ if os.path.exists(ZV) and os.path.exists(ZT):
 series = {}
 for key in ['CosPlace-R50', 'EigenPlaces-R50', 'DINOv2-SALAD']:
     series[key + ' (zero-shot)'] = [zs[f'test/{key}'][f'R@1_{c}'] for c in CONDS]
-for pre, lab in [('netvlad', 'NetVLAD (lunar)'), ('salad', 'SALAD (lunar)'), ('galatea', 'Galatea')]:
+for pre, lab in [('netvlad', 'NetVLAD (frozen)'), ('galatea', 'Galatea (frozen)')]:
     a = agg(pre)
     if a:
         series[lab] = [a[f'R@1_{c}'][0] for c in CONDS]
 if os.path.exists(TESTF):
-    series['Galatea + FGW fusion'] = [rr['fgw'][1][f'R@1_{c}'] for c in CONDS]
+    series['Galatea (frozen) + FGW fusion'] = [rr['fgw'][1][f'R@1_{c}'] for c in CONDS]
+for pre, lab in [('netvlad', 'NetVLAD (fine-tuned)'), ('galatea', 'Galatea (fine-tuned)')]:
+    a = agg('ft1e-4_' + pre, root=RG)
+    if a:
+        series[lab] = [a[f'R@1_{c}'][0] for c in CONDS]
 json.dump(series, open(f'{R}/percond_series.json', 'w'), indent=1)
 
 # ------------------------------------------------------------------ timing
@@ -405,7 +409,7 @@ if sweep:
     L = ['\\begin{table}[t]', '\\centering', '\\caption{Backbone learning rate for joint fine-tuning, selected on the '
          'validation scene (Galatea head, seed 0, R@1 \\%).}', '\\label{tab:lrsweep}', '\\footnotesize',
          '\\begin{tabular}{@{}l' + 'c' * len(sweep) + '@{}}', '\\toprule',
-         'Backbone lr & ' + ' & '.join(f'${float(k):.0e}$'.replace('e-0', '\\cdot10^{-') + '}' for k in sweep) + ' \\\\',
+         'Backbone lr & ' + ' & '.join('$%s\\cdot10^{-%s}$' % (k.split('e-')[0], k.split('e-')[1]) for k in sweep) + ' \\\\',
          '\\midrule', 'Val.\\ R@1 & ' + ' & '.join(f'{v:.1f}' for v in sweep.values()) + ' \\\\',
          '\\bottomrule', '\\end{tabular}', '\\end{table}']
     open(f'{P}/tab_lrsweep.tex', 'w').write('\n'.join(L))

@@ -1,0 +1,29 @@
+dino load: <All keys matched successfully>
+salad load: <All keys matched successfully>
+train: 4800 imgs, 1200 places, cached in 63s
+step 0 loss 1.6436 2s
+step 50 loss 1.2798 68s
+step 100 loss 1.1960 134s
+step 150 loss 1.1501 199s
+step 200 loss 1.2061 264s
+step 250 loss 1.1166 328s
+step 300 loss 1.0341 391s
+step 350 loss 1.0559 455s
+step 400 loss 1.0736 520s
+step 450 loss 1.0416 585s
+step 500 loss 1.0368 649s
+step 550 loss 0.9221 713s
+step 600 loss 1.0511 777s
+step 650 loss 1.0014 840s
+step 700 loss 1.0133 904s
+step 750 loss 0.9832 967s
+step 800 loss 0.8336 1028s
+step 850 loss 0.8923 1090s
+step 900 loss 0.8702 1150s
+step 950 loss 0.9504 1211s
+step 999 loss 1.1428 1271s
+val {'R@1': 80.7, 'R@5': 95.9, 'R@10': 98.4}
+val per-cond R@1 {'C0': 92.0, 'C1': 89.0, 'C2': 68.0, 'C3': 88.0, 'C4': 77.0, 'C5': 76.0, 'C6': 75.0}
+test {'R@1': 75.4, 'R@5': 94.2, 'R@10': 97.4}
+test per-cond R@1 {'C0': 90.4, 'C1': 84.7, 'C2': 64.7, 'C3': 84.7, 'C4': 77.8, 'C5': 70.2, 'C6': 55.6}
+DONE ft1e-4_netvlad_s2

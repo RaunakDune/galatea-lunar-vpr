@@ -11,9 +11,8 @@
 viewpoint changes: at C0, R@1 is $\zsEigCzero$--$\zsCosCzero\%$. They degrade sharply as soon as the
 Sun moves. DINOv2-SALAD, the strongest of them, falls from $\zsSaladCzero\%$ at C0 to
 $\zsSaladCtwo\%$ under grazing illumination (C2) and to $\zsSaladCfive\%$ when the shadows flip (C5).
-The CNN-based CosPlace and EigenPlaces fare worse, with C5 values of $\zsCosCfive\%$ and $\zsEigCfive\%$.
-Even a foundation-model backbone pre-trained on 142M images therefore does not provide
-illumination-invariant place descriptors on regolith. Local re-ranking does not close the gap
+CosPlace and EigenPlaces fare worse ($\zsCosCfive\%$ and $\zsEigCfive\%$ at C5): even a foundation-model
+backbone does not give illumination-invariant descriptors on regolith. Local re-ranking does not close the gap
 either. Fusing MNN+MAGSAC++ matches into the top-10 zero-shot SALAD candidates (selected on
 validation as in \cref{sec:rerank}) raises R@1 to $\zsRRRone\%$. That is still below the lunar-trained
 stage~1 \emph{without} re-ranking, and only $\zsRRHard\%$ on the hardest conditions, because the
@@ -21,22 +20,32 @@ correct place is often not among the candidates at all.
 
 \subsection{Lunar-adapted OT aggregation}\label{sec:stage1}
 Training only the aggregation head on illumination-diverse LunarSim scenes (backbone frozen) lifts
-R@1 from $\zsSaladRone\%$ to $\galRone\%$ (Galatea, mean of three seeds). On the paired test queries
-this is a gain of $\gainZsMean$ points (95\% CI $[\gainZsLo,\gainZsHi]$). The largest gains are under
-illumination change. Mean R@1 over the three hardest conditions (C2, C5, C6) rises from $\zsSaladHard\%$
-to $\galHard\%$. The three cluster-based heads (NetVLAD, SALAD and Galatea) clearly beat every zero-shot model.
-GeM pooling of the same frozen tokens does not ($\gemRone\%$). Without fine-tuning the backbone,
-global pooling cannot separate place-specific tokens from illumination-dependent ones, while
-cluster-based aggregation can~\cite{izquierdo2024optimal}.
+R@1 from $\zsSaladRone\%$ to $\galRone\%$ (Galatea, three seeds; paired gain $\gainZsMean$ points, 95\% CI
+$[\gainZsLo,\gainZsHi]$), and mean R@1 over the three hardest conditions (C2, C5, C6) from
+$\zsSaladHard\%$ to $\galHard\%$. All three cluster-based heads clearly beat every zero-shot model, whereas GeM pooling of the same
+frozen tokens does not ($\gemRone\%$): global pooling cannot separate place-specific from
+illumination-dependent tokens~\cite{izquierdo2024optimal}.
 
 Galatea and SALAD are statistically indistinguishable: the paired difference in R@1 is
-$\galVsSalMean$ points (95\% CI $[\galVsSalLo,\galVsSalHi]$), as \cref{prop:colinv} predicts. The two heads differ sharply in how they spend mass. The balanced head sends
-$\salDust\%$ of all token mass to the dust-bin, and its total dust-bin mass correlates with the sky
-fraction of the image ($\rho=\salSkyCorr$). The learned unbalanced head ($\bar\lambda=\galLam$)
-discards only $\galDust\%$ and concentrates the remaining mass on a few clusters (coefficient of
-variation of cluster mass $\galCV$ vs.\ $\salCV$). Their retrieval performance is nevertheless the
-same. On this data, therefore, the assignment's marginal constraints are not the bottleneck; the
-training distribution is. We return to this in \cref{sec:ablation}.
+$\galVsSalMean$ points (95\% CI $[\galVsSalLo,\galVsSalHi]$), as \cref{prop:colinv} predicts, although
+they spend mass very differently: the balanced head sends $\salDust\%$ of the token mass to the dust-bin
+(correlated with the sky fraction, $\rho=\salSkyCorr$), the unbalanced one only $\galDust\%$. The
+assignment's marginal constraints are thus not the bottleneck; the training distribution is
+(\cref{sec:ablation}).
+
+\subsection{Joint backbone fine-tuning}\label{sec:ft}
+Fine-tuning the last four backbone blocks together with the head (\cref{tab:main}, bottom) improves
+every head substantially: GeM by $\ftGemGain$, NetVLAD by $\ftNvGain$, SALAD by $\ftSalGain$ and
+Galatea by $\ftGalGain$ points R@1 (CI $[\ftGainLo,\ftGainHi]$; hard conditions: $\galHard\%\to\ftGalHard\%$).
+Once the tokens can adapt, the heads are no longer equivalent. NetVLAD becomes the best head ($\ftNvRone\pm\ftNvRonesd\%$; $\ftNvVsSalMean$
+$[\ftNvVsSalLo,\ftNvVsSalHi]$ points over SALAD). Within the OT family, which shares the aggregation
+architecture, the two end points perform alike ($\lambda=1$: $\ftSalRone\%$; $\lambda=0$:
+$\ftLamZeroRone\pm\ftLamZeroRonesd\%$), while learned $\lambda$, which again stays near its initialisation
+($\bar\lambda=\ftGalLam$), is slightly worse ($\ftGalVsSalMean$ $[\ftGalVsSalLo,\ftGalVsSalHi]$ vs.\ SALAD).
+\Cref{prop:colinv} explains why $\lambda$ carries little signal, not which value is best once the backbone
+moves. NetVLAD and the $\lambda=0$ OT head both use a softmax assignment, so NetVLAD's lead must come from
+its residual aggregation, $k$-means initialisation or lack of a dust-bin, not from $\lambda$. In practice, an end point $\lambda\in\{0,1\}$ is
+preferable to a learned intermediate value.
 
 \input{tab_rerank}
 
@@ -55,8 +64,11 @@ well as a learned terrestrial matcher. MAGSAC++ helps MNN and LightGlue but not 
 The effect is robust across stage-1 seeds. Repeating the protocol on all three Galatea seeds
 (re-tuning $\beta,\kappa$ on validation each time), fusion gains $\msFgwGain\pm\msFgwGainsd$ points R@1
 with FGW, $\msMnnRGain\pm\msMnnRGainsd$ with MNN+MAGSAC++ and $\msMnnGain\pm\msMnnGainsd$ with plain MNN.
-The practical lesson is that, on the Moon, \emph{how local and global evidence are combined matters
-more than which local matcher is used}.
+On the fine-tuned Galatea heads the fusion gain is smaller but still consistent:
+$\ftFgwGain\pm\ftFgwGainsd$ points with FGW and $\ftMnnRGain\pm\ftMnnRGainsd$ with MNN+MAGSAC++ (R@1
+$\ftFgwRone\%$), and fusing FGW into the fine-tuned NetVLAD (seed 0) gives the best overall R@1 of
+$\ftNvFgwRone\%$ ($\ftNvFgwHard\%$ on the hardest conditions). The practical lesson is that, on the
+Moon, \emph{how local and global evidence are combined matters more than which local matcher is used}.
 
 \input{tab_ablation}
 

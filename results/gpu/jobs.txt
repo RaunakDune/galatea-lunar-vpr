@@ -1,0 +1,72 @@
+ftsweep_galatea_lr1e-5_s0|train_ft.py --head ot --mode learn --seed 0 --bb_lr 1e-5 --steps 1000 --eval_split val,test
+ftsweep_galatea_lr3e-5_s0|train_ft.py --head ot --mode learn --seed 0 --bb_lr 3e-5 --steps 1000 --eval_split val,test
+ftsweep_galatea_lr1e-4_s0|train_ft.py --head ot --mode learn --seed 0 --bb_lr 1e-4 --steps 1000 --eval_split val,test
+galatea_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode learn --seed 0 --save_desc
+salad_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode balanced --seed 0 --save_desc
+netvlad_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head netvlad --seed 0 --save_desc
+gem_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head gem --seed 0 --save_desc
+lam0_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode softmax --seed 0
+galatea_s1|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode learn --seed 1 --save_desc
+salad_s1|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode balanced --seed 1 --save_desc
+netvlad_s1|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head netvlad --seed 1 --save_desc
+gem_s1|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head gem --seed 1 --save_desc
+lam0_s1|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode softmax --seed 1
+galatea_s2|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode learn --seed 2 --save_desc
+salad_s2|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode balanced --seed 2 --save_desc
+netvlad_s2|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head netvlad --seed 2 --save_desc
+gem_s2|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head gem --seed 2 --save_desc
+lam0_s2|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode softmax --seed 2
+galatea_s3|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode learn --seed 3 --save_desc
+salad_s3|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode balanced --seed 3 --save_desc
+netvlad_s3|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head netvlad --seed 3 --save_desc
+gem_s3|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head gem --seed 3 --save_desc
+galatea_s4|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode learn --seed 4 --save_desc
+salad_s4|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode balanced --seed 4 --save_desc
+netvlad_s4|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head netvlad --seed 4 --save_desc
+gem_s4|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head gem --seed 4 --save_desc
+lam0.25_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode fixed --lam0 0.25 --seed 0
+lam0.75_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode fixed --lam0 0.75 --seed 0
+galatea_nodust_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode learn --no_dustbin --seed 0
+galatea_fast_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode learn --scalar_lr_mult 25 --seed 0
+galatea_fixedillum_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode learn --seed 0 --train_glob ../data/lunarsim/train_fixed/t*
+salad_fixedillum_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode balanced --seed 0 --train_glob ../data/lunarsim/train_fixed/t*
+galatea_L1_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode learn --iters 1 --seed 0
+galatea_L10_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode learn --iters 10 --seed 0
+galatea_m16_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode learn --m 16 --seed 0
+galatea_m32_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode learn --m 32 --seed 0
+#ft1e-5_salad_s0|train_ft.py --head ot --mode balanced --seed 0 --bb_lr 1e-5 --steps 1000 --save_desc
+#ft1e-5_netvlad_s0|train_ft.py --head netvlad --seed 0 --bb_lr 1e-5 --steps 1000 --save_desc
+#ft1e-5_gem_s0|train_ft.py --head gem --seed 0 --bb_lr 1e-5 --steps 1000 --save_desc
+#ft1e-5_lam0_s0|train_ft.py --head ot --mode softmax --seed 0 --bb_lr 1e-5 --steps 1000 --save_desc
+#ft1e-5_galatea_s1|train_ft.py --head ot --mode learn --seed 1 --bb_lr 1e-5 --steps 1000 --save_desc
+#ft1e-5_salad_s1|train_ft.py --head ot --mode balanced --seed 1 --bb_lr 1e-5 --steps 1000 --save_desc
+#ft1e-5_netvlad_s1|train_ft.py --head netvlad --seed 1 --bb_lr 1e-5 --steps 1000 --save_desc
+#ft1e-5_gem_s1|train_ft.py --head gem --seed 1 --bb_lr 1e-5 --steps 1000 --save_desc
+#ft1e-5_lam0_s1|train_ft.py --head ot --mode softmax --seed 1 --bb_lr 1e-5 --steps 1000 --save_desc
+#ft1e-5_galatea_s2|train_ft.py --head ot --mode learn --seed 2 --bb_lr 1e-5 --steps 1000 --save_desc
+#ft1e-5_salad_s2|train_ft.py --head ot --mode balanced --seed 2 --bb_lr 1e-5 --steps 1000 --save_desc
+#ft1e-5_netvlad_s2|train_ft.py --head netvlad --seed 2 --bb_lr 1e-5 --steps 1000 --save_desc
+#ft1e-5_gem_s2|train_ft.py --head gem --seed 2 --bb_lr 1e-5 --steps 1000 --save_desc
+#ft1e-5_lam0_s2|train_ft.py --head ot --mode softmax --seed 2 --bb_lr 1e-5 --steps 1000 --save_desc
+#ft1e-5_galatea_fixedillum_s0|train_ft.py --head ot --mode learn --seed 0 --bb_lr 1e-5 --steps 1000 --train_glob ../data/lunarsim/train_fixed/t*
+#ft1e-5_salad_fixedillum_s0|train_ft.py --head ot --mode balanced --seed 0 --bb_lr 1e-5 --steps 1000 --train_glob ../data/lunarsim/train_fixed/t*
+#ft1e-5_galatea_s0|train_ft.py --head ot --mode learn --seed 0 --bb_lr 1e-5 --steps 1000 --save_desc
+ftsweep_galatea_lr3e-4_s0|train_ft.py --head ot --mode learn --seed 0 --bb_lr 3e-4 --steps 1000 --save_desc
+ftsweep_galatea_lr1e-3_s0|train_ft.py --head ot --mode learn --seed 0 --bb_lr 1e-3 --steps 1000 --save_desc
+ft1e-4_galatea_s0|train_ft.py --head ot --mode learn --seed 0 --bb_lr 1e-4 --steps 1000 --save_desc
+ft1e-4_salad_s0|train_ft.py --head ot --mode balanced --seed 0 --bb_lr 1e-4 --steps 1000 --save_desc
+ft1e-4_netvlad_s0|train_ft.py --head netvlad --seed 0 --bb_lr 1e-4 --steps 1000 --save_desc
+ft1e-4_gem_s0|train_ft.py --head gem --seed 0 --bb_lr 1e-4 --steps 1000 --save_desc
+ft1e-4_lam0_s0|train_ft.py --head ot --mode softmax --seed 0 --bb_lr 1e-4 --steps 1000 --save_desc
+ft1e-4_galatea_s1|train_ft.py --head ot --mode learn --seed 1 --bb_lr 1e-4 --steps 1000 --save_desc
+ft1e-4_salad_s1|train_ft.py --head ot --mode balanced --seed 1 --bb_lr 1e-4 --steps 1000 --save_desc
+ft1e-4_netvlad_s1|train_ft.py --head netvlad --seed 1 --bb_lr 1e-4 --steps 1000 --save_desc
+ft1e-4_gem_s1|train_ft.py --head gem --seed 1 --bb_lr 1e-4 --steps 1000 --save_desc
+ft1e-4_lam0_s1|train_ft.py --head ot --mode softmax --seed 1 --bb_lr 1e-4 --steps 1000 --save_desc
+ft1e-4_galatea_s2|train_ft.py --head ot --mode learn --seed 2 --bb_lr 1e-4 --steps 1000 --save_desc
+ft1e-4_salad_s2|train_ft.py --head ot --mode balanced --seed 2 --bb_lr 1e-4 --steps 1000 --save_desc
+ft1e-4_netvlad_s2|train_ft.py --head netvlad --seed 2 --bb_lr 1e-4 --steps 1000 --save_desc
+ft1e-4_gem_s2|train_ft.py --head gem --seed 2 --bb_lr 1e-4 --steps 1000 --save_desc
+ft1e-4_lam0_s2|train_ft.py --head ot --mode softmax --seed 2 --bb_lr 1e-4 --steps 1000 --save_desc
+ft1e-4_galatea_fixedillum_s0|train_ft.py --head ot --mode learn --seed 0 --bb_lr 1e-4 --steps 1000 --train_glob ../data/lunarsim/train_fixed/t*
+ft1e-4_salad_fixedillum_s0|train_ft.py --head ot --mode balanced --seed 0 --bb_lr 1e-4 --steps 1000 --train_glob ../data/lunarsim/train_fixed/t*

@@ -4,6 +4,7 @@
 \usepackage{url}
 \newcommand{\cref}[1]{Proposition~\ref{#1}}
 \externaldocument{main}
+\input{numbers}
 \DeclareMathOperator*{\argmax}{arg\,max}
 
 \begin{document}
@@ -14,4 +15,32 @@
 \input{sec_appendix}
 \bibliographystyle{IEEEtran}
 \bibliography{refs}
+
+\section{Additional experiments}
+\paragraph*{Backbone learning rate} For joint fine-tuning (Section~\ref{sec:ft}) the backbone learning rate was
+selected on the validation scene only, with the Galatea head and seed~0 (Table~\ref{tab:lrsweep}). The head
+learning rate, schedule, sampler and loss are those of the frozen-backbone runs; training lasts $1000$ steps.
+Test results were not consulted. The largest rate diverges.
+\input{tab_lrsweep}
+
+\paragraph*{Cross-hardware reproduction} All frozen-backbone runs of the main paper were executed on a
+$2$-core CPU. We re-ran them with identical code on NVIDIA Tesla P40 GPUs, after re-extracting the frozen
+features on the GPU (the zero-shot baselines reproduce exactly: $26.8$, $28.1$ and $35.8\%$ R@1), and
+added two seeds for the four main heads (Table~\ref{tab:repro}). All means agree within one standard deviation,
+and every conclusion of the paper holds. The single-seed ablations also reproduce: single-illumination
+training gives $47.8\%$ (CPU: $\fixIllRone\%$).
+\input{tab_repro}
+
+\paragraph*{Recall per illumination condition} Fig.~\ref{fig:percond} plots the per-condition R@1 of
+the main table for selected methods.
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/percond.pdf}
+\caption{R@1 per illumination condition on the test set. Zero-shot terrestrial models (dashed)
+collapse once the Sun moves. Lunar-trained OT aggregation, global--local fusion and joint backbone
+fine-tuning (dotted) each recover part of the loss; grazing light (C2) and reversed grazing light (C6)
+remain the hardest conditions.}
+\label{fig:percond}
+\end{figure}
+
 \end{document}

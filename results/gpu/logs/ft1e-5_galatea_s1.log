@@ -1,0 +1,19 @@
+dino load: <All keys matched successfully>
+salad load: <All keys matched successfully>
+train: 4800 imgs, 1200 places, cached in 115s
+step 0 loss 1.8077 lam=0.500 z=1.00 2s
+step 50 loss 1.3726 lam=0.501 z=1.00 110s
+step 100 loss 1.2746 lam=0.502 z=1.01 218s
+step 150 loss 1.2205 lam=0.503 z=1.02 325s
+step 200 loss 1.1187 lam=0.505 z=1.02 432s
+step 250 loss 1.1651 lam=0.506 z=1.02 539s
+step 300 loss 1.1565 lam=0.508 z=1.02 646s
+step 350 loss 1.1100 lam=0.508 z=1.03 752s
+step 400 loss 1.1139 lam=0.510 z=1.03 858s
+step 450 loss 1.0791 lam=0.511 z=1.03 964s
+step 500 loss 1.0435 lam=0.511 z=1.03 1070s
+step 550 loss 1.1224 lam=0.512 z=1.04 1175s
+step 600 loss 1.0203 lam=0.513 z=1.04 1280s
+step 650 loss 1.0400 lam=0.513 z=1.04 1385s
+step 700 loss 0.9304 lam=0.513 z=1.04 1490s
+step 750 loss 0.9434 lam=0.514 z=1.04 1595s

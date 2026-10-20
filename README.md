@@ -26,26 +26,37 @@ illumination alone.
 | CosPlace-R50, zero-shot | 26.8 | 14.1 |
 | EigenPlaces-R50, zero-shot | 28.1 | 16.6 |
 | DINOv2-SALAD, zero-shot | 35.8 | 23.4 |
-| GeM head, lunar-trained | 31.5 ± 0.4 | 21.7 |
-| NetVLAD head, lunar-trained | 58.2 ± 0.7 | 46.7 |
-| SALAD head (λ=1), lunar-trained | 59.4 ± 0.7 | 48.6 |
-| **Galatea head (learned λ), lunar-trained** | **59.8 ± 0.8** | 47.6 |
-| **Galatea + FGW global–local fusion** | **66.1 ± 0.1** | 52.2 (seed 0) |
+| GeM head, frozen backbone | 31.5 ± 0.4 | 21.7 |
+| NetVLAD head, frozen backbone | 58.2 ± 0.7 | 46.7 |
+| SALAD head (λ=1), frozen backbone | 59.4 ± 0.7 | 48.6 |
+| Galatea head (learned λ), frozen backbone | 59.8 ± 0.8 | 47.6 |
+| Galatea (frozen) + FGW global–local fusion | 66.1 ± 0.1 | 52.2 (seed 0) |
+| GeM, fine-tuned backbone | 50.7 ± 3.2 | 42.0 |
+| **NetVLAD, fine-tuned backbone** | **76.4 ± 0.7** | **64.3** |
+| SALAD (λ=1), fine-tuned backbone | 73.5 ± 0.5 | 62.2 |
+| λ=0 OT head, fine-tuned backbone | 73.1 ± 1.1 | 61.9 |
+| Galatea (learned λ), fine-tuned backbone | 71.3 ± 1.2 | 60.1 |
+| Galatea (fine-tuned) + FGW fusion | 74.5 ± 0.8 | 63.0 |
+| **NetVLAD (fine-tuned) + FGW fusion** | **79.4** (seed 0) | **67.7** |
 
-Lunar-trained rows give the mean ± std over 3 seeds. "Hardest" averages conditions C2 (grazing Sun), C5
-(shadows reversed) and C6 (both). The main findings:
+Trained rows give the mean ± std over 3 seeds. "Frozen": only the aggregation head is trained; "fine-tuned":
+the last four DINOv2 blocks are trained with the head (GPU). "Hardest" averages conditions C2 (grazing Sun),
+C5 (shadows reversed) and C6 (both). The main findings:
 
-- Illumination-diverse training is worth +24 points over the best terrestrial model. With a single Sun
-  direction in training, recall drops by 13.6 points.
-- Balanced and unbalanced OT assignment perform alike. The paper proves why: after intra-normalisation the
-  descriptor sees the transport plan only through per-token weights.
-- Fusing local and global evidence adds 5–7 points for every local matcher. Re-ranking by local evidence
+- Illumination-diverse training is worth +24 points over the best terrestrial model with a frozen backbone.
+  A single training Sun direction costs 13.6 points frozen and 21.5 points fine-tuned.
+- Joint backbone fine-tuning adds 11–19 points of R@1 for every head.
+- With a frozen backbone, balanced and unbalanced OT assignment perform alike; the paper proves why (after
+  intra-normalisation the descriptor sees the transport plan only through per-token weights). With
+  fine-tuning, the end points λ ∈ {0, 1} beat a learned intermediate λ, and NetVLAD is the best head.
+- Fusing local and global evidence adds 3–7 points for every local matcher. Re-ranking by local evidence
   alone helps little.
 
 The full tables and ablations are in [`docs/RESULTS.md`](docs/RESULTS.md).
 
-> **Limitation.** All results come from simulation, with a frozen backbone (trained on a 2-core CPU without
-> a GPU). The relative comparisons use paired queries, but the absolute numbers are not on-Moon predictions.
+> **Limitation.** All results come from simulation. The relative comparisons use paired queries on unseen
+> scenes, but the absolute numbers are not on-Moon predictions. Frozen-backbone runs were done on a 2-core CPU
+> and reproduced on GPUs; fine-tuning runs used NVIDIA Tesla P40 GPUs.
 
 ## Repository layout
 
@@ -105,6 +116,15 @@ python3 extract.py              # writes data/lunarsim/*/t*/feats.pt
 python3 zeroshot.py test val    # terrestrial baselines
 python3 train_eval.py --name galatea_s0 --head ot --mode learn --steps 500 --P 24 --eval_split val,test --save_desc
 ```
+
+Joint backbone fine-tuning needs a GPU (about 25 min per run on a Tesla P40):
+
+```bash
+python3 train_ft.py --name ft1e-4_galatea_s0 --head ot --mode learn --bb_lr 1e-4 --steps 1000 --device cuda:0 --save_desc
+```
+
+On a multi-GPU machine without a scheduler, `scripts/gpu_queue.sh` runs a job list across GPUs, and
+`scripts/rerank_parallel.sh` spreads re-ranking over CPU cores.
 
 To reproduce everything (every number, table, figure and the paper PDF), run `bash scripts/reproduce_all.sh`.
 Details are in [`docs/REPRODUCE.md`](docs/REPRODUCE.md).

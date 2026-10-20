@@ -1,5 +1,5 @@
 On the same 2-core CPU, the frozen ViT-B/14 takes $\tBackbone$\,ms per image and SuperPoint
 $\tSp$\,ms. The heads add only $\tNv$--$\tGal$\,ms (Galatea: $\tGal$\,ms), so the $\lambda$-scaled
-Sinkhorn loop is negligible. Per candidate pair (200 keypoints), appearance-only OT takes
-$\tUot$\,ms, LightGlue $\tLg$\,ms and partial FGW $\tFgw$\,ms. FGW re-ranking of $K=10$ candidates
-thus costs about $\tFgwK$\,ms per query, so MNN+MAGSAC++ is the cheaper choice at similar accuracy.
+Sinkhorn loop is negligible. Per candidate pair (200 keypoints), appearance-only OT takes $\tUot$\,ms, LightGlue $\tLg$\,ms and
+partial FGW $\tFgw$\,ms ($\approx\tFgwK$\,ms per query for $K=10$), so MNN+MAGSAC++ is the cheaper choice
+at similar accuracy. On a Tesla P40 GPU the backbone takes $15$\,ms per image.

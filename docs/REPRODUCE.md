@@ -2,7 +2,8 @@
 
 ## Compute
 
-Everything in the paper was run on a 2-core CPU with 8 GB RAM and no GPU.
+Frozen-backbone experiments were run on a 2-core CPU with 8 GB RAM and no GPU (and reproduced on GPUs);
+joint backbone fine-tuning was run on NVIDIA Tesla P40 GPUs (see the GPU section below).
 
 | Step | Command | Time (2 cores) |
 |---|---|---|
@@ -16,6 +17,24 @@ Everything in the paper was run on a 2-core CPU with 8 GB RAM and no GPU.
 
 The single command `bash scripts/reproduce_all.sh` runs every step in order. Each step skips work that
 already exists.
+
+## GPU: joint backbone fine-tuning and faster reproduction
+
+Every script accepts a device: `DEV=cuda:0 python3 extract.py`, `python3 train_eval.py ... --device cuda:0`.
+On a Tesla P40 feature extraction takes about 1 min per scene, a frozen-backbone run about 2 min and a
+fine-tuning run (`train_ft.py`) about 25 min. The fine-tuning runs of the paper are listed in
+`scripts/finetune_jobs.txt`; on a multi-GPU machine without a scheduler run them with
+
+```bash
+GALATEA_RESULTS=results/gpu bash scripts/gpu_queue.sh scripts/finetune_jobs.txt "0 1 2 3"
+GALATEA_RESULTS=results/gpu bash scripts/rerank_parallel.sh 16 ft1e-4_galatea_s0:mnn,uot,fgw,lg \
+    ft1e-4_galatea_s1:mnn,fgw ft1e-4_galatea_s2:mnn,fgw ft1e-4_netvlad_s0:mnn,fgw
+```
+
+`gpu_queue.sh` skips finished runs and can be re-launched safely. Fine-tuning is deterministic on a given
+GPU (a repeated run reproduced the sweep run exactly). Fine-tuned backbone weights are not stored in the
+repository (use `--save_backbone` to keep them); `results/gpu/` holds the metrics, re-ranking scores and logs.
+Tested with PyTorch 2.5.1 + CUDA 12.4, which still supports Pascal GPUs (sm_60/61).
 
 ## Skipping training
 

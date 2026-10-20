@@ -20,5 +20,10 @@ places $\times$ $4$ views, using the multi-similarity loss ($\alpha=1$, $\beta=5
 Sinkhorn uses $L=3$ iterations, $m=64$ clusters and $\ell=128$. The four main heads and the $\lambda=0$ ablation
 are run with three seeds (mean $\pm$ standard deviation); the other ablations use one seed. For stage~2, the structural weight $\alpha\in\{0,0.3,0.6\}$ (chosen: $0.3$) and the fusion
 parameters $\beta,\kappa$ are selected on the validation scene only. $\varepsilon_\ell=0.05$ and the
-dust-bin cost threshold $0.25$ (cosine $0.75$) are fixed a priori, and MAGSAC++ uses a $1.5$\,px threshold. All experiments run on a $2$-core CPU without a GPU. Code, the renderer, the rendered
+dust-bin cost threshold $0.25$ (cosine $0.75$) are fixed a priori, and MAGSAC++ uses a $1.5$\,px threshold.
+\emph{Fine-tuned} heads additionally train the last four ViT blocks (as in SALAD) for $1000$ steps with the
+same sampler and loss. The backbone learning rate ($10^{-4}$) was selected on the validation scene from
+$\{10^{-5},\dots,10^{-3}\}$ (supplement). Frozen-backbone experiments ran on a $2$-core CPU and fine-tuning on
+NVIDIA Tesla P40 GPUs, where a re-run of all frozen-backbone heads reproduces the CPU results within seed
+noise (supplement). Code, the renderer, the rendered
 benchmark and the trained heads are available at \url{https://github.com/RaunakDune/galatea-lunar-vpr}.

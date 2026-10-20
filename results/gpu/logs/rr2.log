@@ -1,0 +1,19 @@
+12 partial tasks
+ok ft1e-4_galatea_s2 val mnn,fgw t901
+ok ft1e-4_netvlad_s0 val mnn,fgw t901
+ok ft1e-4_galatea_s1 val mnn,fgw t901
+ok ft1e-4_netvlad_s0 test mnn,fgw t1002
+ok ft1e-4_galatea_s1 test mnn,fgw t1002
+ok ft1e-4_galatea_s2 test mnn,fgw t1002
+ok ft1e-4_galatea_s1 test mnn,fgw t1003
+ok ft1e-4_galatea_s2 test mnn,fgw t1001
+ok ft1e-4_netvlad_s0 test mnn,fgw t1001
+ok ft1e-4_galatea_s2 test mnn,fgw t1003
+ok ft1e-4_galatea_s1 test mnn,fgw t1001
+ok ft1e-4_netvlad_s0 test mnn,fgw t1003
+done ft1e-4_galatea_s1_val_mnn-fgw_a0.3_c0.25 0s
+done ft1e-4_galatea_s1_test_mnn-fgw_a0.3_c0.25 0s
+done ft1e-4_galatea_s2_val_mnn-fgw_a0.3_c0.25 0s
+done ft1e-4_galatea_s2_test_mnn-fgw_a0.3_c0.25 0s
+done ft1e-4_netvlad_s0_val_mnn-fgw_a0.3_c0.25 0s
+done ft1e-4_netvlad_s0_test_mnn-fgw_a0.3_c0.25 0s

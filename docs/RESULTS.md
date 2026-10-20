@@ -20,6 +20,37 @@ is correct if a retrieved database image lies within 10 m and 60° of heading.
 Per-condition columns give R@1. Conditions: C0 same Sun as the database (az 135°, el 30°); C1 el 15°;
 C2 el 6°; C3 el 60°; C4 az +90°; C5 az +180°; C6 az +180° and el 8°.
 
+### Joint backbone fine-tuning (GPU)
+
+The last four DINOv2 blocks are trained together with the head (`src/train_ft.py`, 1000 steps, backbone
+learning rate 1e-4 selected on the validation scene; mean ± std over 3 seeds, NVIDIA Tesla P40).
+
+| Method | Dim. | R@1 | R@5 | R@10 | C0 | C1 | C2 | C3 | C4 | C5 | C6 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| GeM, fine-tuned | 1280 | 50.7 ± 3.2 | 81.4 ± 2.0 | 90.2 ± 1.5 | 65.2 | 55.1 | 37.2 | 57.3 | 51.6 | 48.1 | 40.6 |
+| NetVLAD, fine-tuned | 8448 | **76.4 ± 0.7** | **94.3 ± 0.1** | **97.6 ± 0.2** | 91.6 | 85.3 | 63.0 | 86.1 | 78.9 | 71.8 | 58.1 |
+| SALAD (λ=1), fine-tuned | 8448 | 73.5 ± 0.5 | 94.0 ± 0.2 | 97.4 ± 0.2 | 88.5 | 80.1 | 57.7 | 83.0 | 76.4 | 71.3 | 57.6 |
+| λ=0 OT head, fine-tuned | 8448 | 73.1 ± 1.1 | 93.3 ± 0.4 | 97.2 ± 0.1 | 87.4 | 81.2 | 57.4 | 83.0 | 74.7 | 70.6 | 57.8 |
+| Galatea (learned λ), fine-tuned | 8448 | 71.3 ± 1.2 | 93.0 ± 0.4 | 97.1 ± 0.3 | 87.9 | 80.4 | 54.4 | 79.5 | 71.2 | 69.8 | 56.3 |
+
+- Fine-tuning gains (R@1): GeM +19.2, NetVLAD +18.2, SALAD +14.1, Galatea +11.5 (95% CI [10.2, 12.8]).
+- Paired differences: NetVLAD − SALAD +2.9 [+1.9, +3.9]; Galatea − SALAD −2.2 [−3.2, −1.2];
+  λ=0 − Galatea +1.8 [+0.9, +2.8]. With a fine-tuned backbone the end points λ ∈ {0, 1} beat a learned
+  intermediate λ; NetVLAD's residual aggregation is best.
+- Global–local fusion on the fine-tuned Galatea (3 seeds): +3.1 ± 0.4 (FGW, R@1 74.5 ± 0.8),
+  +3.3 ± 0.6 (MNN + MAGSAC++). Fine-tuned NetVLAD + FGW fusion (seed 0): **R@1 79.4**, R@5 95.4.
+- Single-illumination training with fine-tuning: Galatea 51.2 (−21.5 vs. seed-0 reference 72.8; hard 24.7 vs. 60.9),
+  SALAD 54.0.
+- Backbone learning-rate sweep (validation R@1, Galatea seed 0): 1e-5: 68.4, 3e-5: 70.4, **1e-4: 76.6**,
+  3e-4: 68.9, 1e-3: 18.4.
+
+### Cross-hardware reproduction of the frozen-backbone runs
+
+Re-running all frozen-backbone experiments on GPUs (features re-extracted on the GPU; the zero-shot baselines
+reproduce exactly) gives, over 5 seeds: GeM 32.3 ± 1.1, NetVLAD 58.1 ± 0.6, SALAD 60.0 ± 0.6, Galatea
+59.7 ± 1.0, λ=0 60.1 ± 0.9 (3 seeds) — all within one standard deviation of the CPU numbers above.
+GPU results are in `results/gpu/` (results.json, re-ranking scores and logs).
+
 ## Stage-2 re-ranking (top-10 Galatea seed-0 candidates, test)
 
 `Local` sorts candidates by the local score only. `Fused` uses s = s_g + β·s_ℓ/(s_ℓ+κ), with β and κ tuned

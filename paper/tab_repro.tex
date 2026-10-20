@@ -1,0 +1,17 @@
+\begin{table}[t]
+\centering
+\caption{Cross-hardware reproduction of the frozen-backbone heads (test R@1, \%, mean$\pm$std). CPU: the runs reported in the paper (3 seeds). GPU: the same code and protocol re-run on NVIDIA Tesla P40 GPUs (5 seeds).}
+\label{tab:repro}
+\footnotesize
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Head & CPU (3 seeds) & GPU (5 seeds) & GPU hard \\
+\midrule
+GeM & 31.5{\scriptsize$\pm$0.4} & 32.3{\scriptsize$\pm$1.1} & 22.1 \\
+NetVLAD & 58.2{\scriptsize$\pm$0.7} & 58.1{\scriptsize$\pm$0.6} & 46.6 \\
+SALAD ($\lambda{=}1$) & 59.4{\scriptsize$\pm$0.7} & 60.0{\scriptsize$\pm$0.6} & 48.8 \\
+Galatea, learned $\lambda$ & 59.8{\scriptsize$\pm$0.8} & 59.7{\scriptsize$\pm$1.0} & 47.8 \\
+$\lambda=0$ & 59.9{\scriptsize$\pm$0.8} & 60.1{\scriptsize$\pm$0.9} & 48.1 \\
+\bottomrule
+\end{tabular}
+\end{table}
