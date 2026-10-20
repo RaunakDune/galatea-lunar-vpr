@@ -24,6 +24,8 @@ p.add_argument('--alpha', type=float, default=0.3)
 p.add_argument('--eps', type=float, default=0.05)
 p.add_argument('--cbin', type=float, default=0.25)
 p.add_argument('--threads', type=int, default=2)
+p.add_argument('--only', default='', help='comma-separated terrain names to process (parallel runs); '
+               'the combined file is written by a final run without --only')
 p.add_argument('--limit', type=int, default=0, help='debug: only first N queries per terrain')
 args = p.parse_args()
 torch.set_num_threads(args.threads)
@@ -123,6 +125,8 @@ t0 = time.time()
 tag = f'{args.stage1}_{args.split}_{"-".join(methods)}' + (f'_a{args.alpha}_c{args.cbin}' if 'fgw' in methods else '') + (f'_lim{args.limit}' if args.limit else '')
 for Tt in T_all:
     name = os.path.basename(Tt['dir'])
+    if args.only and name not in args.only.split(','):
+        continue
     part = f'{OUT}/partial_{tag}_{name}.npy'
     if os.path.exists(part):
         store[name] = np.load(part, allow_pickle=True).item(); print('resume', name); continue
@@ -158,5 +162,6 @@ for Tt in T_all:
             print(name, qi, f'{time.time() - t0:.0f}s', flush=True)
     store[name] = {'cand': cand[:nq], 'gsim': np.take_along_axis(sim, cand, 1)[:nq], **sc}
     np.save(part, store[name], allow_pickle=True)
-np.save(f'{OUT}/{tag}.npy', store, allow_pickle=True)
+if not args.only:
+    np.save(f'{OUT}/{tag}.npy', store, allow_pickle=True)
 print('done', tag, f'{time.time() - t0:.0f}s')
