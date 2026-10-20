@@ -12,42 +12,60 @@ database~\cite{lowry2015visual,schubert2023tutorial}.
 Modern VPR systems reach high recall on street-level benchmarks by aggregating deep local
 features into a compact global descriptor~\cite{arandjelovic2016netvlad,radenovic2019gem,berton2022cosplace,berton2023eigenplaces,izquierdo2024optimal},
 optionally followed by local-feature re-ranking~\cite{hausler2021patch}. The lunar surface
-removes almost every cue these systems rely on. \emph{Illumination:} without an atmosphere, shadows
-are black and sharp, and as the Sun's elevation and azimuth sweep through large ranges over a lunar
-day the same place can look entirely different (\cref{fig:conds}). \emph{Self-similarity:} craters
-and boulders follow power-law size--frequency distributions~\cite{neukum2001cratering,melosh1989impact},
-so terrain is repetitive at every scale and individual features are weakly
-discriminative~\cite{torii2013visual}. \emph{Photometry:} regolith is strongly non-Lambertian, with
-phase-dependent limb darkening and an opposition surge~\cite{mcewen1991photometric,hapke2012theory}.
-\emph{Data:} there is no large, pose-annotated lunar VPR dataset to train on.
+removes almost every cue these systems rely on:
+\begin{itemize}
+\item \textbf{Illumination.} There is no atmosphere to scatter light, so shadows are black and
+sharp. Over a lunar day the Sun's elevation and azimuth sweep through large ranges, and the
+same place can look entirely different at two times (\cref{fig:conds}).
+\item \textbf{Self-similarity.} Craters and boulders follow power-law size--frequency
+distributions~\cite{neukum2001cratering,melosh1989impact}, so terrain is statistically repetitive
+at every scale and individual features are weakly discriminative~\cite{torii2013visual}.
+\item \textbf{Photometry.} Regolith is strongly non-Lambertian, with phase-dependent limb
+darkening and an opposition surge~\cite{mcewen1991photometric,hapke2012theory}, which violates the
+brightness-constancy assumptions built into terrestrial descriptors.
+\item \textbf{Data.} There is no large, pose-annotated lunar VPR dataset to train on.
+\end{itemize}
 
-This paper presents \textbf{Galatea}, a two-stage lunar VPR system built on optimal transport (OT)
-at both stages. Its global stage aggregates foundation-model tokens with an OT assignment, and its
-local stage re-ranks candidates with an OT matching that also respects geometry. Our contributions
-are:
+Two design questions follow. \emph{How should tokens be aggregated} when a large and variable part of
+every image (black sky, featureless regolith, moving shadows) carries no place information? And
+\emph{how should local evidence be used} when local features respond mostly to shadow edges that move
+with the Sun? This paper answers both within one framework, \textbf{Galatea}, which casts each stage
+of two-stage VPR as an optimal-transport (OT) problem. Global aggregation becomes an assignment of
+tokens to clusters and a dust-bin; local verification becomes a transport between keypoint sets that
+respects their layout; and the two are combined by a fusion rule whose behaviour can be stated
+exactly. Treating the stages as OT problems makes their design choices explicit and analysable: the
+framework contains the assignments of NetVLAD and SALAD as special cases, its theory predicts when the
+choice between them matters, and our experiments test those predictions with a frozen and with a
+fine-tuned backbone. Our contributions are:
 \begin{enumerate}
-\item \textbf{A semi-relaxed unbalanced OT aggregator} (\cref{sec:uot}). We show that one learnable
-scalar $\lambda\in[0,1]$ interpolates \emph{exactly} between the NetVLAD soft-assignment
-($\lambda=0$) and the balanced Sinkhorn assignment of SALAD~\cite{izquierdo2024optimal}
-($\lambda=1$). We prove linear convergence with rate $\lambda$ for the truncated iterations and
-characterise the dust-bin as a logistic gate on cluster affinity
-(\cref{prop:uot,prop:contraction,prop:dustbin}).
-\item \textbf{Global--local fusion with partial fused Gromov--Wasserstein re-ranking}
-(\cref{sec:fgw,sec:fusion}). A training-free local stage scores both the appearance and the
-relative layout of keypoints and is invariant to similarity transforms (\cref{prop:inv}). A
-saturating fusion combines it with the global similarity. We also show that the column-scale
-invariance of intra-normalised descriptors (\cref{prop:colinv}) explains why balanced and
-unbalanced assignments behave alike.
-\item \textbf{LunarSim-VPR} (\cref{sec:bench})\footnote{Code and data: \url{https://github.com/RaunakDune/galatea-lunar-vpr}}. This is an open, procedurally generated benchmark
+\item \textbf{An OT family of aggregators} (\cref{sec:uot}). A semi-relaxed unbalanced OT problem
+defines token-to-cluster assignments indexed by one scalar $\lambda\in[0,1]$ that recovers the NetVLAD
+soft-assignment ($\lambda=0$) and the balanced Sinkhorn assignment of SALAD~\cite{izquierdo2024optimal}
+($\lambda=1$) \emph{exactly}; Galatea can also learn $\lambda$. We prove linear convergence with rate
+$\lambda$ for the truncated iterations, characterise the dust-bin as a logistic gate on cluster
+affinity, and show that intra-normalised descriptors see the transport plan only through per-token
+weights (\cref{prop:uot,prop:contraction,prop:dustbin,prop:colinv}).
+\item \textbf{OT-based global--local fusion} (\cref{sec:fgw,sec:fusion}). A training-free partial
+fused Gromov--Wasserstein (FGW) matcher scores both the appearance and the relative layout of keypoints
+and is invariant to similarity transforms (\cref{prop:inv}). A saturating fusion rule combines it with
+the global similarity and provably overturns the global ranking only where its margin is small
+(\cref{prop:override}).
+\item \textbf{LunarSim-VPR} (\cref{sec:bench})\footnote{Code and data: \url{https://github.com/RaunakDune/galatea-lunar-vpr}}, an open, procedurally generated benchmark
 with a physically motivated renderer (crater size--frequency statistics, lunar-Lambert photometry
-with opposition surge, cast shadows from local and regional relief). Its protocol separates
+with opposition surge, cast shadows from local and regional relief) whose protocol separates
 viewpoint change from controlled changes in solar elevation and azimuth.
-\item \textbf{A controlled evaluation} (\cref{sec:exp}). We evaluate terrestrial state-of-the-art
-models zero-shot, compare aggregation heads trained under identical conditions, and test four
-re-ranking strategies, with seed variation and paired-bootstrap confidence intervals. The results
-show that illumination-diverse lunar training, backbone fine-tuning and global--local fusion drive
-the gains, while the choice of assignment relaxation and of local matcher matters little.
+\item \textbf{A controlled study of what matters} (\cref{sec:exp,sec:discussion}). Under identical
+training, with three seeds and paired-bootstrap confidence intervals, we evaluate terrestrial models
+zero-shot, the whole assignment family with a frozen and a fine-tuned backbone, four local scorers with
+and without fusion, and the effect of training illumination. We distil the results into design
+guidelines for lunar VPR.
 \end{enumerate}
+
+The findings are not all in favour of the most flexible model. With a frozen backbone every member of
+the family performs alike, exactly as \cref{prop:colinv} predicts. With a fine-tuned backbone the end
+points of the family beat a learned intermediate $\lambda$ and residual NetVLAD aggregation is best.
+Fusion, in contrast, helps every stage-1 model, and how local and global evidence are combined matters
+more than which local matcher is used.
 
 % ======================================================================
 \section{Related Work}\label{sec:related}
@@ -74,9 +92,13 @@ Gromov--Wasserstein structural term~\cite{memoli2011gromov,peyre2016gromov}, in 
 \cite{vayer2019fgw} and with partial mass~\cite{chapel2020partial}, so that matches must preserve
 relative keypoint geometry.
 
-Entropic regularisation and Sinkhorn iterations~\cite{cuturi2013sinkhorn,peyre2019computational}
-made OT differentiable and fast; unbalanced OT replaces hard marginals with divergence penalties and
-keeps Sinkhorn-like scaling algorithms~\cite{chizat2018scaling}.
+\paragraph*{Optimal transport}
+Entropic regularisation and the Sinkhorn algorithm~\cite{cuturi2013sinkhorn,peyre2019computational}
+made OT differentiable and fast. Unbalanced OT replaces hard marginal constraints with divergence
+penalties and keeps Sinkhorn-like scaling algorithms~\cite{chizat2018scaling}. Gromov--Wasserstein
+distances compare metric spaces through their internal distances~\cite{memoli2011gromov} and are
+used for structured matching~\cite{vayer2019fgw}. We use OT in both roles: as a layer inside the
+descriptor and as a training-free matcher between keypoint sets.
 
 \paragraph*{Planetary localisation}
 Rovers rely on visual odometry~\cite{maimone2007mer}, and landers on terrain-relative navigation

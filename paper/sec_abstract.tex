@@ -1,24 +1,24 @@
 \begin{abstract}
 Visual place recognition (VPR) on the Moon has to cope with black shadows that move with the Sun,
 statistically self-similar crater fields and strongly non-Lambertian regolith. We present
-\emph{Galatea}, a two-stage VPR system built on optimal transport (OT). Stage~1 aggregates
-foundation-model tokens with a semi-relaxed unbalanced OT assignment whose relaxation parameter
-$\lambda$ recovers the NetVLAD ($\lambda=0$) and SALAD ($\lambda=1$) assignments exactly. We prove
-that its truncated Sinkhorn iterations converge linearly at rate $\lambda$, characterise the
-dust-bin as a logistic gate on cluster affinity, and show that after intra-normalisation the
-descriptor depends on the transport plan only through per-token weights. Stage~2 re-ranks
-candidates with a training-free partial fused Gromov--Wasserstein matching of keypoints, and a
-saturating score fuses this local evidence with the global similarity. We also introduce
-LunarSim-VPR, a physically motivated procedural benchmark in which the same query poses are
-rendered under seven Sun conditions. Terrestrial state-of-the-art models fall from about
-$\zsSaladCzero\%$ Recall@1 at fixed illumination to $\zsSaladHard\%$ on the hardest Sun changes.
-Training only the OT aggregation head on illumination-diverse lunar scenes raises overall Recall@1
-from $\zsSaladRone\%$ to $\galRone\%$, and jointly fine-tuning the last backbone blocks lifts every
-head by a further $11$--$19$ points (best: $\ftNvRone\%$). Global--local fusion adds
-$\msFgwGain\pm\msFgwGainsd$ points on top of the frozen model and $\ftFgwGain\pm\ftFgwGainsd$ on top of
-the fine-tuned one (three seeds). With a frozen backbone, balanced and unbalanced assignments perform
-alike, as the theory predicts. The dominant factor is illumination-diverse training: a single training
-Sun direction costs $\fixIllDrop$ points frozen and $\ftFixIllDrop$ fine-tuned.
+\emph{Galatea}, a framework that treats both stages of two-stage VPR as optimal transport (OT).
+For global aggregation, a semi-relaxed unbalanced OT problem defines a one-parameter family of
+token-to-cluster assignments that contains the NetVLAD ($\lambda=0$) and SALAD ($\lambda=1$)
+assignments as end points and a learned $\lambda$ in between. We prove that its truncated Sinkhorn
+iterations converge linearly at rate $\lambda$, characterise the dust-bin as a logistic gate, and
+show that after intra-normalisation the descriptor sees the transport plan only through per-token
+weights, which predicts when the choice of $\lambda$ can matter. For global--local fusion, a
+training-free partial fused Gromov--Wasserstein matching scores both the appearance and the layout of
+keypoints, and a saturating fusion rule provably overrides the global ranking only where the global
+margin is small. On LunarSim-VPR, a physically motivated benchmark that renders the same query poses
+under seven Sun conditions, terrestrial models fall from about $\zsSaladCzero\%$ to $\zsSaladHard\%$
+Recall@1 under large Sun changes. With a frozen backbone, every member of the OT family reaches
+$\approx\galRone\%$ (zero-shot: $\zsSaladRone\%$), as the theory predicts. Fine-tuning the last
+backbone blocks adds $11$--$19$ points and separates the family: the end points beat a learned
+intermediate $\lambda$, and NetVLAD-style residual aggregation is best ($\ftNvRone\%$). Fusion adds
+$3$--$7$ points for every stage-1 model and local matcher, because it keeps most of the queries that
+local evidence rescues while breaking few that the global ranking already had right; the full system
+reaches $\msnvFgwRone\%$. Illumination-diverse training remains the largest single factor.
 \end{abstract}
 
 \begin{IEEEkeywords}

@@ -1,6 +1,6 @@
 \begin{table}[t]
 \centering
-\caption{Ablations of the stage-1 aggregator (test R@1/R@5, \%; hard = mean R@1 over C2, C5, C6). Top: assignment relaxation $\lambda$ (mean$\pm$std over the seeds available; single-seed rows marked $^\dagger$). Bottom: Galatea variants vs.\ the seed-0 reference.}
+\caption{Ablations of the Galatea head (test, \%, seed~0; hard = mean R@1 over C2, C5, C6). Single-illumination: the training scenes re-rendered with the same poses under the database Sun only.}
 \label{tab:ablation}
 \footnotesize
 \setlength{\tabcolsep}{3.5pt}
@@ -8,20 +8,17 @@
 \toprule
 Variant & R@1 & R@5 & hard \\
 \midrule
-$\lambda=0$ (NetVLAD assignment + dust-bin) & 59.9{\scriptsize$\pm$0.8} & 87.6{\scriptsize$\pm$0.6} & 48.4 \\
-$\lambda=0.25$ (fixed)$^\dagger$ & 60.7 & 88.2 & 48.1 \\
-$\lambda$ learned (Galatea, init.\ 0.5) ($\bar\lambda{=}0.50$) & 59.8{\scriptsize$\pm$0.8} & 87.3{\scriptsize$\pm$0.5} & 47.6 \\
-$\lambda$ learned, $25\times$ lr on $\lambda,z$ ($\bar\lambda{=}0.56$)$^\dagger$ & 60.3 & 87.7 & 47.3 \\
-$\lambda=0.75$ (fixed)$^\dagger$ & 59.2 & 87.9 & 48.2 \\
-$\lambda=1$ (SALAD, balanced) & 59.4{\scriptsize$\pm$0.7} & 87.3{\scriptsize$\pm$0.7} & 48.6 \\
-\midrule
-Galatea (seed 0, reference) & 60.8 & 88.0 & 47.8 \\
-\quad no dust-bin & 62.1 & 88.0 & 49.3 \\
+Frozen backbone, reference & 60.8 & 88.0 & 47.8 \\
 \quad $L=1$ Sinkhorn iteration & 59.9 & 87.8 & 46.6 \\
 \quad $L=10$ iterations & 60.7 & 88.0 & 47.7 \\
 \quad $m=16$ clusters & 57.7 & 86.2 & 45.9 \\
 \quad $m=32$ clusters & 61.1 & 88.2 & 47.9 \\
 \quad single-illumination training & 47.3 & 72.2 & 27.6 \\
+\quad SALAD, single-illumination & 46.9 & 72.6 & 28.5 \\
+\midrule
+Fine-tuned backbone, reference & 72.8 & 93.6 & 60.9 \\
+\quad single-illumination training & 51.2 & 73.7 & 24.7 \\
+\quad SALAD, single-illumination & 54.0 & 76.0 & 29.6 \\
 \bottomrule
 \end{tabular}
 \end{table}

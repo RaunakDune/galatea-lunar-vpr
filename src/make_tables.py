@@ -69,16 +69,16 @@ for key, lab, dim in [('CosPlace-R50', 'CosPlace-R50~\\cite{berton2022cosplace}'
     rows.append(('zs', lab, dim, {k: (r[k], None, 1) for k in r if k.startswith('R@') and ('_' not in k or k.startswith('R@1_'))},
                  {N: np.array(r[f'hits_R{N}']) for N in (1, 5, 10)}))
 heads = {}
-for pre, lab in [('gem', 'GeM'), ('netvlad', 'NetVLAD'), ('salad', 'SALAD ($\\lambda{=}1$)'),
-                 ('galatea', 'Galatea, learned $\\lambda$')]:
+for pre, lab in [('gem', 'GeM'), ('netvlad', 'NetVLAD'), ('lam0', 'OT, $\\lambda{=}0$'), ('salad', 'OT, $\\lambda{=}1$ (SALAD)'),
+                 ('galatea', 'OT, learned $\\lambda$')]:
     a = agg(pre)
     if a:
         heads[pre] = a
         rows.append(('tr', lab, a['info']['desc_dim'], a, a['hits']))
 
 ftheads = {}
-for pre, lab in [('gem', 'GeM'), ('netvlad', 'NetVLAD'), ('salad', 'SALAD ($\\lambda{=}1$)'),
-                 ('galatea', 'Galatea, learned $\\lambda$')]:
+for pre, lab in [('gem', 'GeM'), ('netvlad', 'NetVLAD'), ('lam0', 'OT, $\\lambda{=}0$'), ('salad', 'OT, $\\lambda{=}1$ (SALAD)'),
+                 ('galatea', 'OT, learned $\\lambda$')]:
     a = agg('ft1e-4_' + pre, root=RG)
     if a:
         ftheads[pre] = a
@@ -93,11 +93,11 @@ L = ['\\begin{table*}[t]', '\\centering',
      '\\begin{tabular}{@{}llr ccc ccccccc@{}}', '\\toprule',
      '& Method & Dim. & R@1 & R@5 & R@10 & ' + ' & '.join(SH) + ' \\\\', '\\midrule']
 for i, (kind, lab, dim, d, _) in enumerate(rows):
-    if i in (3, 7):
+    if i in (3, 8):
         L.append('\\midrule')
     grp = {0: '\\multirow{3}{*}{\\rotatebox{90}{\\scriptsize zero-shot}}',
-           3: '\\multirow{4}{*}{\\rotatebox{90}{\\scriptsize frozen}}',
-           7: '\\multirow{4}{*}{\\rotatebox{90}{\\scriptsize fine-tuned}}'}.get(i, '')
+           3: '\\multirow{5}{*}{\\rotatebox{90}{\\scriptsize frozen}}',
+           8: '\\multirow{5}{*}{\\rotatebox{90}{\\scriptsize fine-tuned}}'}.get(i, '')
     cells = [cell(*d[k], bold=abs(d[k][0] - best[k]) < 0.05) for k in ['R@1', 'R@5', 'R@10']]
     cells += [cell(d[f'R@1_{c}'][0], bold=abs(d[f'R@1_{c}'][0] - best[f'R@1_{c}']) < 0.05) for c in CONDS]
     L.append(f'{grp} & {lab} & {dim} & ' + ' & '.join(cells) + ' \\\\')
@@ -146,7 +146,7 @@ addabl('$\\lambda$ learned, $25\\times$ lr on $\\lambda,z$', 'galatea_fast', (0,
 addabl('$\\lambda=0.75$ (fixed)', 'lam0.75', (0,))
 addabl('$\\lambda=1$ (SALAD, balanced)', 'salad')
 abl2 = []
-for label, prefix in [('no dust-bin', 'galatea_nodust'), ('$L=1$ Sinkhorn iteration', 'galatea_L1'),
+for label, prefix in [('$L=1$ Sinkhorn iteration', 'galatea_L1'),
                       ('$L=10$ iterations', 'galatea_L10'), ('$m=16$ clusters', 'galatea_m16'),
                       ('$m=32$ clusters', 'galatea_m32'),
                       ('single-illumination training', 'galatea_fixedillum')]:
@@ -155,21 +155,27 @@ for label, prefix in [('no dust-bin', 'galatea_nodust'), ('$L=1$ Sinkhorn iterat
         abl2.append((label, a))
 ref0 = agg('galatea', (0,))
 L = ['\\begin{table}[t]', '\\centering',
-     '\\caption{Ablations of the stage-1 aggregator (test R@1/R@5, \\%; hard = mean R@1 over C2, C5, C6). '
-     'Top: assignment relaxation $\\lambda$ (mean$\\pm$std over the seeds available; single-seed rows marked $^\\dagger$). '
-     'Bottom: Galatea variants vs.\\ the seed-0 reference.}', '\\label{tab:ablation}', '\\footnotesize',
-     '\\setlength{\\tabcolsep}{3.5pt}', '\\begin{tabular}{@{}lccc@{}}', '\\toprule', 'Variant & R@1 & R@5 & hard \\\\', '\\midrule']
+     '\\caption{Ablations of the Galatea head (test, \\%, seed~0; hard = mean R@1 over C2, C5, C6). '
+     'Single-illumination: the training scenes re-rendered with the same poses under the database Sun only.}',
+     '\\label{tab:ablation}', '\\footnotesize', '\\setlength{\\tabcolsep}{3.5pt}', '\\begin{tabular}{@{}lccc@{}}',
+     '\\toprule', 'Variant & R@1 & R@5 & hard \\\\', '\\midrule']
 def hard(a):
     return np.mean([a[f'R@1_{c}'][0] for c in ['C2_el6', 'C5_az+180', 'C6_az+180_el8']])
-for label, a in abl:
-    dag = '$^\\dagger$' if a['n'] == 1 else ''
-    lam = f" ($\\bar\\lambda{{=}}{np.mean(a['lams']):.2f}$)" if 'learned' in label else ''
-    L.append(f'{label}{lam}{dag} & {cell(*a["R@1"])} & {cell(*a["R@5"])} & {hard(a):.1f} \\\\')
-if ref0 and abl2:
-    L.append('\\midrule')
-    L.append(f'Galatea (seed 0, reference) & {ref0["R@1"][0]:.1f} & {ref0["R@5"][0]:.1f} & {hard(ref0):.1f} \\\\')
+if ref0:
+    L.append(f'Frozen backbone, reference & {ref0["R@1"][0]:.1f} & {ref0["R@5"][0]:.1f} & {hard(ref0):.1f} \\\\')
     for label, a in abl2:
         L.append(f'\\quad {label} & {a["R@1"][0]:.1f} & {a["R@5"][0]:.1f} & {hard(a):.1f} \\\\')
+    sfa = agg('salad_fixedillum', (0,))
+    if sfa:
+        L.append(f'\\quad SALAD, single-illumination & {sfa["R@1"][0]:.1f} & {sfa["R@5"][0]:.1f} & {hard(sfa):.1f} \\\\')
+_f0 = agg('ft1e-4_galatea', (0,), root=RG)
+if _f0:
+    L.append('\\midrule')
+    L.append(f'Fine-tuned backbone, reference & {_f0["R@1"][0]:.1f} & {_f0["R@5"][0]:.1f} & {hard(_f0):.1f} \\\\')
+    for lab_, pre_ in [('single-illumination training', 'ft1e-4_galatea_fixedillum'), ('SALAD, single-illumination', 'ft1e-4_salad_fixedillum')]:
+        a = agg(pre_, (0,), root=RG)
+        if a:
+            L.append(f'\\quad {lab_} & {a["R@1"][0]:.1f} & {a["R@5"][0]:.1f} & {hard(a):.1f} \\\\')
 L += ['\\bottomrule', '\\end{tabular}', '\\end{table}']
 open(f'{P}/tab_ablation.tex', 'w').write('\n'.join(L))
 for label, a in abl + abl2:
@@ -415,3 +421,114 @@ if sweep:
     open(f'{P}/tab_lrsweep.tex', 'w').write('\n'.join(L))
 open(f'{P}/numbers.tex', 'w').write('\n'.join(f'\\newcommand{{\\{k}}}{{{v}}}' for k, v in sorted(macros.items())) + '\n')
 print('fine-tuning macros written')
+
+# ------------------------------------------------------------------ assignment family: frozen vs fine-tuned (GPU, 3 seeds)
+fam = [('$\\lambda=0$, dust-bin', 'lam0'), ('$\\lambda=0$, no dust-bin', 'lam0_nodust'), ('$\\lambda=0.25$', 'lam0.25'),
+       ('learned $\\lambda$ (Galatea)', 'galatea'), ('$\\lambda=0.75$', 'lam0.75'), ('$\\lambda=1$ (SALAD), dust-bin', 'salad'),
+       ('$\\lambda=1$, no dust-bin', 'salad_nodust'), ('NetVLAD (residual, $k$-means)', 'netvlad')]
+L = ['\\begin{table}[t]', '\\centering',
+     '\\caption{The assignment family with a frozen and a fine-tuned backbone (test R@1, \\%, mean$\\pm$std over 3 '
+     'seeds; hard: mean R@1 over C2, C5, C6). All runs in this table were made on the same GPUs. The OT rows share the '
+     'aggregation architecture and differ only in the assignment; NetVLAD aggregates residuals to $k$-means-initialised '
+     'centroids and has no dust-bin.}', '\\label{tab:family}', '\\footnotesize', '\\setlength{\\tabcolsep}{3pt}',
+     '\\begin{tabular}{@{}lcccc@{}}', '\\toprule', '& \\multicolumn{2}{c}{Frozen} & \\multicolumn{2}{c}{Fine-tuned} \\\\',
+     '\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}', 'Assignment & R@1 & hard & R@1 & hard \\\\', '\\midrule']
+famres = {}
+for lab, pre in fam:
+    fr = agg(pre, root=RG); ft = agg('ft1e-4_' + pre, root=RG)
+    famres[pre] = (fr, ft)
+    c1 = f'{cell(*fr["R@1"])} & {hard(fr):.1f}' if fr else '-- & --'
+    c2 = f'{cell(*ft["R@1"])} & {hard(ft):.1f}' if ft else '-- & --'
+    if pre == 'netvlad':
+        L.append('\\midrule')
+    L.append(f'{lab} & {c1} & {c2} \\\\')
+L += ['\\bottomrule', '\\end{tabular}', '\\end{table}']
+open(f'{P}/tab_family.tex', 'w').write('\n'.join(L))
+fnm = {'lam0': 'LamZero', 'lam0_nodust': 'LamZeroND', 'lam0.25': 'LamQ', 'galatea': 'Gal', 'lam0.75': 'LamTQ',
+       'salad': 'Sal', 'salad_nodust': 'SalND', 'netvlad': 'Nv'}
+for pre, (fr, ft) in famres.items():
+    if fr:
+        M('famFr' + fnm[pre], fr['R@1'][0]); M('famFr' + fnm[pre] + 'sd', fr['R@1'][1])
+    if ft:
+        M('famFt' + fnm[pre], ft['R@1'][0]); M('famFt' + fnm[pre] + 'sd', ft['R@1'][1])
+for (x, y, nm) in [('lam0_nodust', 'lam0', 'NDvsD'), ('netvlad', 'lam0_nodust', 'NvVsND'), ('salad_nodust', 'salad', 'SalNDvsD')]:
+    for k, idx in [('Fr', 0), ('Ft', 1)]:
+        a, b = famres.get(x, (None, None))[idx], famres.get(y, (None, None))[idx]
+        if a and b:
+            d, lo, hi = paired_boot(a['hits'][1], b['hits'][1])
+            M('fam' + k + nm + 'Mean', d, '{:+.1f}'); M('fam' + k + nm + 'Lo', lo, '{:+.1f}'); M('fam' + k + nm + 'Hi', hi, '{:+.1f}')
+lamfr = [famres[p][0]['R@1'][0] for p in ['lam0', 'lam0.25', 'galatea', 'lam0.75', 'salad'] if famres.get(p) and famres[p][0]]
+if len(lamfr) == 5:
+    M('famFrLamRange', max(lamfr) - min(lamfr))
+lamft = [famres[p][1]['R@1'][0] for p in ['lam0', 'lam0.25', 'galatea', 'lam0.75', 'salad'] if famres.get(p) and famres[p][1]]
+if len(lamft) == 5:
+    M('famFtLamRange', max(lamft) - min(lamft))
+
+# ------------------------------------------------------------------ why fusion works: rescued / broken queries
+def rescue_break(vf, tf, methods=('fgw', 'mnn_ransac', 'lg')):
+    sv = np.load(vf, allow_pickle=True).item(); st = np.load(tf, allow_pickle=True).item()
+    g = recall_after(st, 'test', None)['hits1']
+    out = {}
+    for m in methods:
+        if m not in next(iter(st.values())):
+            continue
+        b, k = tune(sv, 'val', m, BET, KAP)
+        for mode in ('local', 'fused'):
+            h = recall_after(st, 'test', m, mode, b, k)['hits1']
+            out[(m, mode)] = ((~g & h).mean() * 100, (g & ~h).mean() * 100)
+    return out, st, g
+rb = {}
+for tag, vf in [('Fr', f'{R}/rerank/galatea_s0_val_mnn-uot-fgw-lg_a0.3_c0.25.npy'),
+                ('Ft', f'{RG}/rerank/ft1e-4_galatea_s0_val_mnn-uot-fgw-lg_a0.3_c0.25.npy')]:
+    tf = vf.replace('_val_', '_test_')
+    if os.path.exists(vf) and os.path.exists(tf):
+        out, st, g = rescue_break(vf, tf)
+        rb[tag] = out
+        for (m, mode), (r_, b_) in out.items():
+            nm = 'rb' + tag + {'fgw': 'Fgw', 'mnn_ransac': 'MnnR', 'lg': 'Lg'}[m] + ('Loc' if mode == 'local' else 'Fus')
+            M(nm + 'Res', r_); M(nm + 'Brk', b_)
+        if tag == 'Fr':   # global margin of the local-only overrides (FGW)
+            from analyze_rerank import gt
+            G = gt('test'); mb, mr = [], []
+            for name, S in st.items():
+                pos = G[name][0]; cand = S['cand']; gs = S['gsim']; ls = S['fgw'].astype(float); nq = len(cand)
+                loc = np.argmax(ls + 1e-3 * gs, 1); ar = np.arange(nq)
+                gok = pos[ar, cand[:, 0]]; lok = pos[ar, cand[ar, loc]]; mg = gs[:, 0] - gs[ar, loc]
+                mb += list(mg[gok & ~lok]); mr += list(mg[~gok & lok])
+            M('marginBroken', np.median(mb), '{:.3f}'); M('marginRescued', np.median(mr), '{:.3f}')
+if rb:
+    L = ['\\begin{table}[t]', '\\centering',
+         '\\caption{Why fusion works: share of test queries (\\%) whose top-1 result re-ranking \\emph{rescues} '
+         '(global wrong $\\to$ correct) or \\emph{breaks} (global correct $\\to$ wrong), for local-only ranking '
+         'and for the fused score, on Galatea seed~0.}', '\\label{tab:rescue}', '\\footnotesize', '\\setlength{\\tabcolsep}{3pt}',
+         '\\begin{tabular}{@{}llcccc@{}}', '\\toprule', '& & \\multicolumn{2}{c}{Local only} & \\multicolumn{2}{c}{Fused} \\\\',
+         '\\cmidrule(lr){3-4}\\cmidrule(lr){5-6}', 'Stage 1 & Scorer & resc. & broken & resc. & broken \\\\', '\\midrule']
+    for tag, lab in [('Fr', 'frozen'), ('Ft', 'fine-tuned')]:
+        if tag not in rb:
+            continue
+        for i, (m, ml) in enumerate([('mnn_ransac', 'MNN+MAGSAC++'), ('lg', 'LightGlue'), ('fgw', 'partial FGW')]):
+            lo_ = rb[tag][(m, 'local')]; fu_ = rb[tag][(m, 'fused')]
+            L.append(f'{lab if i == 0 else ""} & {ml} & {lo_[0]:.1f} & {lo_[1]:.1f} & {fu_[0]:.1f} & {fu_[1]:.1f} \\\\')
+        if tag == 'Fr':
+            L.append('\\midrule')
+    L += ['\\bottomrule', '\\end{tabular}', '\\end{table}']
+    open(f'{P}/tab_rescue.tex', 'w').write('\n'.join(L))
+
+# ------------------------------------------------------------------ fusion on fine-tuned NetVLAD, 3 seeds
+for m, nm in [('fgw', 'nvFgw'), ('mnn_ransac', 'nvMnnR')]:
+    fu, gl, hs, r5 = [], [], [], []
+    for s in [0, 1, 2]:
+        fv = f'{RG}/rerank/ft1e-4_netvlad_s{s}_val_mnn-fgw_a0.3_c0.25.npy'; ft_ = fv.replace('_val_', '_test_')
+        if not (os.path.exists(fv) and os.path.exists(ft_)):
+            continue
+        sv = np.load(fv, allow_pickle=True).item(); st = np.load(ft_, allow_pickle=True).item()
+        b, k = tune(sv, 'val', m, BET, KAP)
+        rf = recall_after(st, 'test', m, 'fused', b, k)
+        fu.append(rf['R@1']); r5.append(rf['R@5']); gl.append(recall_after(st, 'test', None)['R@1'])
+        hs.append(np.mean([rf[f'R@1_{c}'] for c in HARD]))
+    if len(fu) == 3:
+        g = np.array(fu) - np.array(gl)
+        M('ms' + nm + 'Rone', np.mean(fu)); M('ms' + nm + 'Ronesd', np.std(fu)); M('ms' + nm + 'Rfive', np.mean(r5))
+        M('ms' + nm + 'Gain', g.mean()); M('ms' + nm + 'Gainsd', g.std()); M('ms' + nm + 'Hard', np.mean(hs))
+open(f'{P}/numbers.tex', 'w').write('\n'.join(f'\\newcommand{{\\{k}}}{{{v}}}' for k, v in sorted(macros.items())) + '\n')
+print('framework macros written')

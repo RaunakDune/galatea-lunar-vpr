@@ -19,14 +19,17 @@ Recall@$k$, the fraction of queries with at least one true match among the top-$
 \end{equation}
 
 % ======================================================================
-\section{Method}\label{sec:method}
+\section{The Galatea Framework}\label{sec:method}
 % ======================================================================
-\Cref{fig:arch} gives an overview. Stage~1 aggregates the patch tokens of a vision transformer into
-a global descriptor by solving a \emph{semi-relaxed unbalanced} optimal-transport (UOT) problem
-between tokens and a set of learned clusters plus a dust-bin (\cref{sec:uot}). Stage~2 re-ranks the
-$K$ best candidates with a \emph{partial fused Gromov--Wasserstein} (FGW) matching of
-keypoints, which scores both what the keypoints look like and how they are arranged
-(\cref{sec:fgw}). The final ranking fuses the global and local scores (\cref{sec:fusion}).
+\Cref{fig:arch} gives an overview. Galatea has three OT components with explicit design parameters.
+Stage~1 aggregates the patch tokens of a vision transformer into a global descriptor by solving a
+\emph{semi-relaxed unbalanced} optimal-transport (UOT) problem between tokens and a set of learned
+clusters plus a dust-bin (\cref{sec:uot}); its relaxation $\lambda$ selects a member of an assignment
+family that includes NetVLAD and SALAD. Stage~2 re-ranks the $K$ best candidates with a
+\emph{partial fused Gromov--Wasserstein} (FGW) matching of keypoints, which scores both what the
+keypoints look like and how they are arranged (\cref{sec:fgw}). A saturating rule fuses the global and
+local scores (\cref{sec:fusion}). The backbone may be frozen or fine-tuned jointly with the head; the
+theory below holds in both cases, but its consequences differ (\cref{sec:predictions}).
 
 \subsection{Tokens, scores and the assignment problem}\label{sec:tokens}
 A DINOv2 ViT-B/14 backbone~\cite{oquab2024dinov2} produces $n$ patch tokens
@@ -70,7 +73,7 @@ horizon position and the Sun elevation. In practice SALAD truncates Sinkhorn aft
 iterations, which relaxes the constraint somewhat (\cref{sec:stage1}). The formulation below makes
 the relaxation explicit and controllable.
 
-\subsection{Galatea: semi-relaxed unbalanced OT assignment}\label{sec:uot}
+\subsection{A family of semi-relaxed unbalanced OT assignments}\label{sec:uot}
 We keep the token constraint hard (every token distributes exactly its unit mass) but replace
 the cluster/dust-bin constraint with a KL penalty of strength $\tau>0$~\cite{chizat2018scaling}:
 \begin{equation}
@@ -79,7 +82,7 @@ the cluster/dust-bin constraint with a KL penalty of strength $\tau>0$~\cite{chi
 \label{eq:uot}
 \end{equation}
 Define $\lambda=\tau/(\tau+\varepsilon)\in(0,1)$ and the log-sum-exp
-$\mathrm{LSE}_j(x_j)=\log\sum_j e^{x_j}$. Proofs of all propositions are given in the supplementary material.
+$\mathrm{LSE}_j(x_j)=\log\sum_j e^{x_j}$. Proofs of \cref{prop:uot,prop:contraction,prop:dustbin,prop:colinv,prop:inv} are given in the supplementary material.
 
 \begin{proposition}[Structure, limits]\label{prop:uot}
 Problem~\eqref{eq:uot} has a unique solution of the form
@@ -96,8 +99,8 @@ augmented with a dust-bin.
 fixed-point equations and $\mathbf{P}^{\tau}\to\mathbf{P}^{\mathrm{bal}}$ of \eqref{eq:balanced}.
 \end{proposition}
 Hence a single scalar $\lambda$ interpolates continuously between NetVLAD-style and
-SALAD-style assignment. Galatea \emph{learns} $\lambda=\mathrm{sigmoid}(\theta)$ jointly with the
-rest of the head. Alternating \eqref{eq:f} and \eqref{eq:g} gives \cref{alg:uot}, which is SALAD's
+SALAD-style assignment. $\lambda$ can be fixed, or \emph{learned} as $\lambda=\mathrm{sigmoid}(\theta)$
+jointly with the rest of the head; we call the learned variant the Galatea head. Alternating \eqref{eq:f} and \eqref{eq:g} gives \cref{alg:uot}, which is SALAD's
 Sinkhorn loop with the cluster-side update multiplied by $\lambda$; it costs $O(Lnm)$.
 
 \begin{proposition}[Linear convergence]\label{prop:contraction}
@@ -147,6 +150,18 @@ Balanced and unbalanced assignments therefore differ only in how they \emph{weig
 $w_i$. How much total mass each cluster receives is removed by intra-normalisation. Equation~\eqref{eq:colinv}
 also shows that NetVLAD with a dust-bin ($\lambda=0$) is SALAD-style aggregation with the simplest
 weights, $w_i=1/(\sum_{j}e^{s_{ij}/\varepsilon}+e^{z/\varepsilon})$.
+
+\subsection{What the theory predicts}\label{sec:predictions}
+\Cref{prop:colinv,prop:contraction} make three testable predictions. (P1)~With fixed tokens, members
+of the family differ only through a re-weighting $w_i$ of tokens that already pass the dust-bin gate,
+a second-order effect, so all values of $\lambda$ should give similar retrieval accuracy. (P2)~For the
+same reason the loss is nearly flat in $\lambda$, so a learned $\lambda$ should stay close to its
+initialisation. (P3)~Because the iteration contracts at rate $\lambda$, a few Sinkhorn steps should
+suffice, and their number should not matter. None of these statements constrains what happens when
+the tokens themselves are trained: a fine-tuned backbone can adapt its tokens to whichever weighting
+the assignment imposes, so the family may separate. The theory also says nothing about the
+\emph{aggregation} (residuals to centroids as in NetVLAD, or SALAD's reduced features), which is a
+second, independent design axis. \Cref{sec:family} tests both regimes.
 
 \begin{algorithm}[t]
 \caption{$\lambda$-scaled log-domain Sinkhorn (Galatea assignment)}\label{alg:uot}
@@ -225,9 +240,26 @@ The final score of candidate $r$ for query $q$ is
 s(q,r)=s_g(q,r)+\beta\,\frac{s_\ell(q,r)}{s_\ell(q,r)+\kappa},
 \label{eq:fusion}
 \end{equation}
-where the saturating map keeps one very textured candidate from dominating. $\beta$ and $\kappa$
-are selected on the validation terrain. With $\beta\to\infty$ the method reduces to pure local
-re-ranking, and with $\beta=0$ to the global ranking.
+where the saturating map $\phi(s)=s/(s+\kappa)\in[0,1)$ keeps one very textured candidate from
+dominating. $\beta$ and $\kappa$ are selected on the validation terrain. With $\beta\to\infty$ the
+method reduces to pure local re-ranking, and with $\beta=0$ to the global ranking. The fusion rule
+treats the global similarity margin as a confidence signal:
+
+\begin{proposition}[Bounded override]\label{prop:override}
+Let $r,r'$ be two candidates of query $q$ with $s_g(q,r')-s_g(q,r)=\delta\ge0$. Under
+\eqref{eq:fusion}, $r$ is ranked above $r'$ only if $\delta<\beta\,[\phi(s_\ell(q,r))-\phi(s_\ell(q,r'))]<\beta$.
+Hence the fused ranking agrees with the global ranking on every pair whose global margin is at least
+$\beta$, and with the local ranking on every pair whose local scores are equal or ordered like the
+global ones.
+\end{proposition}
+\begin{proof}
+$s(q,r)>s(q,r')$ is equivalent to $\beta[\phi(s_\ell(q,r))-\phi(s_\ell(q,r'))]>\delta$, and
+$\phi\in[0,1)$. If $s_\ell(q,r)\le s_\ell(q,r')$ the left side is non-positive, since $\phi$ is
+increasing.
+\end{proof}
+Pure local re-ranking has no such guard: one candidate with many shadow-edge matches overturns even a
+confident global decision. \Cref{sec:rerank} shows that this is exactly how local-only re-ranking
+loses accuracy on the Moon, and how fusion avoids it.
 
 \subsection{Complexity}\label{sec:complexity}
 \Cref{alg:uot} costs $O(Lnm)$ (about $6\cdot10^{4}$ operations for $L=3$), which is negligible

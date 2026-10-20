@@ -5,21 +5,21 @@ scattering beyond a constant ambient term, rover self-shadowing and dust, lens f
 bracketing, and the full range of geological units. Absolute recall values are therefore not predictions of on-Moon
 performance. The \emph{relative} comparisons use identical conditions and paired queries on unseen
 scenes, so we expect them to carry over better, but this must be confirmed on real imagery. Fine-tuning used a single learning rate selected on one
-validation scene and four of twelve blocks; full fine-tuning or larger backbones were not explored. The FGW structural term uses image-plane
+validation scene and four of twelve blocks; full fine-tuning or larger backbones were not explored,
+and the ranking of heads under fine-tuning may depend on these choices. The FGW structural term uses image-plane
 distances, which are only approximately preserved under large viewpoint changes. Lifting database
 keypoints to 3-D with DEM depth is a natural extension.
 
 % ======================================================================
 \section{Conclusion}\label{sec:conclusion}
 % ======================================================================
-Galatea casts both stages of lunar place recognition as optimal transport: a semi-relaxed
-unbalanced assignment that unifies NetVLAD and SALAD, and partial fused Gromov--Wasserstein
-re-ranking fused with the global score. On LunarSim-VPR,
-(i)~terrestrial models, including foundation-model ones, lose more than half their recall under
-large Sun changes;
-(ii)~illumination-diverse training matters far more than the aggregation layer; with a frozen
-backbone balanced and unbalanced assignments perform alike, as the theory predicts, and joint
-fine-tuning adds $11$--$19$ points for every head;
-(iii)~fusing local with global evidence adds three to seven points of Recall@1 for every local
-matcher. Next steps are real imagery, with DESPINA-synthesised reference views of real
-sites~\cite{nelsonarcher2026despina}, and 3-D structural terms from DEM depth.
+Galatea treats lunar visual place recognition as optimal transport at both stages: a family of
+semi-relaxed unbalanced assignments for global aggregation, which contains the NetVLAD and SALAD
+assignments and a learned relaxation, and a partial fused Gromov--Wasserstein matcher whose evidence
+is fused with the global score by a rule with bounded override. The theory of the assignment family
+predicted, and LunarSim-VPR confirmed, that its members are equivalent on a frozen backbone; once the
+backbone is fine-tuned, the end points are preferable and residual aggregation is best. Global--local
+fusion improved every stage-1 model and every local matcher, because it keeps most of what local
+evidence rescues without overturning confident global decisions. Illumination-diverse training
+remained the largest single factor. Next steps are real imagery, with DESPINA-synthesised reference
+views of real sites~\cite{nelsonarcher2026despina}, and 3-D structural terms from DEM depth.

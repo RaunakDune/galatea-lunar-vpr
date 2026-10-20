@@ -2,12 +2,16 @@
 \paragraph*{Compared methods}
 \emph{Zero-shot terrestrial models} use their official weights: CosPlace-R50~\cite{berton2022cosplace}
 ($512$-D), EigenPlaces-R50~\cite{berton2023eigenplaces} ($2048$-D) and DINOv2-SALAD~\cite{izquierdo2024optimal}
-($8448$-D, trained on GSV-Cities~\cite{alibey2022gsv}). \emph{Lunar-trained heads} all share the
-frozen SALAD-fine-tuned DINOv2 ViT-B/14 backbone, the training data, the loss and the schedule, and
-differ only in the aggregation: GeM~\cite{radenovic2019gem} ($1280$-D), NetVLAD~\cite{arandjelovic2016netvlad}
-($k$-means-initialised, $64\times128$ + scene token, $8448$-D), SALAD (balanced OT, $\lambda=1$) and
-Galatea (semi-relaxed UOT with learned $\lambda$). The last three have identical descriptor size
-and almost identical parameter counts. For stage~2 we compare four local scorers on the same
+($8448$-D, trained on GSV-Cities~\cite{alibey2022gsv}). \emph{Lunar-trained heads} all start from the
+SALAD-fine-tuned DINOv2 ViT-B/14 backbone and share the training data, the loss and the schedule; they
+differ only in the aggregation. Besides GeM~\cite{radenovic2019gem} ($1280$-D) and
+NetVLAD~\cite{arandjelovic2016netvlad} (residuals to $k$-means-initialised centroids, $64\times128$ +
+scene token, $8448$-D), we evaluate members of the OT family of \cref{sec:uot}, which share SALAD's
+aggregation and differ only in the assignment: $\lambda=0$ (softmax + dust-bin), fixed $\lambda=0.25$
+and $0.75$, learned $\lambda$ (the Galatea head, initialised at $0.5$) and $\lambda=1$ (SALAD), each
+with and without the dust-bin at the end points. All $8448$-D heads have almost identical parameter
+counts. Each head is trained either on a \emph{frozen} backbone or \emph{fine-tuned} jointly with the
+last four ViT blocks, as in SALAD. For stage~2 we compare four local scorers on the same
 SuperPoint keypoints (top $384$ by score) and top-$K=10$ candidates: mutual nearest neighbours
 with cosine $>0.7$ (MNN), training-free entropic OT with dust-bins (UOT, appearance only), the learned LightGlue
 matcher~\cite{lindenberger2023lightglue}, and our partial FGW. Each is used with and without
@@ -17,13 +21,14 @@ MAGSAC++ verification.
 Images are resized to $210\times280$ for the ViT ($n=300$ tokens). Heads are trained with AdamW
 (learning rate $4\cdot10^{-4}$, one-cycle schedule, weight decay $10^{-4}$) for $500$ steps of $24$
 places $\times$ $4$ views, using the multi-similarity loss ($\alpha=1$, $\beta=50$, miner margin $0.1$).
-Sinkhorn uses $L=3$ iterations, $m=64$ clusters and $\ell=128$. The four main heads and the $\lambda=0$ ablation
-are run with three seeds (mean $\pm$ standard deviation); the other ablations use one seed. For stage~2, the structural weight $\alpha\in\{0,0.3,0.6\}$ (chosen: $0.3$) and the fusion
+Sinkhorn uses $L=3$ iterations, $m=64$ clusters and $\ell=128$. All heads in \cref{tab:main,tab:family}
+are run with three seeds (mean $\pm$ standard deviation); the ablations of \cref{tab:ablation} use one
+seed. Confidence intervals are 95\% paired bootstraps over queries. For stage~2, the structural weight $\alpha\in\{0,0.3,0.6\}$ (chosen: $0.3$) and the fusion
 parameters $\beta,\kappa$ are selected on the validation scene only. $\varepsilon_\ell=0.05$ and the
 dust-bin cost threshold $0.25$ (cosine $0.75$) are fixed a priori, and MAGSAC++ uses a $1.5$\,px threshold.
-\emph{Fine-tuned} heads additionally train the last four ViT blocks (as in SALAD) for $1000$ steps with the
-same sampler and loss. The backbone learning rate ($10^{-4}$) was selected on the validation scene from
-$\{10^{-5},\dots,10^{-3}\}$ (supplement). Frozen-backbone experiments ran on a $2$-core CPU and fine-tuning on
-NVIDIA Tesla P40 GPUs, where a re-run of all frozen-backbone heads reproduces the CPU results within seed
-noise (supplement). Code, the renderer, the rendered
+Fine-tuned heads are trained for $1000$ steps with the same sampler and loss; the backbone learning
+rate ($10^{-4}$) was selected on the validation scene from $\{10^{-5},\dots,10^{-3}\}$ with the Galatea
+head (supplement) and used for every head. The frozen-backbone results in \cref{tab:main,tab:rerank}
+were computed on a $2$-core CPU; fine-tuning and \cref{tab:family} used NVIDIA Tesla P40 GPUs, on which
+a re-run of all frozen-backbone heads reproduces the CPU results within seed noise (supplement). Code, the renderer, the rendered
 benchmark and the trained heads are available at \url{https://github.com/RaunakDune/galatea-lunar-vpr}.

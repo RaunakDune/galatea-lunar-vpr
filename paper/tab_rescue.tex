@@ -1,0 +1,22 @@
+\begin{table}[t]
+\centering
+\caption{Why fusion works: share of test queries (\%) whose top-1 result re-ranking \emph{rescues} (global wrong $\to$ correct) or \emph{breaks} (global correct $\to$ wrong), for local-only ranking and for the fused score, on Galatea seed~0.}
+\label{tab:rescue}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}llcccc@{}}
+\toprule
+& & \multicolumn{2}{c}{Local only} & \multicolumn{2}{c}{Fused} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Stage 1 & Scorer & resc. & broken & resc. & broken \\
+\midrule
+frozen & MNN+MAGSAC++ & 15.9 & 14.3 & 10.7 & 4.3 \\
+ & LightGlue & 14.2 & 17.6 & 9.3 & 4.8 \\
+ & partial FGW & 15.0 & 16.0 & 7.6 & 2.4 \\
+\midrule
+fine-tuned & MNN+MAGSAC++ & 10.3 & 17.6 & 5.7 & 3.0 \\
+ & LightGlue & 10.0 & 21.0 & 4.4 & 1.8 \\
+ & partial FGW & 10.6 & 18.8 & 4.6 & 2.0 \\
+\bottomrule
+\end{tabular}
+\end{table}

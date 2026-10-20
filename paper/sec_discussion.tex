@@ -1,0 +1,35 @@
+% ======================================================================
+\section{Discussion: What Matters for Lunar VPR}\label{sec:discussion}
+% ======================================================================
+Viewing both stages as OT problems lets us separate three kinds of design decision and rank them by
+their measured effect on LunarSim-VPR.
+
+\paragraph*{Training data first}
+Illumination diversity in training is the largest single factor: it is worth $\fixIllDrop$ points of
+R@1 with a frozen backbone and $\ftFixIllDrop$ with a fine-tuned one, more than any architectural
+choice. Because a more adaptable model fits a single training light more closely, illumination
+diversity and backbone fine-tuning have to go together.
+
+\paragraph*{Then backbone adaptation, then aggregation}
+Fine-tuning the last four blocks adds $11$--$19$ points for every head. The aggregation matters only
+at the coarse level (cluster-based aggregation beats global pooling by more than $20$ points) and,
+once the backbone is trained, at the level of residual vs.\ OT aggregation. Within the OT family the
+assignment is a weak design lever: all members are equivalent on a frozen backbone (P1, P2), and on
+a fine-tuned backbone the end points are preferable to a learned intermediate value. The cheapest
+member, $\lambda=0$, needs no Sinkhorn loop and matches SALAD's balanced assignment within seed noise. A
+learnable $\lambda$ adds a parameter that the loss barely constrains (P2), so it should be fixed.
+
+\paragraph*{Fusion, not the matcher}
+Local evidence on the Moon is abundant but unreliable, because shadow edges dominate keypoint
+detections. Its value lies in the queries where the global ranking is uncertain, which is exactly
+where the bounded-override property of the fusion rule (\cref{prop:override}) lets it act. With
+fusion in place, a training-free OT matcher, plain mutual nearest neighbours and a learned
+terrestrial matcher perform alike, so the cheapest adequate scorer, MNN+MAGSAC++, is a sensible default
+(LightGlue costs $\approx\tLgK$\,ms and FGW $\approx\tFgwK$\,ms per query on a CPU). The structural
+FGW matcher earns its cost mainly where no learned matcher is available or trusted.
+
+\paragraph*{What the theory did and did not predict}
+\Cref{prop:colinv} correctly predicted that, with fixed tokens, the assignment family collapses to
+one operating point and that a learned $\lambda$ would not move. It does not predict the ordering
+once the tokens are trained; that ordering, and the advantage of residual aggregation, are empirical
+findings on simulated data that should be re-examined on real imagery.
