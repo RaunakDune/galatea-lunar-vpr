@@ -19,16 +19,19 @@ def M(name, val, fmt='{:.1f}'):
     macros[name] = fmt.format(val) if not isinstance(val, str) else val
 
 
-def load_run(name, split='test'):
-    f = f'{R}/runs/{name}/results.json'
+RG = os.path.join(R, 'gpu')          # GPU runs (backbone fine-tuning, cross-hardware reproduction)
+
+
+def load_run(name, split='test', root=None):
+    f = f'{root or R}/runs/{name}/results.json'
     if not os.path.exists(f):
         return None
     j = json.load(open(f))
     return j['results'].get(split), j['info']
 
 
-def agg(prefix, seeds=(0, 1, 2), split='test'):
-    rs = [load_run(f'{prefix}_s{s}', split) for s in seeds]
+def agg(prefix, seeds=(0, 1, 2), split='test', root=None):
+    rs = [load_run(f'{prefix}_s{s}', split, root) for s in seeds]
     rs = [r for r in rs if r is not None and r[0] is not None]
     if not rs:
         return None
@@ -73,18 +76,28 @@ for pre, lab in [('gem', 'GeM'), ('netvlad', 'NetVLAD'), ('salad', 'SALAD ($\\la
         heads[pre] = a
         rows.append(('tr', lab, a['info']['desc_dim'], a, a['hits']))
 
+ftheads = {}
+for pre, lab in [('gem', 'GeM'), ('netvlad', 'NetVLAD'), ('salad', 'SALAD ($\\lambda{=}1$)'),
+                 ('galatea', 'Galatea, learned $\\lambda$')]:
+    a = agg('ft1e-4_' + pre, root=RG)
+    if a:
+        ftheads[pre] = a
+        rows.append(('ft', lab, a['info']['desc_dim'], a, a['hits']))
+
 best = {k: max(r[3][k][0] for r in rows) for k in ['R@1', 'R@5', 'R@10'] + [f'R@1_{c}' for c in CONDS]}
 L = ['\\begin{table*}[t]', '\\centering',
      '\\caption{Recall (\\%) on the LunarSim-VPR test set (3 unseen scenes, 3150 queries). Lunar-trained heads share the '
-     'frozen DINOv2 backbone and training protocol; mean$\\pm$std over 3 seeds. Per-condition columns give R@1 '
+     'DINOv2 backbone and training protocol; \\emph{frozen}: only the head is trained; \\emph{fine-tuned}: the last four '
+     'backbone blocks are trained jointly with the head. Mean$\\pm$std over 3 seeds. Per-condition columns give R@1 '
      '(conditions in \\cref{tab:conds}).}', '\\label{tab:main}', '\\footnotesize', '\\setlength{\\tabcolsep}{4pt}',
      '\\begin{tabular}{@{}llr ccc ccccccc@{}}', '\\toprule',
      '& Method & Dim. & R@1 & R@5 & R@10 & ' + ' & '.join(SH) + ' \\\\', '\\midrule']
 for i, (kind, lab, dim, d, _) in enumerate(rows):
-    if i == 3:
+    if i in (3, 7):
         L.append('\\midrule')
-    grp = '\\multirow{3}{*}{\\rotatebox{90}{\\scriptsize zero-shot}}' if i == 0 else (
-        '\\multirow{4}{*}{\\rotatebox{90}{\\scriptsize lunar-trained}}' if i == 3 else '')
+    grp = {0: '\\multirow{3}{*}{\\rotatebox{90}{\\scriptsize zero-shot}}',
+           3: '\\multirow{4}{*}{\\rotatebox{90}{\\scriptsize frozen}}',
+           7: '\\multirow{4}{*}{\\rotatebox{90}{\\scriptsize fine-tuned}}'}.get(i, '')
     cells = [cell(*d[k], bold=abs(d[k][0] - best[k]) < 0.05) for k in ['R@1', 'R@5', 'R@10']]
     cells += [cell(d[f'R@1_{c}'][0], bold=abs(d[f'R@1_{c}'][0] - best[f'R@1_{c}']) < 0.05) for c in CONDS]
     L.append(f'{grp} & {lab} & {dim} & ' + ' & '.join(cells) + ' \\\\')
@@ -304,3 +317,97 @@ if sf:
 if ref0:
     M('galSzeroCzero', ref0['R@1_C0_same'][0], '{:.0f}')
 open(f'{P}/numbers.tex', 'w').write('\n'.join(f'\\newcommand{{\\{k}}}{{{v}}}' for k, v in sorted(macros.items())) + '\n')
+
+# ------------------------------------------------------------------ joint backbone fine-tuning (GPU)
+HARD = ['C2_el6', 'C5_az+180', 'C6_az+180_el8']
+ftall = {}
+for pre, nm in [('gem', 'Gem'), ('netvlad', 'Nv'), ('salad', 'Sal'), ('galatea', 'Gal'), ('lam0', 'LamZero')]:
+    a = agg('ft1e-4_' + pre, root=RG)
+    if a:
+        ftall[pre] = a
+        M('ft' + nm + 'Rone', a['R@1'][0]); M('ft' + nm + 'Ronesd', a['R@1'][1])
+        M('ft' + nm + 'Rfive', a['R@5'][0]); M('ft' + nm + 'Hard', hard(a))
+        fr = agg(pre)
+        if fr:
+            M('ft' + nm + 'Gain', a['R@1'][0] - fr['R@1'][0])
+        if a['lams'][0] is not None and pre == 'galatea':
+            M('ftGalLam', np.mean(a['lams']), '{:.2f}')
+for x, y, nm in [('galatea', 'salad', 'ftGalVsSal'), ('netvlad', 'galatea', 'ftNvVsGal'), ('netvlad', 'salad', 'ftNvVsSal'),
+                 ('lam0', 'galatea', 'ftLamZeroVsGal')]:
+    if x in ftall and y in ftall:
+        d, lo, hi = paired_boot(ftall[x]['hits'][1], ftall[y]['hits'][1])
+        M(nm + 'Mean', d, '{:+.1f}'); M(nm + 'Lo', lo, '{:+.1f}'); M(nm + 'Hi', hi, '{:+.1f}')
+if 'galatea' in ftall:
+    d, lo, hi = paired_boot(ftall['galatea']['hits'][1], heads['galatea']['hits'][1])
+    M('ftGainMean', d); M('ftGainLo', lo); M('ftGainHi', hi)
+sweep = {}
+for lr, nm in [('1e-5', 'A'), ('3e-5', 'B'), ('1e-4', 'C'), ('3e-4', 'D'), ('1e-3', 'E')]:
+    r = load_run(f'ftsweep_galatea_lr{lr}_s0', 'val', RG)
+    if r:
+        sweep[lr] = r[0]['R@1']; M('ftSweep' + nm, r[0]['R@1'])
+ffi = agg('ft1e-4_galatea_fixedillum', (0,), root=RG); fsi = agg('ft1e-4_salad_fixedillum', (0,), root=RG)
+ft0 = agg('ft1e-4_galatea', (0,), root=RG)
+if ffi and ft0:
+    M('ftFixIllRone', ffi['R@1'][0]); M('ftFixIllHard', hard(ffi)); M('ftFixIllDrop', ft0['R@1'][0] - ffi['R@1'][0])
+    M('ftGalSzeroRone', ft0['R@1'][0]); M('ftGalSzeroHard', hard(ft0))
+    M('ftFixIllCzero', ffi['R@1_C0_same'][0], '{:.0f}'); M('ftGalSzeroCzero', ft0['R@1_C0_same'][0], '{:.0f}')
+if fsi:
+    M('ftSalFixIllRone', fsi['R@1'][0])
+
+# fused re-ranking on fine-tuned stage 1
+ftrr = {}
+for m in ['mnn', 'mnn_ransac', 'fgw']:
+    fu, gl, hs = [], [], []
+    for s in [0, 1, 2]:
+        tag = 'mnn-uot-fgw-lg' if s == 0 else 'mnn-fgw'
+        fv = f'{RG}/rerank/ft1e-4_galatea_s{s}_val_{tag}_a0.3_c0.25.npy'
+        ft_ = f'{RG}/rerank/ft1e-4_galatea_s{s}_test_{tag}_a0.3_c0.25.npy'
+        if not (os.path.exists(fv) and os.path.exists(ft_)):
+            continue
+        sv = np.load(fv, allow_pickle=True).item(); st = np.load(ft_, allow_pickle=True).item()
+        b, k = tune(sv, 'val', m, BET, KAP)
+        rf = recall_after(st, 'test', m, 'fused', b, k)
+        fu.append(rf['R@1']); gl.append(recall_after(st, 'test', None)['R@1'])
+        hs.append(np.mean([rf[f'R@1_{c}'] for c in HARD]))
+    if fu:
+        nm = {'mnn': 'ftMnn', 'mnn_ransac': 'ftMnnR', 'fgw': 'ftFgw'}[m]
+        g = np.array(fu) - np.array(gl)
+        M(nm + 'Rone', np.mean(fu)); M(nm + 'Ronesd', np.std(fu)); M(nm + 'Gain', g.mean()); M(nm + 'Gainsd', g.std())
+        M(nm + 'Hard', np.mean(hs)); M(nm + 'N', len(fu), '{:d}')
+        ftrr[m] = (fu, gl)
+fv = f'{RG}/rerank/ft1e-4_netvlad_s0_val_mnn-fgw_a0.3_c0.25.npy'; ft_ = fv.replace('_val_', '_test_')
+if os.path.exists(fv) and os.path.exists(ft_):
+    sv = np.load(fv, allow_pickle=True).item(); st = np.load(ft_, allow_pickle=True).item()
+    for m, nm in [('fgw', 'ftNvFgw'), ('mnn_ransac', 'ftNvMnnR')]:
+        b, k = tune(sv, 'val', m, BET, KAP)
+        rf = recall_after(st, 'test', m, 'fused', b, k); g = recall_after(st, 'test', None)
+        M(nm + 'Rone', rf['R@1']); M(nm + 'Rfive', rf['R@5']); M(nm + 'Gain', rf['R@1'] - g['R@1'])
+        M(nm + 'Hard', np.mean([rf[f'R@1_{c}'] for c in HARD]))
+    M('ftNvSzeroRone', g['R@1'])
+
+# cross-hardware reproduction of the frozen-backbone runs (GPU, 5 seeds) -> supplement table
+rep = []
+for pre, lab in [('gem', 'GeM'), ('netvlad', 'NetVLAD'), ('salad', 'SALAD ($\\lambda{=}1$)'),
+                 ('galatea', 'Galatea, learned $\\lambda$'), ('lam0', '$\\lambda=0$')]:
+    cpu = agg(pre); gpu = agg(pre, (0, 1, 2, 3, 4), root=RG)
+    if cpu and gpu:
+        rep.append((lab, cpu, gpu))
+if rep:
+    L = ['\\begin{table}[t]', '\\centering', '\\caption{Cross-hardware reproduction of the frozen-backbone heads '
+         '(test R@1, \\%, mean$\\pm$std). CPU: the runs reported in the paper (3 seeds). GPU: the same code and '
+         'protocol re-run on NVIDIA Tesla P40 GPUs (5 seeds).}', '\\label{tab:repro}', '\\footnotesize',
+         '\\begin{tabular}{@{}lccc@{}}', '\\toprule', 'Head & CPU (3 seeds) & GPU (5 seeds) & GPU hard \\\\', '\\midrule']
+    for lab, c, g in rep:
+        L.append(f'{lab} & {cell(*c["R@1"])} & {cell(*g["R@1"])} & {hard(g):.1f} \\\\')
+    L += ['\\bottomrule', '\\end{tabular}', '\\end{table}']
+    open(f'{P}/tab_repro.tex', 'w').write('\n'.join(L))
+if sweep:
+    L = ['\\begin{table}[t]', '\\centering', '\\caption{Backbone learning rate for joint fine-tuning, selected on the '
+         'validation scene (Galatea head, seed 0, R@1 \\%).}', '\\label{tab:lrsweep}', '\\footnotesize',
+         '\\begin{tabular}{@{}l' + 'c' * len(sweep) + '@{}}', '\\toprule',
+         'Backbone lr & ' + ' & '.join(f'${float(k):.0e}$'.replace('e-0', '\\cdot10^{-') + '}' for k in sweep) + ' \\\\',
+         '\\midrule', 'Val.\\ R@1 & ' + ' & '.join(f'{v:.1f}' for v in sweep.values()) + ' \\\\',
+         '\\bottomrule', '\\end{tabular}', '\\end{table}']
+    open(f'{P}/tab_lrsweep.tex', 'w').write('\n'.join(L))
+open(f'{P}/numbers.tex', 'w').write('\n'.join(f'\\newcommand{{\\{k}}}{{{v}}}' for k, v in sorted(macros.items())) + '\n')
+print('fine-tuning macros written')
