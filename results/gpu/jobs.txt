@@ -70,3 +70,25 @@ ft1e-4_gem_s2|train_ft.py --head gem --seed 2 --bb_lr 1e-4 --steps 1000 --save_d
 ft1e-4_lam0_s2|train_ft.py --head ot --mode softmax --seed 2 --bb_lr 1e-4 --steps 1000 --save_desc
 ft1e-4_galatea_fixedillum_s0|train_ft.py --head ot --mode learn --seed 0 --bb_lr 1e-4 --steps 1000 --train_glob ../data/lunarsim/train_fixed/t*
 ft1e-4_salad_fixedillum_s0|train_ft.py --head ot --mode balanced --seed 0 --bb_lr 1e-4 --steps 1000 --train_glob ../data/lunarsim/train_fixed/t*
+ft1e-4_lam0.25_s0|train_ft.py --head ot --mode fixed --lam0 0.25 --seed 0 --bb_lr 1e-4 --steps 1000
+ft1e-4_lam0.75_s0|train_ft.py --head ot --mode fixed --lam0 0.75 --seed 0 --bb_lr 1e-4 --steps 1000
+ft1e-4_lam0_nodust_s0|train_ft.py --head ot --mode softmax --no_dustbin --seed 0 --bb_lr 1e-4 --steps 1000
+ft1e-4_salad_nodust_s0|train_ft.py --head ot --mode balanced --no_dustbin --seed 0 --bb_lr 1e-4 --steps 1000
+ft1e-4_lam0_nodust_s1|train_ft.py --head ot --mode softmax --no_dustbin --seed 1 --bb_lr 1e-4 --steps 1000
+ft1e-4_salad_nodust_s1|train_ft.py --head ot --mode balanced --no_dustbin --seed 1 --bb_lr 1e-4 --steps 1000
+ft1e-4_lam0_nodust_s2|train_ft.py --head ot --mode softmax --no_dustbin --seed 2 --bb_lr 1e-4 --steps 1000
+ft1e-4_salad_nodust_s2|train_ft.py --head ot --mode balanced --no_dustbin --seed 2 --bb_lr 1e-4 --steps 1000
+lam0.25_s1|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode fixed --lam0 0.25 --seed 1
+lam0.75_s1|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode fixed --lam0 0.75 --seed 1
+lam0.25_s2|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode fixed --lam0 0.25 --seed 2
+lam0.75_s2|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode fixed --lam0 0.75 --seed 2
+lam0_nodust_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode softmax --no_dustbin --seed 0
+salad_nodust_s0|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode balanced --no_dustbin --seed 0
+lam0_nodust_s1|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode softmax --no_dustbin --seed 1
+salad_nodust_s1|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode balanced --no_dustbin --seed 1
+lam0_nodust_s2|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode softmax --no_dustbin --seed 2
+salad_nodust_s2|train_eval.py --steps 500 --P 24 --threads 4 --eval_split val,test --head ot --mode balanced --no_dustbin --seed 2
+ft1e-4_lam0.25_s1|train_ft.py --head ot --mode fixed --lam0 0.25 --seed 1 --bb_lr 1e-4 --steps 1000
+ft1e-4_lam0.75_s1|train_ft.py --head ot --mode fixed --lam0 0.75 --seed 1 --bb_lr 1e-4 --steps 1000
+ft1e-4_lam0.25_s2|train_ft.py --head ot --mode fixed --lam0 0.25 --seed 2 --bb_lr 1e-4 --steps 1000
+ft1e-4_lam0.75_s2|train_ft.py --head ot --mode fixed --lam0 0.75 --seed 2 --bb_lr 1e-4 --steps 1000

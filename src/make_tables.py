@@ -424,7 +424,7 @@ print('fine-tuning macros written')
 
 # ------------------------------------------------------------------ assignment family: frozen vs fine-tuned (GPU, 3 seeds)
 fam = [('$\\lambda=0$, dust-bin', 'lam0'), ('$\\lambda=0$, no dust-bin', 'lam0_nodust'), ('$\\lambda=0.25$', 'lam0.25'),
-       ('learned $\\lambda$ (Galatea)', 'galatea'), ('$\\lambda=0.75$', 'lam0.75'), ('$\\lambda=1$ (SALAD), dust-bin', 'salad'),
+       ('$\\lambda=0.5$', 'lam0.5'), ('learned $\\lambda$ (Galatea, init.\\ 0.5)', 'galatea'), ('$\\lambda=0.75$', 'lam0.75'), ('$\\lambda=1$ (SALAD), dust-bin', 'salad'),
        ('$\\lambda=1$, no dust-bin', 'salad_nodust'), ('NetVLAD (residual, $k$-means)', 'netvlad')]
 L = ['\\begin{table}[t]', '\\centering',
      '\\caption{The assignment family with a frozen and a fine-tuned backbone (test R@1, \\%, mean$\\pm$std over 3 '
@@ -444,23 +444,23 @@ for lab, pre in fam:
     L.append(f'{lab} & {c1} & {c2} \\\\')
 L += ['\\bottomrule', '\\end{tabular}', '\\end{table}']
 open(f'{P}/tab_family.tex', 'w').write('\n'.join(L))
-fnm = {'lam0': 'LamZero', 'lam0_nodust': 'LamZeroND', 'lam0.25': 'LamQ', 'galatea': 'Gal', 'lam0.75': 'LamTQ',
+fnm = {'lam0': 'LamZero', 'lam0_nodust': 'LamZeroND', 'lam0.25': 'LamQ', 'lam0.5': 'LamH', 'galatea': 'Gal', 'lam0.75': 'LamTQ',
        'salad': 'Sal', 'salad_nodust': 'SalND', 'netvlad': 'Nv'}
 for pre, (fr, ft) in famres.items():
     if fr:
         M('famFr' + fnm[pre], fr['R@1'][0]); M('famFr' + fnm[pre] + 'sd', fr['R@1'][1])
     if ft:
         M('famFt' + fnm[pre], ft['R@1'][0]); M('famFt' + fnm[pre] + 'sd', ft['R@1'][1])
-for (x, y, nm) in [('lam0_nodust', 'lam0', 'NDvsD'), ('netvlad', 'lam0_nodust', 'NvVsND'), ('salad_nodust', 'salad', 'SalNDvsD')]:
+for (x, y, nm) in [('galatea', 'lam0.5', 'GalVsHalf'), ('galatea', 'salad', 'GalVsSal'), ('lam0_nodust', 'lam0', 'NDvsD'), ('netvlad', 'lam0_nodust', 'NvVsND'), ('salad_nodust', 'salad', 'SalNDvsD')]:
     for k, idx in [('Fr', 0), ('Ft', 1)]:
         a, b = famres.get(x, (None, None))[idx], famres.get(y, (None, None))[idx]
         if a and b:
             d, lo, hi = paired_boot(a['hits'][1], b['hits'][1])
             M('fam' + k + nm + 'Mean', d, '{:+.1f}'); M('fam' + k + nm + 'Lo', lo, '{:+.1f}'); M('fam' + k + nm + 'Hi', hi, '{:+.1f}')
-lamfr = [famres[p][0]['R@1'][0] for p in ['lam0', 'lam0.25', 'galatea', 'lam0.75', 'salad'] if famres.get(p) and famres[p][0]]
+lamfr = [famres[p][0]['R@1'][0] for p in ['lam0', 'lam0.25', 'lam0.5', 'lam0.75', 'salad'] if famres.get(p) and famres[p][0]]
 if len(lamfr) == 5:
     M('famFrLamRange', max(lamfr) - min(lamfr))
-lamft = [famres[p][1]['R@1'][0] for p in ['lam0', 'lam0.25', 'galatea', 'lam0.75', 'salad'] if famres.get(p) and famres[p][1]]
+lamft = [famres[p][1]['R@1'][0] for p in ['lam0', 'lam0.25', 'lam0.5', 'lam0.75', 'salad'] if famres.get(p) and famres[p][1]]
 if len(lamft) == 5:
     M('famFtLamRange', max(lamft) - min(lamft))
 
@@ -526,9 +526,16 @@ for m, nm in [('fgw', 'nvFgw'), ('mnn_ransac', 'nvMnnR')]:
         rf = recall_after(st, 'test', m, 'fused', b, k)
         fu.append(rf['R@1']); r5.append(rf['R@5']); gl.append(recall_after(st, 'test', None)['R@1'])
         hs.append(np.mean([rf[f'R@1_{c}'] for c in HARD]))
+        if m == 'fgw':
+            pc_nv = pc_nv + [[rf[f'R@1_{c}'] for c in CONDS]] if 'pc_nv' in dir() else [[rf[f'R@1_{c}'] for c in CONDS]]
     if len(fu) == 3:
         g = np.array(fu) - np.array(gl)
         M('ms' + nm + 'Rone', np.mean(fu)); M('ms' + nm + 'Ronesd', np.std(fu)); M('ms' + nm + 'Rfive', np.mean(r5))
         M('ms' + nm + 'Gain', g.mean()); M('ms' + nm + 'Gainsd', g.std()); M('ms' + nm + 'Hard', np.mean(hs))
 open(f'{P}/numbers.tex', 'w').write('\n'.join(f'\\newcommand{{\\{k}}}{{{v}}}' for k, v in sorted(macros.items())) + '\n')
 print('framework macros written')
+
+if 'pc_nv' in dir() and len(pc_nv) == 3:
+    ser = json.load(open(f'{R}/percond_series.json'))
+    ser['NetVLAD (fine-tuned) + FGW fusion'] = list(np.mean(pc_nv, 0))
+    json.dump(ser, open(f'{R}/percond_series.json', 'w'), indent=1)

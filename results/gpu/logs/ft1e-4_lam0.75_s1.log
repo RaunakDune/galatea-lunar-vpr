@@ -1,0 +1,29 @@
+dino load: <All keys matched successfully>
+salad load: <All keys matched successfully>
+train: 4800 imgs, 1200 places, cached in 63s
+step 0 loss 1.8079 lam=0.750 z=1.00 2s
+step 50 loss 1.3136 lam=0.750 z=1.00 69s
+step 100 loss 1.2233 lam=0.750 z=1.02 135s
+step 150 loss 1.1765 lam=0.750 z=1.03 202s
+step 200 loss 1.0534 lam=0.750 z=1.04 268s
+step 250 loss 1.0961 lam=0.750 z=1.04 334s
+step 300 loss 1.0372 lam=0.750 z=1.04 399s
+step 350 loss 1.1179 lam=0.750 z=1.05 464s
+step 400 loss 1.1756 lam=0.750 z=1.05 529s
+step 450 loss 1.1524 lam=0.750 z=1.05 594s
+step 500 loss 0.9522 lam=0.750 z=1.05 659s
+step 550 loss 1.0782 lam=0.750 z=1.05 723s
+step 600 loss 0.8776 lam=0.750 z=1.05 787s
+step 650 loss 0.9322 lam=0.750 z=1.06 852s
+step 700 loss 1.0654 lam=0.750 z=1.06 915s
+step 750 loss 0.8381 lam=0.750 z=1.06 979s
+step 800 loss 0.9610 lam=0.750 z=1.06 1042s
+step 850 loss 1.1362 lam=0.750 z=1.06 1105s
+step 900 loss 0.7948 lam=0.750 z=1.06 1168s
+step 950 loss 1.1117 lam=0.750 z=1.06 1231s
+step 999 loss 1.0174 lam=0.750 z=1.06 1293s
+val {'R@1': 73.9, 'R@5': 93.0, 'R@10': 97.9}
+val per-cond R@1 {'C0': 85.0, 'C1': 82.0, 'C2': 64.0, 'C3': 80.0, 'C4': 70.0, 'C5': 76.0, 'C6': 60.0}
+test {'R@1': 73.3, 'R@5': 93.2, 'R@10': 97.1}
+test per-cond R@1 {'C0': 88.9, 'C1': 79.8, 'C2': 58.0, 'C3': 82.9, 'C4': 75.8, 'C5': 68.9, 'C6': 58.9}
+DONE ft1e-4_lam0.75_s1

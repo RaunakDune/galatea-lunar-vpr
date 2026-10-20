@@ -1,0 +1,52 @@
+[gpu5] start ft1e-4_lam0.25_s0 Tue Oct 20 16:52:28 CDT 2026
+[gpu1] start ft1e-4_lam0.75_s0 Tue Oct 20 16:52:28 CDT 2026
+[gpu7] start ft1e-4_lam0_nodust_s0 Tue Oct 20 16:52:28 CDT 2026
+[gpu4] start ft1e-4_salad_nodust_s0 Tue Oct 20 16:52:28 CDT 2026
+[gpu2] start ft1e-4_lam0_nodust_s1 Tue Oct 20 16:52:28 CDT 2026
+[gpu6] start ft1e-4_salad_nodust_s1 Tue Oct 20 16:52:28 CDT 2026
+[gpu3] start ft1e-4_lam0_nodust_s2 Tue Oct 20 16:52:28 CDT 2026
+[gpu4] done  ft1e-4_salad_nodust_s0 Tue Oct 20 17:16:32 CDT 2026
+[gpu4] start ft1e-4_salad_nodust_s2 Tue Oct 20 17:16:33 CDT 2026
+[gpu2] done  ft1e-4_lam0_nodust_s1 Tue Oct 20 17:16:38 CDT 2026
+[gpu2] start lam0.25_s1 Tue Oct 20 17:16:38 CDT 2026
+[gpu6] done  ft1e-4_salad_nodust_s1 Tue Oct 20 17:16:38 CDT 2026
+[gpu6] start lam0.75_s1 Tue Oct 20 17:16:39 CDT 2026
+[gpu1] done  ft1e-4_lam0.75_s0 Tue Oct 20 17:16:41 CDT 2026
+[gpu1] start lam0.25_s2 Tue Oct 20 17:16:41 CDT 2026
+[gpu5] done  ft1e-4_lam0.25_s0 Tue Oct 20 17:16:42 CDT 2026
+[gpu5] start lam0.75_s2 Tue Oct 20 17:16:42 CDT 2026
+[gpu3] done  ft1e-4_lam0_nodust_s2 Tue Oct 20 17:16:42 CDT 2026
+[gpu3] start lam0_nodust_s0 Tue Oct 20 17:16:42 CDT 2026
+[gpu2] done  lam0.25_s1 Tue Oct 20 17:18:29 CDT 2026
+[gpu2] start salad_nodust_s0 Tue Oct 20 17:18:29 CDT 2026
+[gpu6] done  lam0.75_s1 Tue Oct 20 17:18:30 CDT 2026
+[gpu6] start lam0_nodust_s1 Tue Oct 20 17:18:31 CDT 2026
+[gpu1] done  lam0.25_s2 Tue Oct 20 17:18:36 CDT 2026
+[gpu1] start salad_nodust_s1 Tue Oct 20 17:18:36 CDT 2026
+[gpu3] done  lam0_nodust_s0 Tue Oct 20 17:18:39 CDT 2026
+[gpu3] start lam0_nodust_s2 Tue Oct 20 17:18:40 CDT 2026
+[gpu5] done  lam0.75_s2 Tue Oct 20 17:18:41 CDT 2026
+[gpu5] start salad_nodust_s2 Tue Oct 20 17:18:41 CDT 2026
+[gpu6] done  lam0_nodust_s1 Tue Oct 20 17:20:21 CDT 2026
+[gpu6] start ft1e-4_lam0.25_s1 Tue Oct 20 17:20:22 CDT 2026
+[gpu2] done  salad_nodust_s0 Tue Oct 20 17:20:27 CDT 2026
+[gpu2] start ft1e-4_lam0.75_s1 Tue Oct 20 17:20:28 CDT 2026
+[gpu1] done  salad_nodust_s1 Tue Oct 20 17:20:30 CDT 2026
+[gpu1] start ft1e-4_lam0.25_s2 Tue Oct 20 17:20:30 CDT 2026
+[gpu5] done  salad_nodust_s2 Tue Oct 20 17:20:35 CDT 2026
+[gpu5] start ft1e-4_lam0.75_s2 Tue Oct 20 17:20:35 CDT 2026
+[gpu3] done  lam0_nodust_s2 Tue Oct 20 17:20:40 CDT 2026
+[gpu3] no more jobs Tue Oct 20 17:20:40 CDT 2026
+[gpu7] done  ft1e-4_lam0_nodust_s0 Tue Oct 20 17:32:06 CDT 2026
+[gpu7] no more jobs Tue Oct 20 17:32:06 CDT 2026
+[gpu4] done  ft1e-4_salad_nodust_s2 Tue Oct 20 17:40:34 CDT 2026
+[gpu4] no more jobs Tue Oct 20 17:40:34 CDT 2026
+[gpu2] done  ft1e-4_lam0.75_s1 Tue Oct 20 17:44:29 CDT 2026
+[gpu2] no more jobs Tue Oct 20 17:44:30 CDT 2026
+[gpu6] done  ft1e-4_lam0.25_s1 Tue Oct 20 17:44:31 CDT 2026
+[gpu6] no more jobs Tue Oct 20 17:44:32 CDT 2026
+[gpu1] done  ft1e-4_lam0.25_s2 Tue Oct 20 17:44:36 CDT 2026
+[gpu1] no more jobs Tue Oct 20 17:44:36 CDT 2026
+[gpu5] done  ft1e-4_lam0.75_s2 Tue Oct 20 17:44:37 CDT 2026
+[gpu5] no more jobs Tue Oct 20 17:44:37 CDT 2026
+QUEUE EMPTY Tue Oct 20 17:44:37 CDT 2026

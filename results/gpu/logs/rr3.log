@@ -1,0 +1,13 @@
+8 partial tasks
+ok ft1e-4_netvlad_s2 val mnn,fgw t901
+ok ft1e-4_netvlad_s1 val mnn,fgw t901
+ok ft1e-4_netvlad_s2 test mnn,fgw t1002
+ok ft1e-4_netvlad_s1 test mnn,fgw t1002
+ok ft1e-4_netvlad_s2 test mnn,fgw t1001
+ok ft1e-4_netvlad_s2 test mnn,fgw t1003
+ok ft1e-4_netvlad_s1 test mnn,fgw t1003
+ok ft1e-4_netvlad_s1 test mnn,fgw t1001
+done ft1e-4_netvlad_s1_val_mnn-fgw_a0.3_c0.25 0s
+done ft1e-4_netvlad_s1_test_mnn-fgw_a0.3_c0.25 0s
+done ft1e-4_netvlad_s2_val_mnn-fgw_a0.3_c0.25 0s
+done ft1e-4_netvlad_s2_test_mnn-fgw_a0.3_c0.25 0s

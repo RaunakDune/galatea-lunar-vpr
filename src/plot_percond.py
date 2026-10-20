@@ -16,6 +16,7 @@ style = {  # validated categorical palette (light): blue, orange, aqua, yellow, 
     'Galatea (frozen) + FGW fusion': ('#0b0b0b', '-', '*'),
     'NetVLAD (fine-tuned)': ('#1baf7a', ':', 'D'),
     'Galatea (fine-tuned)': ('#2a78d6', ':', 'o'),
+    'NetVLAD (fine-tuned) + FGW fusion': ('#0b0b0b', ':', '*'),
 }
 plt.rcParams.update({'font.size': 7, 'font.family': 'serif'})
 fig, ax = plt.subplots(figsize=(3.45, 3.0), dpi=300)
