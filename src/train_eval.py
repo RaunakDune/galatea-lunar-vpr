@@ -29,9 +29,11 @@ p.add_argument('--threads', type=int, default=2)
 p.add_argument('--scalar_lr_mult', type=float, default=1.0)
 p.add_argument('--eval_split', default='test')
 p.add_argument('--save_desc', action='store_true')
+p.add_argument('--device', default='cpu', help="e.g. cuda:1")
 args = p.parse_args()
 torch.set_num_threads(args.threads)
 torch.manual_seed(args.seed); np.random.seed(args.seed)
+DEV = torch.device(args.device)
 OUT = f'{paths.RESULTS}/runs/{args.name}'
 os.makedirs(OUT, exist_ok=True)
 
@@ -50,7 +52,7 @@ for ti, d in enumerate(tdirs):
 def fetch(idx):
     t = torch.stack([TOK[gidx[i][0]][gidx[i][1]] for i in idx]).float()
     c = torch.stack([CLS[gidx[i][0]][gidx[i][1]] for i in idx]).float()
-    return t, c
+    return t.to(DEV), c.to(DEV)
 
 
 lab = np.array(lab); xy = np.array(xy); terr = np.array(terr)
@@ -74,13 +76,14 @@ if args.init == 'salad':
 if args.head == 'netvlad':   # k-means initialisation of centroids, as in NetVLAD
     with torch.no_grad():
         idx = np.random.choice(len(lab), 200, replace=False)
-        z = F.normalize(net.f(fetch(idx)[0]).flatten(2), dim=1).permute(0, 2, 1).reshape(-1, args.l)
+        z = F.normalize(net.f(fetch(idx)[0].cpu()).flatten(2), dim=1).permute(0, 2, 1).reshape(-1, args.l)
         from sklearn.cluster import KMeans
         km = KMeans(args.m, n_init=1, random_state=args.seed).fit(z.numpy())
         c = torch.tensor(km.cluster_centers_, dtype=torch.float32)
         net.centroids.data = c
         net.assign.weight.data = (2 * 10 * F.normalize(c, dim=1))[:, :, None]
         net.assign.bias.data = -10 * c.norm(dim=1)
+net = net.to(DEV)
 scal = [p_ for n_, p_ in net.named_parameters() if n_ in ('lam_logit', 'dust_bin')]
 rest = [p_ for n_, p_ in net.named_parameters() if n_ not in ('lam_logit', 'dust_bin')]
 groups = [{'params': rest, 'lr': args.lr}]
@@ -94,7 +97,7 @@ def ms_loss(D, labels, ign, alpha=1.0, beta=50.0, base=0.0, eps=0.1):
     """Multi-similarity loss with MS miner; ign marks pairs to ignore (nearby different places)."""
     S = D @ D.T
     same = labels[:, None] == labels[None, :]
-    eye = torch.eye(len(labels), dtype=torch.bool)
+    eye = torch.eye(len(labels), dtype=torch.bool, device=D.device)
     posm = same & ~eye
     negm = ~same & ~ign
     loss, cnt = 0.0, 0
@@ -118,10 +121,10 @@ net.train()
 for step in range(args.steps):
     pl = rng.choice(places, args.P, replace=False)
     idx = np.concatenate([by_place[q] for q in pl])
-    L = torch.tensor(lab[idx])
+    L = torch.tensor(lab[idx], device=DEV)
     pxy = np.array([place_xy[lab[i]] for i in idx]); ptr = terr[idx]
     near = (np.linalg.norm(pxy[:, None] - pxy[None], axis=-1) < 15) & (ptr[:, None] == ptr[None])
-    ign = torch.tensor(near) & (L[:, None] != L[None, :])
+    ign = torch.tensor(near, device=DEV) & (L[:, None] != L[None, :])
     D = net(fetch(idx))
     loss = ms_loss(D, L, ign)
     opt.zero_grad(); loss.backward(); opt.step(); sched.step()
@@ -137,7 +140,7 @@ torch.save(net.state_dict(), f'{OUT}/head.pt')
 def describe(Fd):
     out = []
     for i in range(0, len(Fd['tokens']), 64):
-        out.append(net((Fd['tokens'][i:i + 64].float(), Fd['cls'][i:i + 64].float())))
+        out.append(net((Fd['tokens'][i:i + 64].float().to(DEV), Fd['cls'][i:i + 64].float().to(DEV))).cpu())
     return torch.cat(out)
 
 
