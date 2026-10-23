@@ -4,6 +4,7 @@ title: "Galatea and LunarSim-VPR: optimal-transport visual place recognition for
 type: software
 license: MIT
 repository-code: "https://github.com/RaunakDune/galatea-lunar-vpr"
+url: "https://lunarsim.org"
 date-released: 2026-10-17
 version: 1.0.0
 keywords:

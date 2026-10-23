@@ -3,7 +3,11 @@
 Code, benchmark and paper source for
 
 > **Galatea: An Optimal Transport Framework for Merging Global and Local Descriptors in Visual Place Recognition on Extraterrestrial Surfaces**
-> Raunak Sarbajna and Christoph F. Eick, University of Houston. Manuscript in preparation, targeting IEEE RA-L.
+> Raunak Sarbajna and Christoph F. Eick, University of Houston. Manuscript in preparation.
+
+**Project website and interactive demo: [lunarsim.org](https://lunarsim.org)**: play *Where on the Moon?*
+(find a rover's location under changed sunlight and compare with the AI), explore the Sun Lab and read a
+plain-language summary of the results.
 
 Galatea is a two-stage visual place recognition (VPR) system for GNSS-denied lunar surface navigation:
 
