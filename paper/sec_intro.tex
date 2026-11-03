@@ -41,15 +41,15 @@ fine-tuned backbone. Our contributions are:
 \item \textbf{An OT family of aggregators} (\cref{sec:uot}). A semi-relaxed unbalanced OT problem
 defines token-to-cluster assignments indexed by one scalar $\lambda\in[0,1]$ that recovers the NetVLAD
 soft-assignment ($\lambda=0$) and the balanced Sinkhorn assignment of SALAD~\cite{izquierdo2024optimal}
-($\lambda=1$) \emph{exactly}; Galatea can also learn $\lambda$. We prove linear convergence with rate
-$\lambda$ for the truncated iterations, characterise the dust-bin as a logistic gate on cluster
+($\lambda=1$) \emph{exactly}; Galatea can also learn $\lambda$. We prove that the Sinkhorn iterations
+converge linearly with rate $\lambda$, characterise the dust-bin as a logistic gate on cluster
 affinity, and show that intra-normalised descriptors see the transport plan only through per-token
 weights (\cref{prop:uot,prop:contraction,prop:dustbin,prop:colinv}).
 \item \textbf{OT-based global--local fusion} (\cref{sec:fgw,sec:fusion}). A training-free partial
 fused Gromov--Wasserstein (FGW) matcher scores both the appearance and the relative layout of keypoints
 and is invariant to similarity transforms (\cref{prop:inv}). A saturating fusion rule combines it with
-the global similarity and provably overturns the global ranking only where its margin is small
-(\cref{prop:override}).
+the global similarity; the local evidence it needs to overturn the global ranking provably grows
+linearly with the global margin (\cref{prop:override}).
 \item \textbf{LunarSim-VPR} (\cref{sec:bench})\footnote{Code and data: \url{https://github.com/RaunakDune/galatea-lunar-vpr}. Project website and interactive demo: \url{https://lunarsim.org}.}, an open, procedurally generated benchmark
 with a physically motivated renderer (crater size--frequency statistics, lunar-Lambert photometry
 with opposition surge, cast shadows from local and regional relief) whose protocol separates
@@ -61,12 +61,11 @@ and without fusion, and the effect of training illumination. We distil the resul
 guidelines for lunar VPR.
 \end{enumerate}
 
-The findings are not all in favour of the most flexible model. With a frozen backbone every value of
-$\lambda$ performs alike, exactly as \cref{prop:colinv} predicts. With a fine-tuned backbone the
-family spreads only slightly, a learned $\lambda$ is no better than fixing it at its initial value, and
-residual NetVLAD aggregation, a different design axis, pulls ahead.
-Fusion, in contrast, helps every stage-1 model, and how local and global evidence are combined matters
-more than which local matcher is used.
+The findings do not favour the most flexible model. With a frozen backbone every value of $\lambda$
+performs alike, as predicted from \cref{prop:colinv} (P1); with a fine-tuned backbone a learned
+$\lambda$ is no better than a fixed one, and residual NetVLAD aggregation pulls ahead. Fusion, in
+contrast, helps every stage-1 model, and how local and global evidence are combined matters more than
+which local matcher is used.
 
 % ======================================================================
 \section{Related Work}\label{sec:related}
@@ -76,9 +75,8 @@ VLAD~\cite{jegou2010vlad} and its trainable counterpart NetVLAD~\cite{arandjelov
 softly assign local features to clusters and sum their residuals. GeM pooling~\cite{radenovic2019gem}
 and classification-based training at scale (CosPlace~\cite{berton2022cosplace},
 EigenPlaces~\cite{berton2023eigenplaces}) give strong compact descriptors. MixVPR~\cite{alibey2023mixvpr}
-mixes feature maps with MLPs. AnyLoc~\cite{keetha2024anyloc} showed that unsupervised aggregation of
-DINOv2~\cite{oquab2024dinov2} features generalises across domains, including aerial and underwater
-imagery. SALAD~\cite{izquierdo2024optimal} recast NetVLAD's assignment as balanced entropic OT
+mixes feature maps with MLPs, and AnyLoc~\cite{keetha2024anyloc} showed that unsupervised aggregation
+of DINOv2~\cite{oquab2024dinov2} features generalises across domains. SALAD~\cite{izquierdo2024optimal} recast NetVLAD's assignment as balanced entropic OT
 with a dust-bin on top of a partially fine-tuned DINOv2 backbone. Our aggregator generalises SALAD
 to unbalanced OT and contains NetVLAD's assignment as a limiting case.
 
@@ -88,7 +86,7 @@ descriptors~\cite{hausler2021patch} or keypoint matching with geometric verifica
 matchers such as SuperGlue~\cite{sarlin2020superglue} and LightGlue~\cite{lindenberger2023lightglue}
 solve (or approximate) an OT problem with dust-bins over attention-refined
 SuperPoint~\cite{detone2018superpoint} features. They are trained on terrestrial imagery and assume
-that the descriptors carry enough appearance information. Our re-ranker is training-free. It adds a
+that the descriptors carry enough appearance information. Our training-free re-ranker adds a
 Gromov--Wasserstein structural term~\cite{memoli2011gromov,peyre2016gromov}, in the fused form of
 \cite{vayer2019fgw} and with partial mass~\cite{chapel2020partial}, so that matches must preserve
 relative keypoint geometry.

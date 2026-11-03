@@ -8,16 +8,17 @@
 
 \subsection{Terrestrial models under lunar illumination change}\label{sec:zeroshot}
 \Cref{tab:main} (top) shows that all three terrestrial models perform reasonably when only the
-viewpoint changes: at C0, R@1 is $\zsEigCzero$--$\zsCosCzero\%$. They degrade sharply as soon as the
-Sun moves. DINOv2-SALAD, the strongest of them, falls from $\zsSaladCzero\%$ at C0 to
+viewpoint changes (C0: $\zsEigCzero$--$\zsCosCzero\%$ R@1) and degrade sharply once the Sun moves.
+DINOv2-SALAD, the strongest of them, falls from $\zsSaladCzero\%$ at C0 to
 $\zsSaladCtwo\%$ under grazing illumination (C2) and to $\zsSaladCfive\%$ when the shadows flip (C5).
 The CNN-based CosPlace and EigenPlaces fare worse, with C5 values of $\zsCosCfive\%$ and $\zsEigCfive\%$.
 Even a foundation-model backbone pre-trained on 142M images therefore does not provide
 illumination-invariant place descriptors on regolith. Local re-ranking does not close the gap
 either. Fusing MNN+MAGSAC++ matches into the top-10 zero-shot SALAD candidates (selected on
-validation as in \cref{sec:rerank}) raises R@1 to $\zsRRRone\%$. That is still far below any
-lunar-trained stage~1 \emph{without} re-ranking, and only $\zsRRHard\%$ on the hardest conditions,
-because the correct place is often not among the candidates at all.
+validation as in \cref{sec:rerank}) raises R@1 to $\zsRRRone\%$. That is still below every
+lunar-trained cluster-based head \emph{without} re-ranking, and only $\zsRRHard\%$ on the hardest
+conditions, where for $\zsHardMiss\%$ of the queries the correct place is not among the ten candidates
+at all.
 
 \input{sec_family}
 
@@ -26,7 +27,7 @@ because the correct place is often not among the candidates at all.
 \input{tab_rescue}
 
 \subsection{Global--local fusion}\label{sec:rerank}
-\Cref{tab:rerank} re-ranks the top-10 candidates of the frozen Galatea head (seed 0, R@1
+\Cref{tab:rerank} re-ranks the top-10 candidates of the frozen Galatea head (seed~0, R@1
 $\rrGlobRone\%$) with four local scorers. Two findings stand out. First, ranking by the local score
 alone barely helps and can hurt: no scorer improves R@1 by more than about two points, and several
 lose ground. Second, fusing local and global evidence with \cref{eq:fusion} helps every scorer. With
@@ -35,8 +36,9 @@ $[\rrGainLo,\rrGainHi]$), and on the hardest conditions from $\galSzeroHard\%$ t
 best of all scorers on that subset. Differences between scorers in the fused setting are small and
 within the confidence intervals: FGW vs.\ LightGlue $\fgwVsLgMean$ $[\fgwVsLgLo,\fgwVsLgHi]$, and FGW
 vs.\ appearance-only OT $\fgwVsUotMean$ $[\fgwVsUotLo,\fgwVsUotHi]$. The training-free structural
-matcher thus performs as well as a learned terrestrial matcher. MAGSAC++ helps MNN and LightGlue but
-not the OT matchers, whose dust-bins already reject outliers.
+matcher thus performs as well as a learned terrestrial matcher. In the fused setting, MAGSAC++ helps
+MNN and LightGlue but not the OT matchers, presumably because their dust-bins already reject most
+outliers.
 
 \paragraph*{Why local-only re-ranking fails and fusion works}
 \Cref{tab:rescue} splits the effect of re-ranking into queries it \emph{rescues} (wrong global top-1,
@@ -45,8 +47,12 @@ queries, $\rbFrFgwLocRes\%$ with FGW, but breaks as many ($\rbFrFgwLocBrk\%$): S
 regolith are dominated by shadow edges, so a wrong candidate photographed under similar light can
 collect more matches than the right one. The overrides that break a correct result are those against
 a confident global ranking: the median global similarity margin they overturn is $\marginBroken$,
-twice that of the overrides that rescue a query ($\marginRescued$). This is the case that
-\cref{prop:override} rules out. Fusion keeps about half of the rescues ($\rbFrFgwFusRes\%$) while
+twice that of the overrides that rescue a query ($\marginRescued$). Under fusion, overturning a
+larger margin requires proportionally more local evidence (\cref{prop:override}(i)); the hard limit
+(ii) hardly matters. With the tuned $(\beta,\kappa)$ and $s_{\max}$ the largest observed local score,
+$\beta\phi_{\max}=\ovCapLo$--$\ovCapHi$, against a median margin of $\ovMarginLo$--$\ovMarginHi$ between
+a query's two best candidates, so the limit binds for fewer than $0.1\%$ of the queries with the frozen
+head and at most $\ovBindMax\%$ in any configuration. Fusion keeps about half of the rescues ($\rbFrFgwFusRes\%$) while
 breaking only $\rbFrFgwFusBrk\%$, and the same pattern holds for every scorer and for the fine-tuned
 stage~1, where local-only ranking breaks up to $\rbFtLgLocBrk\%$ of the queries and fusion at most
 $\rbFtMnnRFusBrk\%$.
@@ -57,8 +63,8 @@ validation each time, fusion with FGW adds $\msFgwGain\pm\msFgwGainsd$ points to
 head (MNN+MAGSAC++: $\msMnnRGain\pm\msMnnRGainsd$; plain MNN: $\msMnnGain\pm\msMnnGainsd$),
 $\ftFgwGain\pm\ftFgwGainsd$ to the fine-tuned Galatea head (MNN+MAGSAC++: $\ftMnnRGain\pm\ftMnnRGainsd$)
 and $\msnvFgwGain\pm\msnvFgwGainsd$ to the fine-tuned NetVLAD head (MNN+MAGSAC++:
-$\msnvMnnRGain\pm\msnvMnnRGainsd$). The gain shrinks as stage~1 improves, because fewer queries remain
-to be rescued, but it never vanishes. The complete system, fine-tuned NetVLAD with FGW fusion, reaches
+$\msnvMnnRGain\pm\msnvMnnRGainsd$). The gain shrinks as stage~1 improves, since fewer queries remain
+to be rescued, but never vanishes. The complete system, fine-tuned NetVLAD with FGW fusion, reaches
 $\msnvFgwRone\pm\msnvFgwRonesd\%$ R@1 and $\msnvFgwRfive\%$ R@5 ($\msnvFgwHard\%$ on the hardest
 conditions), against $\zsSaladRone\%$ for the best terrestrial model. On the Moon, \emph{how local and
 global evidence are combined matters more than which local matcher is used}.

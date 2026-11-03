@@ -16,24 +16,27 @@ The full derivations are in [`paper/main.pdf`](../paper/main.pdf), and the proof
 - **Algorithm** (`ot_assign`). This is log-domain Sinkhorn with the cluster-side update scaled by
   λ = τ/(τ + ε). λ = 1 gives SALAD (balanced OT) and λ = 0 gives the NetVLAD softmax with a dust-bin.
   Galatea learns λ through `mode='learn'`.
-- **Aggregation.** V_{jk} = Σᵢ P_{ij} f_{ik}. Each cluster row is intra-normalised, the result is
+- **Aggregation.** V_{jk} = Σᵢ P_{ij} h_{ik}, where hᵢ is the 128-d reduced feature of token i. Each cluster row is intra-normalised, the result is
   concatenated with the 256-d scene token, and the whole vector is L2-normalised (8448-d in total).
 
 | Proposition | Statement | Practical consequence |
 |---|---|---|
 | 1. Structure, limits | The solution is P = exp((S̄ + f ⊕ g)/ε). λ → 0 gives NetVLAD; λ → 1 gives balanced OT. | One parameter covers both families. |
-| 2. Linear convergence | The truncated iterations contract at rate λ in ‖·‖∞, independent of ε, n and m. | A few iterations (L = 3) suffice. |
+| 2. Linear convergence | The Sinkhorn iterations contract at rate λ in ‖·‖∞: ‖g⁽ᴸ⁾ − g*‖ ≤ λᴸ‖f⁽⁰⁾ − f*‖, independent of ε, n and m. | A few iterations (L = 3) suffice. |
 | 3. Dust-bin gating | The dust-bin share of token i is a sigmoid of z + g_{m+1} − ε·LSE_j((s_ij + g_j)/ε). | Low-affinity tokens are suppressed. |
-| 4. Column-scale invariance | After intra-normalisation, the descriptor depends on P only through per-token weights wᵢ = e^{fᵢ/ε}. | Explains why λ barely matters empirically. |
-| 5. FGW invariances | The structural term is invariant to similarity transforms and permutations. | No camera model is needed for re-ranking. |
+| 4. Column-scale invariance | After intra-normalisation, the descriptor depends on P only through per-token weights wᵢ = e^{fᵢ/ε}. | Motivates the (heuristic) prediction that λ barely matters on frozen tokens. |
+| 5. FGW invariances | The objective, the solver iterates and the unverified match count are invariant to similarity transforms of the keypoints; permutations permute them consistently. | No camera model is needed for re-ranking. |
+| 6. Bounded override | Under s = s_g + β·φ(s_ℓ), candidate r overtakes r′ (global margin δ ≥ 0) iff β[φ(s_ℓ(r)) − φ(s_ℓ(r′))] > δ; no pair with δ ≥ β·φ(s_max) is reversed. | The local evidence needed to overturn the global ranking grows linearly with the margin. |
 
 ## Stage 2: partial fused Gromov–Wasserstein re-ranking ([`src/rerank.py`](../src/rerank.py))
 
 - **Inputs.** SuperPoint keypoints (up to 384) for the query and for each of the top-K = 10 candidates.
 - **Costs.** The appearance cost is M = 1 − ⟨d, e⟩. The structure matrices are mean-normalised intra-image
   distance matrices.
-- **Solver.** Entropic mirror descent: 5 outer steps of dust-bin Sinkhorn on (1 − α)M + α·L(C_q, C_c) ⊗ T,
-  with α = 0.3 and ε = 0.05.
+- **Solver.** An adaptation of entropic Gromov–Wasserstein (Peyré et al., 2016): 5 outer steps, each
+  linearising the quadratic term at the current transported plan rescaled to unit mass and solving a
+  dust-bin Sinkhorn problem on (1 − α)M + α·G, with α = 0.3, ε = 0.05 and dust-bin cost c_b = 0.25. Because
+  of the rescaling it is a fixed-budget heuristic, not exact mirror descent on the FGW objective.
 - **Score.** The local score s_ℓ is the number of mutual arg-max matches with confidence above 0.2. MAGSAC++
   verification is optional.
 - **Fusion** ([`src/analyze_rerank.py`](../src/analyze_rerank.py)). The final score is

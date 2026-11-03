@@ -3,7 +3,8 @@
 \usepackage{xr}
 \usepackage{url}
 \newcommand{\cref}[1]{Proposition~\ref{#1}}
-\externaldocument{main}
+% import labels from the main paper, but not its citation numbers (the supplement has its own bibliography)
+\makeatletter\begingroup\let\bibcite\@gobbletwo\externaldocument{main}\endgroup\makeatother
 \input{numbers}
 \DeclareMathOperator*{\argmax}{arg\,max}
 

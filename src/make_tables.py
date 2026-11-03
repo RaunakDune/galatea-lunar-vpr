@@ -86,10 +86,9 @@ for pre, lab in [('gem', 'GeM'), ('netvlad', 'NetVLAD'), ('lam0', 'OT, $\\lambda
 
 best = {k: max(r[3][k][0] for r in rows) for k in ['R@1', 'R@5', 'R@10'] + [f'R@1_{c}' for c in CONDS]}
 L = ['\\begin{table*}[t]', '\\centering',
-     '\\caption{Recall (\\%) on the LunarSim-VPR test set (3 unseen scenes, 3150 queries). Lunar-trained heads share the '
-     'DINOv2 backbone and training protocol; \\emph{frozen}: only the head is trained; \\emph{fine-tuned}: the last four '
-     'backbone blocks are trained jointly with the head. Mean$\\pm$std over 3 seeds. Per-condition columns give R@1 '
-     '(conditions in \\cref{tab:conds}).}', '\\label{tab:main}', '\\footnotesize', '\\setlength{\\tabcolsep}{4pt}',
+     '\\caption{Recall (\\%) on the LunarSim-VPR test set (3 unseen scenes, 3150 queries; mean$\\pm$std over 3 seeds). '
+     '\\emph{Frozen}: only the head is trained; \\emph{fine-tuned}: the last four backbone blocks are trained with it. '
+     'Columns C0--C6: R@1 per condition (\\cref{tab:conds}).}', '\\label{tab:main}', '\\footnotesize', '\\setlength{\\tabcolsep}{4pt}',
      '\\begin{tabular}{@{}llr ccc ccccccc@{}}', '\\toprule',
      '& Method & Dim. & R@1 & R@5 & R@10 & ' + ' & '.join(SH) + ' \\\\', '\\midrule']
 for i, (kind, lab, dim, d, _) in enumerate(rows):
@@ -231,7 +230,7 @@ if os.path.exists(VALF) and os.path.exists(TESTF):
             rows.append((lab + sl, loc, fus, (b, k)))
     bestf = max(r[2]['R@1'] for r in rows[1:])
     L = ['\\begin{table}[t]', '\\centering',
-         '\\caption{Stage-2 re-ranking of the top-10 Galatea candidates (test, \\%). \\emph{Local}: sort by the local '
+         '\\caption{Stage-2 re-ranking of the top-10 candidates of the frozen Galatea head (seed~0; test, \\%). \\emph{Local}: sort by the local '
          'score only. \\emph{Fused}: \\cref{eq:fusion} with $(\\beta,\\kappa)$ chosen on the validation scene.}',
          '\\label{tab:rerank}', '\\footnotesize', '\\setlength{\\tabcolsep}{3pt}',
          '\\begin{tabular}{@{}lcccc@{}}', '\\toprule', '& \\multicolumn{2}{c}{Local} & \\multicolumn{2}{c}{Fused} \\\\',
@@ -269,6 +268,8 @@ if os.path.exists(ZV) and os.path.exists(ZT):
     r = recall_after(st, 'test', 'mnn_ransac', 'fused', b, k)
     M('zsRRRone', r['R@1']); M('zsRRRfive', r['R@5'])
     M('zsRRHard', np.mean([r[f'R@1_{c}'] for c in ['C2_el6', 'C5_az+180', 'C6_az+180_el8']]))
+    r0 = recall_after(st, 'test', None)   # share of hard queries with no true match among the 10 candidates
+    M('zsHardMiss', 100 - np.mean([r0[f'R@10_{c}'] for c in ['C2_el6', 'C5_az+180', 'C6_az+180_el8']]), '{:.0f}')
     open(f'{P}/numbers.tex', 'w').write('\n'.join(f'\\newcommand{{\\{k}}}{{{v}}}' for k, v in sorted(macros.items())) + '\n')
     print('zs rerank macros written')
 
@@ -513,6 +514,34 @@ if rb:
             L.append('\\midrule')
     L += ['\\bottomrule', '\\end{tabular}', '\\end{table}']
     open(f'{P}/tab_rescue.tex', 'w').write('\n'.join(L))
+
+# ------------------------------------------------------------------ bounded override: how often the hard limit binds
+# Proposition (bounded override): a pair with global margin >= beta*phi(s_max) cannot be reversed. For each tuned
+# configuration, s_max is the largest local score observed on the test set; the limit binds for a query when the
+# margin between its two best global candidates is at least that value.
+ov = []
+for tag, vf, ms in [('Fr', f'{R}/rerank/galatea_s0_val_mnn-uot-fgw-lg_a0.3_c0.25.npy', ('fgw', 'mnn_ransac', 'lg')),
+                    ('Ft', f'{RG}/rerank/ft1e-4_galatea_s0_val_mnn-uot-fgw-lg_a0.3_c0.25.npy', ('fgw', 'mnn_ransac', 'lg')),
+                    ('Nv', f'{RG}/rerank/ft1e-4_netvlad_s0_val_mnn-fgw_a0.3_c0.25.npy', ('fgw', 'mnn_ransac'))]:
+    tf = vf.replace('_val_', '_test_')
+    if not (os.path.exists(vf) and os.path.exists(tf)):
+        continue
+    sv = np.load(vf, allow_pickle=True).item(); st = np.load(tf, allow_pickle=True).item()
+    gs = np.concatenate([S['gsim'] for S in st.values()]); mg = gs[:, 0] - gs[:, 1]
+    ov.append((tag, 'margin', np.median(mg), None))
+    for m in ms:
+        b, k = tune(sv, 'val', m, BET, KAP)
+        ls = np.concatenate([S[m] for S in st.values()]).astype(float)
+        cap = b * ls.max() / (ls.max() + k)
+        ov.append((tag, m, cap, 100 * (mg >= cap).mean()))
+        print(f'override limit {tag} {m}: beta={b} kappa={k} limit={cap:.3f} binds for {ov[-1][3]:.1f}% of queries')
+if ov:
+    caps = [o for o in ov if o[1] != 'margin']; mgs = [o[2] for o in ov if o[1] == 'margin']
+    M('ovCapLo', min(o[2] for o in caps), '{:.2f}'); M('ovCapHi', max(o[2] for o in caps), '{:.2f}')
+    M('ovMarginLo', min(mgs), '{:.3f}'); M('ovMarginHi', max(mgs), '{:.3f}')
+    M('ovBindFr', max(o[3] for o in caps if o[0] == 'Fr'))
+    M('ovBindMax', max(o[3] for o in caps))
+    open(f'{P}/numbers.tex', 'w').write('\n'.join(f'\\newcommand{{\\{k}}}{{{v}}}' for k, v in sorted(macros.items())) + '\n')
 
 # ------------------------------------------------------------------ fusion on fine-tuned NetVLAD, 3 seeds
 for m, nm in [('fgw', 'nvFgw'), ('mnn_ransac', 'nvMnnR')]:

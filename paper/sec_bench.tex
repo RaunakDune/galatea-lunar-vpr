@@ -11,7 +11,7 @@ appearance for real sites from LRO DEMs but does not expose explicit control of 
 \paragraph*{Terrain}
 Each scene combines a \emph{regional} DEM ($16$\,m/px, $16.4$\,km) and a \emph{local} DEM
 ($0.3$\,m/px, $614$\,m) blended into its centre. Both start from fractional-Brownian relief
-(power spectrum $\propto k^{-\beta}$, $\beta\in[2.2,3.2]$). Craters are drawn from an
+(power spectrum $\propto k^{-\gamma}$, $\gamma\in[2.2,3.2]$). Craters are drawn from an
 equilibrium-like cumulative size--frequency distribution $N(>D)=cD^{-2}$~\cite{melosh1989impact}
 ($D\in[60,2500]$\,m regionally and $[1.5,120]$\,m locally) and stamped with a bowl--rim--ejecta
 profile whose depth-to-diameter ratio ($0.04$--$0.2$) and rim height depend on a random degradation
@@ -61,8 +61,7 @@ dataset.
 
 \begin{table}[t]
 \centering
-\caption{Query illumination conditions (Sun azimuth/elevation in degrees). The database is rendered at
-azimuth $135^\circ$, elevation $30^\circ$.}
+\caption{Query illumination conditions (Sun azimuth/elevation in degrees; database: $135/30$).}
 \label{tab:conds}
 \scriptsize
 \setlength{\tabcolsep}{3pt}

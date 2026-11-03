@@ -3,17 +3,17 @@ points should be read against the seed standard deviation of roughly one point (
 
 \paragraph*{Illumination-diverse training}
 Re-rendering the five training scenes with the \emph{same} poses but a single Sun direction (that of
-the database) has by far the largest effect of any factor we varied. The frozen Galatea head then
+the database) has the largest effect of all factors in \cref{tab:ablation}, larger even than
+fine-tuning the backbone ($\ftGalSzeroRone\%$ vs.\ $\galSzeroRone\%$ R@1). The frozen Galatea head then
 reaches only $\fixIllRone\%$ R@1, $\fixIllDrop$ points below illumination-diverse training, and SALAD
 drops the same way ($\salFixIllRone\%$). The single-illumination model is slightly \emph{better} when
 the query light matches its training light (C0: $\fixIllCzero\%$ vs.\ $\galSzeroCzero\%$), but on the
 three hardest conditions it falls to $\fixIllHardVal\%$, against $\galSzeroHard\%$. Fine-tuning makes
 this worse, not better: with a single training Sun the fine-tuned Galatea reaches $\ftFixIllRone\%$
 ($-\ftFixIllDrop$ points; C0 $\ftFixIllCzero\%$ vs.\ $\ftGalSzeroCzero\%$, hard $\ftFixIllHard\%$ vs.\
-$\ftGalSzeroHard\%$) and SALAD $\ftSalFixIllRone\%$. A more flexible model fits the training light more
-closely, so backbone adaptation is only useful together with illumination diversity. For lunar VPR,
+$\ftGalSzeroHard\%$) and SALAD $\ftSalFixIllRone\%$. For lunar VPR,
 an illumination sweep in the training data, as provided by renderers such as LunarSim or DEM-based
-pipelines, matters far more than the choice of aggregation layer.
+pipelines, matters far more than the choice among cluster-based aggregation layers.
 
 \paragraph*{Sinkhorn iterations and clusters}
 Changing the number of Sinkhorn iterations ($L=1$: $\LoneRone\%$, $L=10$: $\LtenRone\%$) moves R@1 by

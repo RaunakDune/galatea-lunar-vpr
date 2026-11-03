@@ -5,25 +5,27 @@ Training only the aggregation head on illumination-diverse LunarSim scenes lifts
 $\zsSaladRone\%$ to $\galRone\%$ (Galatea head, three seeds; paired gain $\gainZsMean$ points, 95\% CI
 $[\gainZsLo,\gainZsHi]$) and mean R@1 over the three hardest conditions (C2, C5, C6) from
 $\zsSaladHard\%$ to $\galHard\%$ (\cref{tab:main}). All cluster-based heads clearly beat every
-zero-shot model, whereas GeM pooling of the same frozen tokens does not ($\gemRone\%$): global pooling
-cannot separate place-specific from illumination-dependent tokens~\cite{izquierdo2024optimal}.
+zero-shot model, whereas GeM pooling of the same frozen tokens does not ($\gemRone\%$), presumably
+because global pooling cannot separate place-specific from illumination-dependent
+tokens~\cite{izquierdo2024optimal}.
 
 \Cref{tab:family} (left) confirms predictions (P1) and (P2). With a dust-bin, every value of $\lambda$
 from $0$ to $1$ reaches the same R@1 within seed noise (spread across fixed $\lambda$:
 $\famFrLamRange$ points), and Galatea's learned head is statistically indistinguishable from SALAD
-($\galVsSalMean$ points, CI $[\galVsSalLo,\galVsSalHi]$). A learned $\lambda$ barely leaves its
+($\famFrGalVsSalMean$ points, CI $[\famFrGalVsSalLo,\famFrGalVsSalHi]$). A learned $\lambda$ barely leaves its
 initialisation ($\bar\lambda=\galLam$); even with a $25\times$ larger learning rate on $\lambda$ and
 $z$ it only reaches $\galFastLam$, at unchanged accuracy ($\galFastRone\%$). This happens although the
 heads spend mass very differently: the balanced head sends $\salDust\%$ of the token mass to the
 dust-bin, an amount that tracks the sky fraction of the image ($\rho=\salSkyCorr$), the learned head
-only $\galDust\%$ (coefficient of variation of cluster mass $\galCV$ vs.\ $\salCV$). As
-\cref{prop:colinv} states, intra-normalisation removes exactly this difference.
+only $\galDust\%$ (coefficient of variation of cluster mass $\galCV$ vs.\ $\salCV$). Intra-normalisation removes the difference in cluster mass exactly (\cref{prop:colinv}); the
+difference in dust-bin mass survives only as a token re-weighting, which here does not matter.
 
-The dust-bin shows where the theory's assumptions bite. At $\lambda=0$ it changes only the token
-weights $w_i$ and is irrelevant ($\famFrNDvsDMean$ points without it, CI $[\famFrNDvsDLo,\famFrNDvsDHi]$).
-At $\lambda=1$ it is essential ($\famFrSalNDvsDMean$, CI $[\famFrSalNDvsDLo,\famFrSalNDvsDHi]$): without
-a place to put surplus mass, the balanced constraint forces every token, sky included, into the
-clusters in fixed proportions, which no re-weighting can undo. Residual NetVLAD aggregation is slightly
+The dust-bin shows where the heuristic behind (P1) fails. At $\lambda=0$ it changes only the token
+weights $w_i$ slightly and is irrelevant ($\famFrNDvsDMean$ points without it, CI
+$[\famFrNDvsDLo,\famFrNDvsDHi]$). At $\lambda=1$ it is essential ($\famFrSalNDvsDMean$, CI
+$[\famFrSalNDvsDLo,\famFrSalNDvsDHi]$): without a place to put surplus mass, the balanced constraint
+pushes abundant tokens, sky included, into clusters they barely resemble; in \eqref{eq:colinv} it
+raises exactly their weights $w_i$. Residual NetVLAD aggregation is slightly
 below the OT heads on frozen tokens ($\famFrNv\%$).
 
 \subsection{The assignment family with a fine-tuned backbone}\label{sec:ft}
@@ -40,13 +42,15 @@ $\lambda$ fixed at its initial value $0.5$ shows that learning is not the cause:
 near its initialisation ($\bar\lambda=\ftGalLam$), and the learned head matches the fixed one
 ($\famFtLamH\%$; $\famFtGalVsHalfMean$, CI $[\famFtGalVsHalfLo,\famFtGalVsHalfHi]$), as it does on a
 frozen backbone ($\famFrGalVsHalfMean$, CI $[\famFrGalVsHalfLo,\famFrGalVsHalfHi]$). Learning $\lambda$
-therefore neither helps nor hurts; it simply does not move away from a value that, with a fine-tuned
-backbone, happens to sit at the low end of a narrow range. Whether that dip at $\lambda=0.5$ is real or
-seed noise cannot be decided with three seeds.
+therefore neither helps nor hurts: $\lambda$ stays at a value that, with a fine-tuned backbone, sits at
+the low end of a narrow range, a dip that three seeds cannot distinguish from noise.
 
 The largest difference is not inside the OT family at all. NetVLAD, which aggregates residuals to
 $k$-means-initialised centroids, becomes the best head ($\ftNvRone\pm\ftNvRonesd\%$). Its closest
-OT relative, $\lambda=0$ without a dust-bin, uses the same softmax assignment and no dust-bin, yet is
-$\famFtNvVsNDMean$ points behind (CI $[\famFtNvVsNDLo,\famFtNvVsNDHi]$). With trainable tokens the
-\emph{aggregation}, not the assignment, is therefore the design axis that matters; on frozen tokens the
-same comparison favours the OT head ($\famFrNvVsNDMean$ points for NetVLAD).
+OT relative, $\lambda=0$ without a dust-bin, uses the same softmax assignment and no dust-bin, yet
+falls behind (NetVLAD minus OT: $\famFtNvVsNDMean$ points, CI $[\famFtNvVsNDLo,\famFtNvVsNDHi]$).
+NetVLAD, however, sums residuals of $\ell_2$-normalised reduced features to centroids and initialises
+centroids and assignment scores by $k$-means, whereas the OT heads sum the features themselves and
+score tokens with a randomly initialised MLP. With trainable tokens this \emph{aggregation} design, not the assignment rule, is
+therefore the axis that matters; on frozen tokens the same comparison favours
+the OT head ($\famFrNvVsNDMean$ points for NetVLAD).

@@ -47,16 +47,18 @@ Trained rows give the mean ± std over 3 seeds. "Frozen": only the aggregation h
 the last four DINOv2 blocks are trained with the head (GPU). "Hardest" averages conditions C2 (grazing Sun),
 C5 (shadows reversed) and C6 (both). The main findings:
 
-- Illumination-diverse training is worth +24 points over the best terrestrial model with a frozen backbone.
-  A single training Sun direction costs 13.6 points frozen and 21.5 points fine-tuned.
+- Training the head on illumination-diverse lunar renders is worth +24 points over the best terrestrial
+  model (frozen backbone). A single training Sun direction instead costs 13.6 points frozen and 21.5 points
+  fine-tuned, more than backbone fine-tuning adds to the same head.
 - Joint backbone fine-tuning adds 11–19 points of R@1 for every head.
 - With a frozen backbone, every value of λ performs alike; the paper proves why (after intra-normalisation
   the descriptor sees the transport plan only through per-token weights). With fine-tuning the OT family
   stays within about two points, a learned λ behaves like a fixed λ at its initial value, and NetVLAD's
   residual aggregation pulls ahead (+4.5 over the matching OT head).
-- Fusing local and global evidence adds 2–7 points for every stage-1 model and local matcher. Local-only
-  re-ranking rescues ~15% of queries but breaks as many; fusion keeps about half the rescues and breaks
-  2–5% (it can only override small global margins).
+- Fusing local and global evidence adds 1.9–6.9 points (three-seed means) for every stage-1 model and local
+  matcher tested. Local-only re-ranking rescues ~15% of queries but breaks as many; fusion keeps about half the
+  rescues and breaks 1.8–4.8% (the local evidence it needs to overturn the global ranking grows linearly with
+  the global margin).
 
 The full tables and ablations are in [`docs/RESULTS.md`](docs/RESULTS.md).
 
