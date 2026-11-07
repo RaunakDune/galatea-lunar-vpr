@@ -50,42 +50,49 @@ def _rays(R, uu, rr):
 
 
 def render_tilted(T, x0, y0, yaw_deg, az_deg, el_deg, cam_h=1.5, roll=0.0, pitch=0.0, rng=None,
-                  noise=True, derotate=False):
+                  noise=True, derotate=False, ss=3):
     """Render the 320x240 view of a camera with the given roll and pitch.
-    derotate=True simulates gravity-based correction of the roll: the rolled frame is rotated back to
-    upright (pixels outside the rolled frame stay black), as an IMU-levelled pipeline would do."""
+
+    The upright source view is rendered with ss-fold supersampling (focal length ss*F) and point-sampled
+    through the homography with bilinear interpolation on that fine grid, so the tilted image is as
+    sharp as a native render (interpolation smoothing <= 1/ss px). The identity case (no tilt) is
+    rendered at ss = 1 and is exactly the benchmark renderer.
+    derotate=True simulates gravity-based correction of the roll: the upright view, masked to the part
+    of the scene that the rolled camera actually sees (black elsewhere), as an IMU-levelled pipeline
+    would produce after rotating the rolled frame back. It needs no resampling."""
     rng = np.random.default_rng() if rng is None else rng
-    R = rotation(roll, pitch)
     uu, rr = np.meshgrid(np.arange(W, dtype=float), np.arange(H, dtype=float))
+    R = np.eye(3) if derotate else rotation(roll, pitch)
+    s = 1 if np.allclose(R, np.eye(3)) else int(ss)
     border = np.zeros((H, W), bool); border[[0, -1], :] = True; border[:, [0, -1]] = True
     xs, ys, d = _rays(R, uu[border], rr[border])
-    m = 3
-    # integer offsets from the output pixel grid keep the identity case exact (no resampling blur):
-    # source column j = cx_w + X, source row i = cy_w + Y - 0.5 (lunarsim.render conventions)
-    kx = m - int(np.floor(xs.min() + CX)); ky = m - int(np.floor(ys.min() + CY - 0.5))
-    cx_w, cy_w = CX + kx, CY + ky
-    Ww = int(np.ceil(xs.max() + CX)) + kx + m + 1
-    Hw = int(np.ceil(ys.max() + CY - 0.5)) + ky + m + 1
-    hfov_w = 2 * np.degrees(np.arctan(Ww / (2 * F)))
+    xs, ys = s * xs, s * ys                              # in source pixels (focal length s*F)
+    m = 3 * s
+    # source column j = cx_w + X', row i = cy_w + Y' - 0.5 (lunarsim.render conventions). These offsets
+    # put the native sample positions exactly on source pixels, so the identity case involves no blur.
+    kx = m - int(np.floor(xs.min() + s * CX)); ky = m - int(np.floor(ys.min() + s * CY - 0.5))
+    cx_w = s * CX + kx
+    cy_w = s * CY - s / 2 + 0.5 + ky
+    Ww = int(np.ceil(xs.max() + s * CX)) + kx + m + 1
+    Hw = int(np.ceil(ys.max() + cy_w - 0.5)) + m + 1
+    hfov_w = 2 * np.degrees(np.arctan(Ww / (2 * s * F)))
     # steepest ray below the horizon -> nearest ground hit; add near samples only when needed
     dep = np.arctan2(d[1], np.hypot(d[0], d[2])).max()
     near = NEAR if (dep > 0 and cam_h / np.tan(dep) < 1.0) else None
     I_w, sky_w, _ = render(T, x0, y0, yaw_deg, az_deg, el_deg, W=Ww, Hh=Hw, hfov_deg=hfov_w, cam_h=cam_h,
-                           cy_frac=cy_w / Hw, rng=rng, noise=False, near=near, raw=True, cx=cx_w)
-    # f must be identical in the wide render
-    assert abs((Ww / 2) / np.tan(np.radians(hfov_w) / 2) - F) < 1e-6
+                           cy_frac=cy_w / Hw, rng=rng, noise=False, near=near, raw=True, cx=cx_w, lod=s)
+    assert abs((Ww / 2) / np.tan(np.radians(hfov_w) / 2) - s * F) < 1e-6
     X, Y, _ = _rays(R, uu, rr)
-    cols, rows = cx_w + X, cy_w + Y - 0.5
+    cols, rows = cx_w + s * X, cy_w + s * Y - 0.5
     I = ndimage.map_coordinates(I_w, [rows, cols], order=1, mode='constant', cval=0.0)
     sky = ndimage.map_coordinates(sky_w.astype(float), [rows, cols], order=1, mode='constant', cval=1.0) > 0.5
     if derotate and roll != 0:
-        # gravity-based correction: rotate the rolled frame back (inverse rotation about the same axis);
-        # pixels outside the rolled frame stay black
-        Rb = _axis_rot(AXIS, np.radians(roll))           # upright ray -> rolled-camera ray
+        Rr = rotation(roll, 0)                            # rolled-camera ray -> upright ray
         c = np.stack([(uu - CX) / F, (rr + 0.5 - CY) / F, np.ones_like(uu)], 0)
-        db = np.tensordot(Rb.T, c, axes=1)
-        cu, cr = CX + F * db[0] / db[2], CY + F * db[1] / db[2] - 0.5
-        inside = (db[2] > 0) & (cu >= 0) & (cu <= W - 1) & (cr >= 0) & (cr <= H - 1)
-        I = np.where(inside, ndimage.map_coordinates(I, [cr, cu], order=1, mode='constant'), 0.0)
-        sky = np.where(inside, ndimage.map_coordinates(sky.astype(float), [cr, cu], order=1) > 0.5, True)
+        dr = np.tensordot(Rr.T, c, axes=1)               # upright pixel ray in the rolled camera's frame
+        with np.errstate(divide='ignore', invalid='ignore'):
+            cu, cr = CX + F * dr[0] / dr[2], CY + F * dr[1] / dr[2] - 0.5
+        inside = (dr[2] > 0) & (cu >= -0.5) & (cu <= W - 0.5) & (cr >= -0.5) & (cr <= H - 0.5)
+        I = np.where(inside, I, 0.0)
+        sky = sky | ~inside
     return camera(I, sky, rng, noise)

@@ -7,7 +7,8 @@ database images. Output: <DATA>/robust/<variant>/t<seed>/{q_*.png, meta.json}.
 
 Variants
   roll_R     camera rolled by R deg about its central viewing direction (R = 0 re-renders the benchmark
-             queries with fresh noise and is the paired baseline of every sweep)
+             queries with fresh noise and is the paired baseline of every sweep; R = 1 is a control that
+             goes through the supersampled resampling path while being almost upright)
   derot_R    roll R, then rotated back to upright as a gravity (IMU) correction would do
   pitch_P    camera pitched by P deg (positive = up)
   offset_D   position offset of exactly D m from the database place (benchmark: uniform in a 3 m disk),
@@ -33,7 +34,8 @@ VARIANTS = ([f'roll_{r}' for r in (0, 15, 30, 45, 90, 180)] +
             [f'pitch_{p}' for p in (-30, -15, 15, 30)] +
             [f'offset_{d}' for d in (0, 2, 4, 6, 8)] +
             [f'heading_{a}' for a in (15, 30, 45)] +
-            [f'height_{h}' for h in (0.5, 1.0, 1.5, 2.5, 4.0)])
+            [f'height_{h}' for h in (0.5, 1.0, 1.5, 2.5, 4.0)] +
+            [f'roll_{r}' for r in (1, 5, 10)] + [f'pitch_{p}' for p in (-5, 5)])   # finer steps, added later
 OUT = os.path.join(paths.DATA, 'robust')
 
 

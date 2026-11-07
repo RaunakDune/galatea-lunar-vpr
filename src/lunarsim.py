@@ -221,10 +221,13 @@ def lunar_lambert_L(g_deg):
 
 
 def render(T, x0, y0, yaw_deg, az_deg, el_deg, W=320, Hh=240, hfov_deg=70.0, cam_h=1.5,
-           cy_frac=0.30, rng=None, noise=True, return_depth=False, near=None, raw=False, cx=None):
+           cy_frac=0.30, rng=None, noise=True, return_depth=False, near=None, raw=False, cx=None, lod=1.0):
     """near: optional list of extra sample distances below 0.8 m (needed only for steeply pitched views).
     raw: return linear radiance, sky mask and depth before the camera model (used by tilt.py).
-    cx: optional principal-point column (default: image centre). Defaults reproduce the benchmark exactly."""
+    cx: optional principal-point column (default: image centre).
+    lod: pixel-footprint multiplier for the micro-relief level of detail (a supersampled render with
+    focal length k*f uses lod=k to keep the texture detail of the native resolution).
+    Defaults reproduce the benchmark exactly."""
     rng = np.random.default_rng() if rng is None else rng
     f = (W / 2) / np.tan(np.radians(hfov_deg) / 2)
     cx, cy = (W / 2 - 0.5) if cx is None else cx, Hh * cy_frac
@@ -274,7 +277,7 @@ def render(T, x0, y0, yaw_deg, az_deg, el_deg, W=320, Hh=240, hfov_deg=70.0, cam
         alb[inn] = T._sample(T.An, Px[inn], Py[inn], T.near_origin, T.res_n) * 0.12
         shad[inn] = T._sample(shn, Px[inn], Py[inn], T.near_origin, T.res_n)
     # pixel footprint (m) and micro-relief bump mapping
-    foot = dh / f / np.maximum(np.cos(np.arctan((rows[:, None] - cy) / f)), 0.2)
+    foot = lod * dh / f / np.maximum(np.cos(np.arctan((rows[:, None] - cy) / f)), 0.2)
     for tex, cell, amp, fade in [(T.micro[0][0], T.micro[0][1], 0.010, 0.06),
                                  (T.micro[1][0], T.micro[1][1], 0.010, 0.08),
                                  (T.micro_mid[0][0], T.micro_mid[0][1], 0.05, 0.5)]:
