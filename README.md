@@ -159,8 +159,9 @@ weights, which are not yet public.
 ## Documentation
 
 - [`docs/BENCHMARK.md`](docs/BENCHMARK.md): the LunarSim-VPR dataset card (renderer, splits, protocol, file format).
-- [`docs/METHOD.md`](docs/METHOD.md): the formulation and the five propositions, with pointers into the code.
+- [`docs/METHOD.md`](docs/METHOD.md): the formulation and the six propositions, with pointers into the code.
 - [`docs/RESULTS.md`](docs/RESULTS.md): all result tables and how they are generated.
+- [`docs/ROBUSTNESS.md`](docs/ROBUSTNESS.md): robustness to camera roll, pitch, position, heading and height.
 - [`docs/REPRODUCE.md`](docs/REPRODUCE.md): step-by-step reproduction, compute budget, troubleshooting.
 
 ## Citation

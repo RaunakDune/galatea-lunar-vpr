@@ -41,28 +41,36 @@ def value(v, key):
     return np.nan, 0.0
 
 
+CHANCE = 2.2   # R@1 of a random ranking: 3.2 true matches per query among 150 database images
+
+
 plt.rcParams.update({'font.size': 8, 'axes.spines.top': False, 'axes.spines.right': False,
                      'axes.edgecolor': '#9a9a96', 'axes.labelcolor': '#3a3a38', 'xtick.color': '#5f6066',
                      'ytick.color': '#5f6066', 'axes.titlesize': 9, 'axes.titleweight': 'bold'})
-fig, axes = plt.subplots(1, 6, figsize=(13.5, 2.7), gridspec_kw={'width_ratios': [1.25, 1.25, 1, 1, 1, 1]})
-# roll: as rendered, and after gravity (IMU) correction
-for ai, (title, xl, pts) in enumerate([PANELS[0], ('Roll, gravity-corrected', 'roll (deg)',
-                                       [(0, 'roll_0')] + [(r, f'derot_{r}') for r in (15, 30, 45, 90, 180)])] + PANELS[1:]):
+fig, axes = plt.subplots(2, 3, figsize=(10, 5.6))
+axes = axes.ravel()
+roll_pts = PANELS[0][2]
+panels = [PANELS[0], ('Roll, gravity-corrected', 'roll (deg)', [(0, 'roll_0')] + [(r, f'derot_{r}') for r in (15, 30, 45, 90, 180)])] + PANELS[1:]
+for ai, (title, xl, pts) in enumerate(panels):
     ax = axes[ai]
+    roll_axis = ai < 2                     # square-root axis so that 0-15 deg and 90-180 deg are both legible
+    tx = (lambda x: np.sqrt(x)) if roll_axis else (lambda x: x)
+    ax.axhline(CHANCE, color='#b5b4ae', lw=0.8, ls=':', zorder=0)
     for key, lab, col, mk, ls in SERIES:
-        xs = [p[0] for p in pts]; ms = np.array([value(p[1], key) for p in pts])
+        xs = [tx(p[0]) for p in pts]; ms = np.array([value(p[1], key) for p in pts])
         ax.errorbar(xs, ms[:, 0], yerr=ms[:, 1], color=col, marker=mk, ms=4, lw=1.6, ls=ls, capsize=1.5,
                     label=lab, markeredgecolor='white' if mk != 'x' else col, markeredgewidth=0.6)
+    if roll_axis:
+        ticks = [0, 5, 15, 45, 90, 180]
+        ax.set_xticks([tx(t) for t in ticks]); ax.set_xticklabels([str(t) for t in ticks])
     ax.set_title(title, loc='left'); ax.set_xlabel(xl)
     ax.set_ylim(0, 100); ax.grid(axis='y', color='#e3e2de', lw=0.6); ax.set_axisbelow(True)
-    if pts[0][1].startswith(('roll', 'derot')) or ai == 0:
-        ax.set_xticks([0, 15, 30, 45, 90, 180])
-        ax.set_xscale('function', functions=(lambda x: np.sqrt(np.maximum(x, 0)), lambda x: x ** 2))
-    if ai == 0:
+    if ai % 3 == 0:
         ax.set_ylabel(f'{METRIC} (%), all Sun conditions')
+axes[3].text(8, CHANCE + 1.5, 'chance level', ha='right', va='bottom', fontsize=7, color='#8a8a85')
 h, l = axes[0].get_legend_handles_labels()
-fig.legend(h, l, loc='upper center', ncol=5, frameon=False, bbox_to_anchor=(0.5, 1.04))
-fig.tight_layout(rect=(0, 0, 1, 0.9))
+fig.legend(h, l, loc='upper center', ncol=3, frameon=False, bbox_to_anchor=(0.5, 1.0))
+fig.tight_layout(rect=(0, 0, 1, 0.92))
 fig.savefig(OUTF, bbox_inches='tight')
 fig.savefig(OUTF.rsplit('.', 1)[0] + '.png', dpi=200, bbox_inches='tight')
 print('wrote', OUTF)
