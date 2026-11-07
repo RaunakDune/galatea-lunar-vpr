@@ -221,10 +221,13 @@ def lunar_lambert_L(g_deg):
 
 
 def render(T, x0, y0, yaw_deg, az_deg, el_deg, W=320, Hh=240, hfov_deg=70.0, cam_h=1.5,
-           cy_frac=0.30, rng=None, noise=True, return_depth=False):
+           cy_frac=0.30, rng=None, noise=True, return_depth=False, near=None, raw=False, cx=None):
+    """near: optional list of extra sample distances below 0.8 m (needed only for steeply pitched views).
+    raw: return linear radiance, sky mask and depth before the camera model (used by tilt.py).
+    cx: optional principal-point column (default: image centre). Defaults reproduce the benchmark exactly."""
     rng = np.random.default_rng() if rng is None else rng
     f = (W / 2) / np.tan(np.radians(hfov_deg) / 2)
-    cx, cy = W / 2 - 0.5, Hh * cy_frac
+    cx, cy = (W / 2 - 0.5) if cx is None else cx, Hh * cy_frac
     u = np.arange(W)
     alpha = np.arctan((u - cx) / f)                     # column azimuth offset
     theta = np.radians(yaw_deg) - alpha                 # world azimuth of each column (u right = cw)
@@ -233,6 +236,8 @@ def render(T, x0, y0, yaw_deg, az_deg, el_deg, W=320, Hh=240, hfov_deg=70.0, cam
     d = [0.8]
     while d[-1] < 12000:
         d.append(d[-1] * 1.0045 + 0.012)
+    if near is not None:
+        d = sorted(near) + d
     d = np.array(d)
     S = len(d)
     X = x0 + d[:, None] * np.cos(theta)[None, :]
@@ -296,6 +301,17 @@ def render(T, x0, y0, yaw_deg, az_deg, el_deg, W=320, Hh=240, hfov_deg=70.0, cam
     B = 1.0 / (1 + np.tan(np.radians(g) / 2) / 0.06)   # opposition surge (B0 = 1, h = 0.06)
     I = alb * refl * (1 + B) + alb * 0.012 * (0.5 + 0.5 * nrm[2])   # weak ambient
     I = np.where(sky, 0.0, I)
+    if raw:
+        return I, sky, np.where(sky, np.inf, dh)
+    img = camera(I, sky, rng, noise)
+    if return_depth:
+        return img, np.where(sky, np.inf, dh)
+    return img
+
+
+def camera(I, sky, rng, noise=True):
+    """Camera model applied to linear radiance I [Hh, W]: auto exposure, vignetting, tone curve, noise."""
+    Hh, W = I.shape
     # camera: auto exposure, vignetting, gamma, noise, quantisation
     # auto-exposure metered on the lower (ground) part of the frame, as a rover camera would
     meter = I[int(Hh * 0.45):][~sky[int(Hh * 0.45):]]
@@ -308,6 +324,4 @@ def render(T, x0, y0, yaw_deg, az_deg, el_deg, W=320, Hh=240, hfov_deg=70.0, cam
     if noise:
         img = img + rng.normal(0, 0.012, img.shape) + rng.normal(0, 1, img.shape) * 0.01 * np.sqrt(img)
     img = (np.clip(img, 0, 1) * 255 + 0.5).astype(np.uint8)
-    if return_depth:
-        return img, np.where(sky, np.inf, dh)
     return img
