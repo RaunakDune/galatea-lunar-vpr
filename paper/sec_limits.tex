@@ -8,7 +8,9 @@ scenes, so we expect them to carry over better, but this must be confirmed on re
 validation scene and four of twelve blocks; full fine-tuning or larger backbones were not explored,
 and the ranking of heads under fine-tuning may depend on these choices. The FGW structural term uses image-plane
 distances, which are only approximately preserved under large viewpoint changes. Lifting database
-keypoints to 3-D with DEM depth is a natural extension.
+keypoints to 3-D with DEM depth is a natural extension. Finally, the queries are upright and near the database poses. In further tests (supplement), a $5^\circ$ roll
+lowers frozen Galatea from $\rbBase$ to $\rbRollFive\%$ R@1, and fine-tuned models lose nearly as much; levelling the
+image with gravity recovers most of this, while a $30^\circ$ heading change costs $\rbHeadThirtyDrop$ points.
 
 % ======================================================================
 \section{Conclusion}\label{sec:conclusion}

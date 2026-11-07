@@ -568,3 +568,75 @@ if 'pc_nv' in dir() and len(pc_nv) == 3:
     ser = json.load(open(f'{R}/percond_series.json'))
     ser['NetVLAD (fine-tuned) + FGW fusion'] = list(np.mean(pc_nv, 0))
     json.dump(ser, open(f'{R}/percond_series.json', 'w'), indent=1)
+
+# ------------------------------------------------------------------ robustness to tilt and viewpoint (supplement)
+# results/robust/summary.json is written by robust_report.py (see docs/ROBUSTNESS.md)
+RBF = os.path.join(R, 'robust', 'summary.json')
+if os.path.exists(RBF):
+    RS = json.load(open(RBF))
+    g = lambda v, k: RS[v]['groups'][k]['R@1'][0]
+    gs = lambda v, k: RS[v]['groups'][k]['R@1']
+    mo = lambda v, k: RS[v]['models'][k]['R@1']
+    b = g('roll_0', 'fr_gal')
+    M('rbBase', b); M('rbFtNvBase', g('roll_0', 'ft_nv'))
+    for pre, nm in [('galatea', 'Gal'), ('netvlad', 'Nv')]:   # retrained fine-tuned runs (backbone stored)
+        rr = [json.load(open(f))['results']['test']['R@1'] for f in sorted(glob.glob(f'{R}/robust/runs/rft_{pre}_s*/results.json'))]
+        if rr:
+            M(f'rbRetrain{nm}', np.mean(rr))
+    for v, n in [('roll_1', 'One'), ('roll_5', 'Five'), ('roll_15', 'Fifteen')]:
+        M(f'rbRoll{n}', g(v, 'fr_gal')); M(f'rbFtNvRoll{n}', g(v, 'ft_nv'))
+    d = RS['roll_1']['models']['galatea_s0']['dR1_vs_roll0']
+    M('rbRollOneDrop', -d[0]); M('rbRollOneLo', -d[2]); M('rbRollOneHi', -d[1])
+    big = [x for v in ('roll_45', 'roll_90', 'roll_180') for x in
+           [RS[v]['groups'][k]['R@1'][0] for k in RS[v]['groups']] + [m['R@1'] for k, m in RS[v]['models'].items() if '+' in k]]
+    M('rbRollBigMax', max(big), '{:.0f}')
+    M('rbRollUpside', g('roll_180', 'fr_gal')); M('rbFtNvRollUpside', g('roll_180', 'ft_nv'))
+    M('rbDerotGal', g('derot_180', 'fr_gal')); M('rbDerotFtNv', g('derot_180', 'ft_nv'))
+    dg = [b - g(f'derot_{r}', 'fr_gal') for r in (15, 30, 45, 90, 180)]
+    df = [g('roll_0', k) - g(f'derot_{r}', k) for r in (15, 30, 45, 90, 180) for k in ('ft_gal', 'ft_nv')]
+    M('rbDerotCostGalLo', min(dg), '{:.0f}'); M('rbDerotCostGalHi', max(dg), '{:.0f}')
+    M('rbDerotCostFtLo', min(df), '{:.0f}'); M('rbDerotCostFtHi', max(df), '{:.0f}')
+    M('rbPitchUpGal', g('pitch_30', 'fr_gal')); M('rbPitchUpNv', g('pitch_30', 'fr_nv'))
+    M('rbPitchUpFtGal', g('pitch_30', 'ft_gal')); M('rbPitchUpFtNv', g('pitch_30', 'ft_nv'))
+    M('rbPitchDownMax', max(RS['pitch_-30']['groups'][k]['R@1'][0] for k in RS['pitch_-30']['groups']))
+    M('rbPitchFiveDrop', b - min(g('pitch_-5', 'fr_gal'), g('pitch_5', 'fr_gal')))
+    M('rbOffEightDrop', g('offset_0', 'fr_gal') - g('offset_8', 'fr_gal'), '{:.0f}')
+    M('rbOffFourDrop', b - g('offset_4', 'fr_gal'), '{:.0f}')
+    M('rbHeadFifteenDrop', b - g('heading_15', 'fr_gal'), '{:.0f}'); M('rbHeadThirtyDrop', b - g('heading_30', 'fr_gal'), '{:.0f}')
+    M('rbHeadNoPos', RS['heading_45']['n_no_positive'], '{:d}')
+    M('rbHeightNearLo', b - max(g('height_1.0', 'fr_gal'), g('height_2.5', 'fr_gal')), '{:.0f}')
+    M('rbHeightNearHi', b - min(g('height_1.0', 'fr_gal'), g('height_2.5', 'fr_gal')), '{:.0f}')
+    M('rbHeightFarLo', b - max(g('height_0.5', 'fr_gal'), g('height_4.0', 'fr_gal')), '{:.0f}')
+    M('rbHeightFarHi', b - min(g('height_0.5', 'fr_gal'), g('height_4.0', 'fr_gal')), '{:.0f}')
+    fus = [mo(v, f'galatea_s0+{m}') - mo(v, 'galatea_s0') for v in ('roll_1', 'roll_5', 'pitch_-5', 'pitch_5', 'offset_2', 'offset_4')
+           for m in ('fgw', 'mnn_ransac')]
+    M('rbFusLo', min(fus), '{:.0f}'); M('rbFusHi', max(fus), '{:.0f}')
+    M('rbRollFifteenFgw', mo('roll_15', 'galatea_s0+fgw')); M('rbRollFifteenMnn', mo('roll_15', 'galatea_s0+mnn_ransac'))
+    rows = [('Upright (baseline)', 'roll_0'), ('Roll $1^\\circ$', 'roll_1'), ('Roll $5^\\circ$', 'roll_5'),
+            ('Roll $15^\\circ$', 'roll_15'), ('Roll $45^\\circ$', 'roll_45'), ('Roll $180^\\circ$', 'roll_180'),
+            ('Roll $45^\\circ$, gravity-corr.', 'derot_45'), ('Roll $180^\\circ$, gravity-corr.', 'derot_180'),
+            ('Pitch $-30^\\circ$', 'pitch_-30'), ('Pitch $-15^\\circ$', 'pitch_-15'), ('Pitch $+15^\\circ$', 'pitch_15'),
+            ('Pitch $+30^\\circ$', 'pitch_30'), ('Offset $0$\\,m', 'offset_0'), ('Offset $4$\\,m', 'offset_4'),
+            ('Offset $8$\\,m', 'offset_8'), ('Heading $+15^\\circ$', 'heading_15'), ('Heading $+30^\\circ$', 'heading_30'),
+            ('Height $0.5$\\,m', 'height_0.5'), ('Height $1.0$\\,m', 'height_1.0'), ('Height $2.5$\\,m', 'height_2.5'),
+            ('Height $4.0$\\,m', 'height_4.0')]
+    sd = lambda v, k: '%.1f{\\scriptsize$\\pm$%.1f}' % tuple(gs(v, k))
+    L = ['\\begin{table*}[t]', '\\centering',
+         '\\caption{Robustness to camera tilt and viewpoint: R@1 (\\%) over all seven Sun conditions on the test set '
+         '(3150 queries per row; chance $2.2\\%$). Each row re-renders the benchmark queries at the benchmark poses '
+         'with one factor changed; the database is the original upright one. Mean$\\pm$std over 3 seeds; fusion on '
+         'the frozen Galatea head, seed 0, with the validation-tuned $(\\beta,\\kappa)$ of the main paper.}',
+         '\\label{tab:robust}', '\\footnotesize', '\\begin{tabular}{@{}lcccccccc@{}}', '\\toprule',
+         ' & Zero-shot & \\multicolumn{2}{c}{Frozen backbone} & \\multicolumn{2}{c}{Fine-tuned backbone} & '
+         '\\multicolumn{2}{c}{Frozen Galatea + fusion} \\\\',
+         '\\cmidrule(lr){3-4}\\cmidrule(lr){5-6}\\cmidrule(l){7-8}',
+         'Variant & SALAD & Galatea & NetVLAD & Galatea & NetVLAD & FGW & MNN+MAGSAC++ \\\\', '\\midrule']
+    for lab, v in rows:
+        L.append(f"{lab} & {g(v, 'zs'):.1f} & {sd(v, 'fr_gal')} & {sd(v, 'fr_nv')} & {sd(v, 'ft_gal')} & {sd(v, 'ft_nv')} & "
+                 f"{mo(v, 'galatea_s0+fgw'):.1f} & {mo(v, 'galatea_s0+mnn_ransac'):.1f} \\\\")
+        if v in ('roll_0', 'roll_180', 'derot_180', 'pitch_30', 'offset_8', 'heading_30'):
+            L.append('\\addlinespace[2pt]')
+    L += ['\\bottomrule', '\\end{tabular}', '\\end{table*}']
+    open(f'{P}/tab_robust.tex', 'w').write('\n'.join(L))
+    open(f'{P}/numbers.tex', 'w').write('\n'.join(f'\\newcommand{{\\{k}}}{{{v}}}' for k, v in sorted(macros.items())) + '\n')
+    print('robustness macros written')

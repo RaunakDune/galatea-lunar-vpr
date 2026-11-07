@@ -9,10 +9,11 @@
 \DeclareMathOperator*{\argmax}{arg\,max}
 
 \begin{document}
+\renewcommand{\thefigure}{S\arabic{figure}}\renewcommand{\thetable}{S\Roman{table}}\renewcommand{\thesection}{S\Roman{section}}
 \title{Galatea: Supplementary Material}
 \author{Raunak Sarbajna and Christoph F. Eick}
 \maketitle
-\noindent Equation, proposition and section numbers refer to the main paper.
+\noindent Equation, proposition and section numbers without the prefix S refer to the main paper.
 \input{sec_appendix}
 \bibliographystyle{IEEEtran}
 \bibliography{refs}
@@ -33,5 +34,75 @@ training gives $47.8\%$ (CPU: $\fixIllRone\%$).
 \input{tab_repro}
 
 
+\section{Robustness to camera tilt and viewpoint}\label{sec:robust}
+The benchmark queries differ from the database by small viewpoint changes only: at most $3$\,m of offset,
+heading noise $\mathcal{N}(0,10^\circ)$, camera heights of $1.35$--$1.7$\,m, and no roll or pitch. Here
+we change one factor at a time, starting from the exact benchmark query poses, and re-render all $3150$ test
+queries under all seven Sun conditions. The database stays the original upright one
+(Fig.~\ref{fig:robust}, Table~\ref{tab:robust}).
+
+\paragraph*{Protocol} LunarSim casts rays column by column, which is exact only for an upright camera. A
+camera rotated about its centre sees the same rays re-projected, so its image is an upright image with the
+same focal length warped by the homography $\mathbf{K}\mathbf{R}\mathbf{K}^{-1}$, independently of scene
+depth. We render the upright source at $3\times$ resolution, keeping the micro-relief level of detail of the
+native resolution, and point-sample it through the homography. Without tilt this reproduces the benchmark
+renderer exactly; a $0.01^\circ$ roll differs from the native image by $0.15$ grey levels on average.
+\begin{itemize}
+\item \emph{Roll} is a rotation about the camera's central viewing direction, so an upside-down camera sees
+the same scene upside down.
+\item \emph{Gravity correction} simulates levelling the image with an IMU: the upright view, black outside
+the part of the scene the rolled camera sees.
+\item \emph{Offset} fixes the distance to the database place exactly, in the benchmark's random direction.
+\item \emph{Heading} adds a change of random sign to the benchmark heading. At $+45^\circ$, $\rbHeadNoPos$
+queries have no true match within $10$\,m and $60^\circ$ and are excluded.
+\end{itemize}
+The frozen heads are the GPU runs of Table~\ref{tab:repro}. The fine-tuned runs were retrained with the
+protocol of Section~\ref{sec:ft} so that their backbones could be stored; they reach $\rbRetrainGal$ and $\rbRetrainNv\%$ R@1
+upright (Table~\ref{tab:main}: $\ftGalRone$ and $\ftNvRone$). On the re-rendered upright queries, frozen
+Galatea reaches $\rbBase\%$.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/robustness.pdf}
+\caption{Recall@1 over all seven Sun conditions when one factor of the query camera is changed (3 seeds,
+error bars: std). Roll axes are square-root scaled; dotted line: chance ($2.2\%$).}
+\label{fig:robust}
+\end{figure*}
+\input{tab_robust}
+
+\paragraph*{Roll} Roll is the most damaging factor. A $1^\circ$ roll already costs frozen Galatea
+$\rbRollOneDrop$ points (paired 95\% CI $[\rbRollOneLo,\rbRollOneHi]$), $5^\circ$ leaves $\rbRollFive\%$ and
+$15^\circ$ $\rbRollFifteen\%$. From $45^\circ$ on, no model exceeds $\rbRollBigMax\%$; upside down, frozen
+Galatea reaches $\rbRollUpside\%$ and fine-tuned NetVLAD $\rbFtNvRollUpside\%$. Fine-tuning does not remove the sensitivity:
+fine-tuned NetVLAD falls from $\rbFtNvBase$ to $\rbFtNvRollFive\%$ at $5^\circ$. No training or database image
+is rolled, and DINOv2 tokens are not rotation-invariant. Levelling the image with gravity recovers most of
+the loss. Upside down, it brings frozen Galatea back to $\rbDerotGal\%$ and fine-tuned NetVLAD to
+$\rbDerotFtNv\%$. The remaining cost, $\rbDerotCostGalLo$--$\rbDerotCostGalHi$ points for frozen Galatea and
+$\rbDerotCostFtLo$--$\rbDerotCostFtHi$ for the fine-tuned models, comes from the black regions outside the
+rolled frame.
+
+\paragraph*{Pitch} Pitching by $\pm5^\circ$ costs frozen Galatea up to $\rbPitchFiveDrop$ points. Looking
+$30^\circ$ down, the frame shows only ground within a few metres and no horizon; no model exceeds
+$\rbPitchDownMax\%$. Part of this failure may be due to the simulator, whose near-field ground is limited by
+the $0.3$\,m DEM. Looking $30^\circ$ up, the frame is mostly sky. Galatea then beats NetVLAD both with a
+frozen backbone ($\rbPitchUpGal$ vs.\ $\rbPitchUpNv\%$) and with a fine-tuned one ($\rbPitchUpFtGal$ vs.\
+$\rbPitchUpFtNv\%$). This is consistent with the dust-bin acting as a gate on sky tokens
+(\cref{prop:dustbin}), although the two heads also differ in their aggregation.
+
+\paragraph*{Viewpoint} Moving $8$\,m away from the database place costs frozen Galatea $\rbOffEightDrop$
+points relative to $0$\,m. Adding $15^\circ$ or $30^\circ$ of heading costs $\rbHeadFifteenDrop$ and
+$\rbHeadThirtyDrop$ points. Each place is in the database with a single heading, and most of the frame shows
+nearby ground, which changes completely when the rover turns. Camera heights of $1.0$ and $2.5$\,m
+(database: $1.5$\,m) cost $\rbHeightNearLo$--$\rbHeightNearHi$ points, and $0.5$ and $4.0$\,m
+$\rbHeightFarLo$--$\rbHeightFarHi$.
+
+\paragraph*{Fusion} Under small tilts and offsets, fusion still adds $\rbFusLo$--$\rbFusHi$ points. Once the
+correct place leaves the ten candidates it cannot help. Under roll, MNN+MAGSAC++ fusion degrades less than
+FGW ($\rbRollFifteenMnn$ vs.\ $\rbRollFifteenFgw\%$ at $15^\circ$): FGW's structural term is
+rotation-invariant (\cref{prop:inv}), but its appearance term is not.
+
+\paragraph*{Implications} A rover should level its images with the IMU before retrieval. Its database should
+be recorded at the operating camera height and with several headings per place. Offsets of a few metres
+cost little ($\rbOffFourDrop$ points at $4$\,m).
 
 \end{document}

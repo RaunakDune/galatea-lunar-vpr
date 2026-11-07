@@ -19,7 +19,7 @@ style = {  # validated categorical palette (light): blue, orange, aqua, yellow, 
     'NetVLAD (fine-tuned) + FGW fusion': ('#0b0b0b', ':', '*'),
 }
 plt.rcParams.update({'font.size': 7, 'font.family': 'serif'})
-fig, ax = plt.subplots(figsize=(3.45, 3.0), dpi=300)
+fig, ax = plt.subplots(figsize=(3.45, 2.6), dpi=300)
 x = range(len(labels))
 for k, v in S.items():
     c, ls, mk = style.get(k, ('gray', '-', 'o'))

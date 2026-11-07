@@ -1,5 +1,8 @@
 # Robustness to camera roll, pitch and viewpoint
 
+This study is Section SII of the paper's supplementary material (`paper/supplement.pdf`), with a summary in
+the main paper's limitations.
+
 These tests ask how the place-recognition pipeline of the paper behaves when the query camera is
 tilted or stands somewhere other than where the database was recorded. All numbers are Recall@1 (%)
 on the LunarSim-VPR test set (3 unseen scenes, 150 places each), averaged over all 7 Sun conditions
@@ -29,7 +32,7 @@ on the LunarSim-VPR test set (3 unseen scenes, 150 places each), averaged over a
   - Zero-shot DINOv2-SALAD.
   - Frozen-backbone Galatea and NetVLAD heads (the GPU runs of Table III, 3 seeds each).
   - Fine-tuned Galatea and NetVLAD, retrained with the paper's settings so that the fine-tuned backbone
-    could be saved. Their upright test R@1 is 71.4 and 77.0 (paper: 71.3 and 76.4).
+    could be saved. Their upright test R@1 is 71.3 and 77.0 (paper: 71.3 and 76.4).
   - Stage-2 fusion (FGW and MNN+MAGSAC++) on frozen Galatea seed 0, with the paper's validation-tuned
     β and κ, not re-tuned for any variant.
 - **Baseline.** The re-rendered upright queries (`roll_0`, fresh noise) reproduce the paper: frozen
