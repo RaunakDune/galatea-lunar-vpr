@@ -42,7 +42,7 @@
 \end{scope}
 \end{tikzpicture}
 \caption{Galatea. Stage~1 assigns ViT tokens to $m$ clusters and a dust-bin by semi-relaxed
-unbalanced OT with fixed or learned $\lambda$ ($\lambda{=}0$: NetVLAD, $\lambda{=}1$: SALAD) and
+unbalanced OT with relaxation $\lambda$ ($\lambda{=}0$: NetVLAD, $\lambda{=}1$: SALAD) and
 aggregates them into a global descriptor. Stage~2 re-scores the top-$K$ candidates by partial FGW
 matching of keypoints and fuses local and global scores.}
 \label{fig:arch}

@@ -20,7 +20,7 @@
 
 \section{Additional experiments}
 \paragraph*{Backbone learning rate} For joint fine-tuning (Section~\ref{sec:ft}) the backbone learning rate was
-selected on the validation scene only, with the Galatea head and seed~0 (Table~\ref{tab:lrsweep}). The head
+selected on the validation scene only, with the reference head and seed~0 (Table~\ref{tab:lrsweep}). The head
 learning rate, schedule, sampler and loss are those of the frozen-backbone runs; training lasts $1000$ steps.
 Test results were not consulted. The largest rate diverges.
 \input{tab_lrsweep}
@@ -58,8 +58,8 @@ queries have no true match within $10$\,m and $60^\circ$ and are excluded.
 \end{itemize}
 The frozen heads are the GPU runs of Table~\ref{tab:repro}. The fine-tuned runs were retrained with the
 protocol of Section~\ref{sec:ft} so that their backbones could be stored; they reach $\rbRetrainGal$ and $\rbRetrainNv\%$ R@1
-upright (Table~\ref{tab:main}: $\ftGalRone$ and $\ftNvRone$). On the re-rendered upright queries, frozen
-Galatea reaches $\rbBase\%$.
+upright (Table~\ref{tab:main}: $\ftGalRone$ and $\ftNvRone$). On the re-rendered upright queries, the frozen
+reference head reaches $\rbBase\%$.
 
 \begin{figure*}[t]
 \centering
@@ -70,26 +70,26 @@ error bars: std). Roll axes are square-root scaled; dotted line: chance ($2.2\%$
 \end{figure*}
 \input{tab_robust}
 
-\paragraph*{Roll} Roll is the most damaging factor. A $1^\circ$ roll already costs frozen Galatea
+\paragraph*{Roll} Roll is the most damaging factor. A $1^\circ$ roll already costs the frozen reference head
 $\rbRollOneDrop$ points (paired 95\% CI $[\rbRollOneLo,\rbRollOneHi]$), $5^\circ$ leaves $\rbRollFive\%$ and
 $15^\circ$ $\rbRollFifteen\%$. From $45^\circ$ on, no model exceeds $\rbRollBigMax\%$; upside down, frozen
-Galatea reaches $\rbRollUpside\%$ and fine-tuned NetVLAD $\rbFtNvRollUpside\%$. Fine-tuning does not remove the sensitivity:
+the reference head reaches $\rbRollUpside\%$ and fine-tuned NetVLAD $\rbFtNvRollUpside\%$. Fine-tuning does not remove the sensitivity:
 fine-tuned NetVLAD falls from $\rbFtNvBase$ to $\rbFtNvRollFive\%$ at $5^\circ$. No training or database image
 is rolled, and DINOv2 tokens are not rotation-invariant. Levelling the image with gravity recovers most of
-the loss. Upside down, it brings frozen Galatea back to $\rbDerotGal\%$ and fine-tuned NetVLAD to
-$\rbDerotFtNv\%$. The remaining cost, $\rbDerotCostGalLo$--$\rbDerotCostGalHi$ points for frozen Galatea and
+the loss. Upside down, it brings the frozen reference head back to $\rbDerotGal\%$ and fine-tuned NetVLAD to
+$\rbDerotFtNv\%$. The remaining cost, $\rbDerotCostGalLo$--$\rbDerotCostGalHi$ points for the frozen reference head and
 $\rbDerotCostFtLo$--$\rbDerotCostFtHi$ for the fine-tuned models, comes from the black regions outside the
 rolled frame.
 
-\paragraph*{Pitch} Pitching by $\pm5^\circ$ costs frozen Galatea up to $\rbPitchFiveDrop$ points. Looking
+\paragraph*{Pitch} Pitching by $\pm5^\circ$ costs the frozen reference head up to $\rbPitchFiveDrop$ points. Looking
 $30^\circ$ down, the frame shows only ground within a few metres and no horizon; no model exceeds
 $\rbPitchDownMax\%$. Part of this failure may be due to the simulator, whose near-field ground is limited by
-the $0.3$\,m DEM. Looking $30^\circ$ up, the frame is mostly sky. Galatea then beats NetVLAD both with a
+the $0.3$\,m DEM. Looking $30^\circ$ up, the frame is mostly sky. The OT head then beats NetVLAD both with a
 frozen backbone ($\rbPitchUpGal$ vs.\ $\rbPitchUpNv\%$) and with a fine-tuned one ($\rbPitchUpFtGal$ vs.\
 $\rbPitchUpFtNv\%$). This is consistent with the dust-bin acting as a gate on sky tokens
 (\cref{prop:dustbin}), although the two heads also differ in their aggregation.
 
-\paragraph*{Viewpoint} Moving $8$\,m away from the database place costs frozen Galatea $\rbOffEightDrop$
+\paragraph*{Viewpoint} Moving $8$\,m away from the database place costs the frozen reference head $\rbOffEightDrop$
 points relative to $0$\,m. Adding $15^\circ$ or $30^\circ$ of heading costs $\rbHeadFifteenDrop$ and
 $\rbHeadThirtyDrop$ points. Each place is in the database with a single heading, and most of the frame shows
 nearby ground, which changes completely when the rover turns. Camera heights of $1.0$ and $2.5$\,m

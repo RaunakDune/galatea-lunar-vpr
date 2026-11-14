@@ -12,10 +12,10 @@ style = {  # validated categorical palette (light): blue, orange, aqua, yellow, 
     'EigenPlaces-R50 (zero-shot)': ('#e87ba4', '--', '^'),
     'DINOv2-SALAD (zero-shot)': ('#eb6834', '--', 's'),
     'NetVLAD (frozen)': ('#1baf7a', '-', 'D'),
-    'Galatea (frozen)': ('#2a78d6', '-', 'o'),
-    'Galatea (frozen) + FGW fusion': ('#0b0b0b', '-', '*'),
+    'OT λ≈0.5 (frozen)': ('#2a78d6', '-', 'o'),
+    'OT λ≈0.5 (frozen) + FGW fusion': ('#0b0b0b', '-', '*'),
     'NetVLAD (fine-tuned)': ('#1baf7a', ':', 'D'),
-    'Galatea (fine-tuned)': ('#2a78d6', ':', 'o'),
+    'OT λ≈0.5 (fine-tuned)': ('#2a78d6', ':', 'o'),
     'NetVLAD (fine-tuned) + FGW fusion': ('#0b0b0b', ':', '*'),
 }
 plt.rcParams.update({'font.size': 7, 'font.family': 'serif'})

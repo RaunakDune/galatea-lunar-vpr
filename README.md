@@ -2,7 +2,7 @@
 
 Code, benchmark and paper source for
 
-> **Galatea: An Optimal Transport Framework for Merging Global and Local Descriptors in Visual Place Recognition on Extraterrestrial Surfaces**
+> **Galatea: What Matters for Visual Place Recognition on the Moon? An Optimal-Transport Analysis of Aggregation and Re-ranking**
 > Raunak Sarbajna and Christoph F. Eick, University of Houston. Manuscript in preparation.
 
 **Project website and interactive demo: [lunarsim.org](https://lunarsim.org)**: play *Where on the Moon?*
@@ -33,13 +33,13 @@ illumination alone.
 | GeM head, frozen backbone | 31.5 ± 0.4 | 21.7 |
 | NetVLAD head, frozen backbone | 58.2 ± 0.7 | 46.7 |
 | SALAD head (λ=1), frozen backbone | 59.4 ± 0.7 | 48.6 |
-| Galatea head (learned λ), frozen backbone | 59.8 ± 0.8 | 47.6 |
+| OT head, λ ≈ 0.5 (reference head), frozen backbone | 59.8 ± 0.8 | 47.6 |
 | Galatea (frozen) + FGW global–local fusion | 66.1 ± 0.1 | 52.2 (seed 0) |
 | GeM, fine-tuned backbone | 50.7 ± 3.2 | 42.0 |
 | **NetVLAD, fine-tuned backbone** | **76.4 ± 0.7** | **64.3** |
 | SALAD (λ=1), fine-tuned backbone | 73.5 ± 0.5 | 62.2 |
 | λ=0 OT head, fine-tuned backbone | 73.1 ± 1.1 | 61.9 |
-| Galatea (learned λ), fine-tuned backbone | 71.3 ± 1.2 | 60.1 |
+| OT head, λ ≈ 0.5 (reference head), fine-tuned backbone | 71.3 ± 1.2 | 60.1 |
 | Galatea (fine-tuned) + FGW fusion | 74.5 ± 0.8 | 63.0 |
 | **NetVLAD (fine-tuned) + FGW fusion** | **78.8 ± 0.5** | **66.9** |
 
@@ -52,9 +52,10 @@ C5 (shadows reversed) and C6 (both). The main findings:
   fine-tuned, more than backbone fine-tuning adds to the same head.
 - Joint backbone fine-tuning adds 11–19 points of R@1 for every head.
 - With a frozen backbone, every value of λ performs alike; the paper proves why (after intra-normalisation
-  the descriptor sees the transport plan only through per-token weights). With fine-tuning the OT family
-  stays within about two points, a learned λ behaves like a fixed λ at its initial value, and NetVLAD's
-  residual aggregation pulls ahead (+4.5 over the matching OT head).
+  the descriptor sees the transport plan only through per-token weights). The loss does not identify a
+  trainable λ: it ends where it starts, and with a 100× learning rate it drifts without converging, at
+  unchanged accuracy. With fine-tuning a trainable λ's result depends on its initial value (71.3 from 0.5,
+  74.2 from 0.9), so λ should be fixed; NetVLAD's residual aggregation is best (+4.5 over the matching OT head).
 - Fusing local and global evidence adds 1.9–6.9 points (three-seed means) for every stage-1 model and local
   matcher tested. Local-only re-ranking rescues ~15% of queries but breaks as many; fusion keeps about half the
   rescues and breaks 1.8–4.8% (the local evidence it needs to overturn the global ranking grows linearly with
@@ -168,8 +169,8 @@ weights, which are not yet public.
 
 ```bibtex
 @misc{sarbajna2026galatea,
-  title  = {Galatea: An Optimal Transport Framework for Merging Global and Local Descriptors
-            in Visual Place Recognition on Extraterrestrial Surfaces},
+  title  = {Galatea: What Matters for Visual Place Recognition on the Moon? An Optimal-Transport
+            Analysis of Aggregation and Re-ranking},
   author = {Sarbajna, Raunak and Eick, Christoph F.},
   year   = {2026},
   note   = {Manuscript in preparation. Code: https://github.com/RaunakDune/galatea-lunar-vpr}

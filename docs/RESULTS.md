@@ -15,7 +15,7 @@ is correct if a retrieved database image lies within 10 m and 60° of heading.
 | GeM, lunar-trained | 1280 | 31.5 ± 0.4 | 64.7 ± 0.3 | 79.4 ± 0.2 | 55.0 | 34.8 | 19.8 | 35.3 | 30.1 | 25.1 | 20.3 |
 | NetVLAD, lunar-trained | 8448 | 58.2 ± 0.7 | 86.6 ± 0.4 | 94.6 ± 0.2 | 79.0 | 67.5 | 46.1 | 65.2 | 56.0 | 48.3 | 45.6 |
 | SALAD (λ=1), lunar-trained | 8448 | 59.4 ± 0.7 | 87.3 ± 0.7 | 94.8 ± 0.2 | 77.6 | 68.4 | 46.4 | 65.4 | 58.6 | 52.7 | 46.7 |
-| Galatea (learned λ), lunar-trained | 8448 | 59.8 ± 0.8 | 87.3 ± 0.5 | 94.6 ± 0.2 | 79.3 | 69.0 | 44.4 | 67.3 | 60.4 | 54.7 | 43.7 |
+| OT, λ ≈ 0.5 (reference head), lunar-trained | 8448 | 59.8 ± 0.8 | 87.3 ± 0.5 | 94.6 ± 0.2 | 79.3 | 69.0 | 44.4 | 67.3 | 60.4 | 54.7 | 43.7 |
 
 Per-condition columns give R@1. Conditions: C0 same Sun as the database (az 135°, el 30°); C1 el 15°;
 C2 el 6°; C3 el 60°; C4 az +90°; C5 az +180°; C6 az +180° and el 8°.
@@ -31,12 +31,14 @@ learning rate 1e-4 selected on the validation scene; mean ± std over 3 seeds, N
 | NetVLAD, fine-tuned | 8448 | **76.4 ± 0.7** | **94.3 ± 0.1** | **97.6 ± 0.2** | 91.6 | 85.3 | 63.0 | 86.1 | 78.9 | 71.8 | 58.1 |
 | SALAD (λ=1), fine-tuned | 8448 | 73.5 ± 0.5 | 94.0 ± 0.2 | 97.4 ± 0.2 | 88.5 | 80.1 | 57.7 | 83.0 | 76.4 | 71.3 | 57.6 |
 | λ=0 OT head, fine-tuned | 8448 | 73.1 ± 1.1 | 93.3 ± 0.4 | 97.2 ± 0.1 | 87.4 | 81.2 | 57.4 | 83.0 | 74.7 | 70.6 | 57.8 |
-| Galatea (learned λ), fine-tuned | 8448 | 71.3 ± 1.2 | 93.0 ± 0.4 | 97.1 ± 0.3 | 87.9 | 80.4 | 54.4 | 79.5 | 71.2 | 69.8 | 56.3 |
+| OT, λ ≈ 0.5 (reference head), fine-tuned | 8448 | 71.3 ± 1.2 | 93.0 ± 0.4 | 97.1 ± 0.3 | 87.9 | 80.4 | 54.4 | 79.5 | 71.2 | 69.8 | 56.3 |
 
-- Fine-tuning gains (R@1): GeM +19.2, NetVLAD +18.2, SALAD +14.1, Galatea +11.5 (95% CI [10.2, 12.8]).
-- Paired differences: NetVLAD − SALAD +2.9 [+1.9, +3.9]; Galatea − SALAD −2.2 [−3.2, −1.2];
-  λ=0 − Galatea +1.8 [+0.9, +2.8]. See the assignment-family table below: fixed λ values lie within 1.5
-  points, a learned λ matches fixed λ = 0.5, and NetVLAD's residual aggregation is best.
+- Fine-tuning gains (R@1): GeM +19.2, NetVLAD +18.2, SALAD +14.1, reference head +11.5 (95% CI [9.7, 13.4]).
+- Paired differences: NetVLAD − SALAD +2.9 [+1.6, +4.1]; reference head − SALAD −2.2 [−3.4, −0.9];
+  λ=0 − reference head +1.8 [+0.4, +3.1]. See the assignment-family table below: fixed λ values lie within 1.5
+  points, a trainable λ ends where it starts, and NetVLAD's residual aggregation is best.
+- All confidence intervals are 95% paired bootstraps over the 450 test places (each place resampled with its
+  seven queries), as in the paper.
 - Global–local fusion on the fine-tuned Galatea (3 seeds): +3.1 ± 0.4 (FGW, R@1 74.5 ± 0.8),
   +3.3 ± 0.6 (MNN + MAGSAC++). Fine-tuned NetVLAD + FGW fusion (3 seeds): **R@1 78.8 ± 0.5**, R@5 95.3
   (fusion gain +2.4 ± 0.2; MNN + MAGSAC++ +1.9 ± 0.2).
@@ -53,16 +55,26 @@ learning rate 1e-4 selected on the validation scene; mean ± std over 3 seeds, N
 | λ=0, no dust-bin | 60.3 ± 1.0 | 48.9 | 71.9 ± 1.4 | 61.2 |
 | λ=0.25 | 60.0 ± 1.1 | 48.1 | 73.0 ± 1.4 | 62.4 |
 | λ=0.5 | 59.4 ± 0.9 | 47.3 | 72.0 ± 0.8 | 60.7 |
-| learned λ (Galatea, init. 0.5) | 59.5 ± 1.3 | 47.4 | 71.3 ± 1.2 | 60.1 |
 | λ=0.75 | 58.6 ± 1.0 | 47.2 | 73.3 ± 0.1 | 61.6 |
 | λ=1 (SALAD), dust-bin | 59.6 ± 0.4 | 48.7 | 73.5 ± 0.5 | 62.2 |
 | λ=1, no dust-bin | 55.8 ± 1.5 | 44.1 | 74.4 ± 0.9 | 62.9 |
+| trainable λ, init. 0.1 (ends 0.10) | 59.7 ± 1.5 | 48.1 | 71.5 ± 0.7 | 59.9 |
+| trainable λ, init. 0.5, reference head (ends 0.50 / 0.52) | 59.5 ± 1.3 | 47.4 | 71.3 ± 1.2 | 60.1 |
+| trainable λ, init. 0.9 (ends 0.90 / 0.91) | 59.1 ± 0.7 | 48.4 | 74.2 ± 0.8 | 62.7 |
+| 100× lr on λ, z, init. 0.1 (ends 0.12–0.27) | 60.4 ± 1.1 | 48.9 | – | – |
+| 100× lr on λ, z, init. 0.5 (ends 0.69–0.83) | 59.1 ± 1.2 | 47.6 | – | – |
+| 100× lr on λ, z, init. 0.9 (ends 0.97–0.98) | 60.1 ± 0.4 | 49.1 | – | – |
 | NetVLAD (residual, k-means) | 57.8 ± 0.7 | 46.3 | 76.4 ± 0.7 | 64.3 |
 
 The OT rows share SALAD's aggregation and differ only in the assignment. Paired differences (95% CI):
-without vs. with dust-bin at λ = 0: frozen +0.1 [−0.5, +0.7], fine-tuned −1.2 [−2.1, −0.2]; at λ = 1:
-frozen −3.8 [−4.8, −2.7], fine-tuned +0.8 [−0.1, +1.8]. Learned λ vs. fixed λ = 0.5: frozen +0.2 [−0.3, +0.7],
-fine-tuned −0.6 [−1.6, +0.3]. Fine-tuned NetVLAD vs. λ = 0 without dust-bin: +4.5 [+3.5, +5.5].
+without vs. with dust-bin at λ = 0: frozen +0.1 [−0.6, +0.8], fine-tuned −1.2 [−2.4, −0.0]; at λ = 1:
+frozen −3.8 [−5.1, −2.4], fine-tuned +0.8 [−0.4, +2.1]. Trainable λ from 0.5 vs. fixed λ = 0.5: frozen +0.2 [−0.4, +0.7],
+fine-tuned −0.6 [−1.9, +0.6]. Fine-tuned, trainable λ from 0.9 vs. from 0.5: +2.8 [+1.5, +4.1]; from 0.1 vs. fixed
+λ = 0: −1.6 [−2.8, −0.4]. Fine-tuned NetVLAD vs. λ = 0 without dust-bin: +4.5 [+3.1, +5.8].
+
+AdamW moves the λ logit by about one learning rate per step, so at the default learning rate λ cannot travel
+far in 500 steps; the 100× rows test whether the loss prefers a value. λ then rises from every start without
+converging, and accuracy does not change.
 
 ### Why fusion works (Galatea seed 0, % of test queries)
 
@@ -102,8 +114,8 @@ Global ranking alone gives R@1 60.8 / R@5 88.0. Across the three stage-1 seeds, 
 |---|---|---|---|
 | λ = 0 (softmax + dust-bin) | 3 | 59.9 | 48.4 |
 | λ = 0.25 | 1 | 60.7 | 48.1 |
-| λ learned (λ̄ = 0.50) | 3 | 59.8 | 47.6 |
-| λ learned, 25× lr on λ, z (λ̄ = 0.56) | 1 | 60.3 | 47.3 |
+| λ trainable from 0.5 (λ̄ = 0.50) | 3 | 59.8 | 47.6 |
+| λ trainable, 25× lr on λ, z (λ̄ = 0.56) | 1 | 60.3 | 47.3 |
 | λ = 0.75 | 1 | 59.2 | 48.2 |
 | λ = 1 (balanced) | 3 | 59.4 | 48.6 |
 | no dust-bin | 1 | 62.1 | 49.3 |
@@ -117,7 +129,7 @@ Global ranking alone gives R@1 60.8 / R@5 88.0. Across the three stage-1 seeds, 
 ## Dust-bin analysis (test images, seed-0 heads)
 
 - SALAD (balanced): 83.3% of token mass goes to the dust-bin. Its correlation with the sky fraction is ρ = 0.63, and the coefficient of variation of cluster mass is 0.18.
-- Galatea (λ ≈ 0.5): 0.4% goes to the dust-bin, and the coefficient of variation of cluster mass is 6.4. Retrieval accuracy is identical, as Proposition 4 predicts.
+- Reference head (λ ≈ 0.5): 0.4% goes to the dust-bin, and the coefficient of variation of cluster mass is 6.4. Retrieval accuracy is identical, as Proposition 4 predicts.
 
 ## Run time (2-core CPU, no GPU)
 
@@ -128,7 +140,7 @@ Global ranking alone gives R@1 60.8 / R@5 88.0. Across the three stage-1 seeds, 
 | GeM head | 2.9 |
 | NetVLAD head | 1.8 |
 | SALAD head | 3.0 |
-| Galatea head | 3.0 |
+| OT head, λ = 0.5 | 3.0 |
 | OT matching per pair (200 kp) | 8.3 |
 | LightGlue per pair | 19.2 |
 | Partial FGW per pair | 42.7 |

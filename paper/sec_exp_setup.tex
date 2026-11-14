@@ -8,8 +8,10 @@ differ only in the aggregation. Besides GeM~\cite{radenovic2019gem} ($1280$-D) a
 NetVLAD~\cite{arandjelovic2016netvlad} (residuals to $k$-means-initialised centroids, $64\times128$ +
 scene token, $8448$-D), we evaluate members of the OT family of \cref{sec:uot}, which share SALAD's
 aggregation and differ only in the assignment: $\lambda=0$ (softmax + dust-bin), fixed $\lambda=0.25$,
-$0.5$ and $0.75$, learned $\lambda$ (the Galatea head, initialised at $0.5$) and $\lambda=1$ (SALAD),
-with and without the dust-bin at the end points. All $8448$-D heads have almost identical parameter
+$0.5$ and $0.75$, $\lambda=1$ (SALAD), with and without the dust-bin at the end points, and a trainable
+$\lambda$ initialised at $0.1$, $0.5$ or $0.9$. The re-ranking, ablation and robustness experiments use
+the \emph{reference head}: the trainable head initialised at $0.5$, whose $\lambda$ stays at $0.50$
+(\cref{sec:family}), so that it behaves as the fixed $\lambda=0.5$ member. All $8448$-D heads have almost identical parameter
 counts. Each head is trained either on a \emph{frozen} backbone or \emph{fine-tuned} jointly with the
 last four ViT blocks, as in SALAD. For stage~2 we compare four local scorers on the same
 SuperPoint keypoints (top $384$ by score) and top-$K=10$ candidates: mutual nearest neighbours
@@ -23,11 +25,12 @@ Images are resized to $210\times280$ for the ViT ($n=300$ tokens). Heads are tra
 places $\times$ $4$ views, using the multi-similarity loss (positive and negative scales $1$ and $50$,
 miner margin $0.1$). Sinkhorn uses $L=3$ iterations, $m=64$ clusters and $d_h=128$. All heads in \cref{tab:main,tab:family}
 are run with three seeds (mean $\pm$ standard deviation); the ablations of \cref{tab:ablation} use one
-seed. Confidence intervals are 95\% paired bootstraps over queries. For stage~2, the structural weight $\alpha\in\{0,0.3,0.6\}$ (chosen: $0.3$) and the fusion
+seed. Confidence intervals are 95\% paired bootstraps over the $450$ test places: each place is resampled
+with all seven of its queries, because the queries of one place under different Suns are correlated. For stage~2, the structural weight $\alpha\in\{0,0.3,0.6\}$ (chosen: $0.3$) and the fusion
 parameters $\beta,\kappa$ are selected on the validation scene only. $\varepsilon_\ell=0.05$ and the
 dust-bin cost $c_b=0.25$ (for appearance-only OT, a cosine of $0.75$) are fixed a priori, and MAGSAC++ uses a $1.5$\,px threshold.
 Fine-tuned heads are trained for $1000$ steps with the same sampler and loss; the backbone learning
-rate ($10^{-4}$) was selected on the validation scene from $\{10^{-5},\dots,10^{-3}\}$ with the Galatea
+rate ($10^{-4}$) was selected on the validation scene from $\{10^{-5},\dots,10^{-3}\}$ with the reference
 head (supplement) and used for every head. The frozen-backbone results in \cref{tab:main,tab:rerank}
 were computed on a $2$-core CPU; fine-tuning and \cref{tab:family} used NVIDIA Tesla P40 GPUs, on which
 a re-run of all frozen-backbone heads reproduces the CPU results within seed noise (supplement).

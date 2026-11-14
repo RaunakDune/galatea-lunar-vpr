@@ -27,7 +27,7 @@ at all.
 \input{tab_rescue}
 
 \subsection{Global--local fusion}\label{sec:rerank}
-\Cref{tab:rerank} re-ranks the top-10 candidates of the frozen Galatea head (seed~0, R@1
+\Cref{tab:rerank} re-ranks the top-10 candidates of the frozen reference head (seed~0, R@1
 $\rrGlobRone\%$) with four local scorers. Two findings stand out. First, ranking by the local score
 alone barely helps and can hurt: no scorer improves R@1 by more than about two points, and several
 lose ground. Second, fusing local and global evidence with \cref{eq:fusion} helps every scorer. With
@@ -59,9 +59,9 @@ $\rbFtMnnRFusBrk\%$.
 
 \paragraph*{Robustness across stage-1 models}
 Repeating the protocol on all three seeds of each stage-1 model, and re-tuning $\beta,\kappa$ on
-validation each time, fusion with FGW adds $\msFgwGain\pm\msFgwGainsd$ points to the frozen Galatea
+validation each time, fusion with FGW adds $\msFgwGain\pm\msFgwGainsd$ points to the frozen reference
 head (MNN+MAGSAC++: $\msMnnRGain\pm\msMnnRGainsd$; plain MNN: $\msMnnGain\pm\msMnnGainsd$),
-$\ftFgwGain\pm\ftFgwGainsd$ to the fine-tuned Galatea head (MNN+MAGSAC++: $\ftMnnRGain\pm\ftMnnRGainsd$)
+$\ftFgwGain\pm\ftFgwGainsd$ to the fine-tuned reference head (MNN+MAGSAC++: $\ftMnnRGain\pm\ftMnnRGainsd$)
 and $\msnvFgwGain\pm\msnvFgwGainsd$ to the fine-tuned NetVLAD head (MNN+MAGSAC++:
 $\msnvMnnRGain\pm\msnvMnnRGainsd$). The gain shrinks as stage~1 improves, since fewer queries remain
 to be rescued, but never vanishes. The complete system, fine-tuned NetVLAD with FGW fusion, reaches

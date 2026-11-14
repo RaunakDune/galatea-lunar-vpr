@@ -59,13 +59,14 @@ def variant_summary(v):
 
 
 def paired_ci(a, b, valid, n=2000, seed=0):
-    """Bootstrap CI of the paired difference in R@1 (b - a), resampling queries."""
+    """Bootstrap CI of the paired difference in R@1 (b - a), resampling the 450 test places (each with all its
+    queries; queries are ordered by scene, Sun condition and place, 3 x 7 x 150), as in make_tables.py."""
     rng = np.random.default_rng(seed)
-    a, b = a[valid].astype(float), b[valid].astype(float)
-    d = b - a
-    idx = rng.integers(0, len(d), (n, len(d)))
-    bs = d[idx].mean(1) * 100
-    return float(d.mean() * 100), float(np.percentile(bs, 2.5)), float(np.percentile(bs, 97.5))
+    k = np.arange(len(a)); pid = ((k // 1050) * 150 + k % 150)[valid]
+    d = (b[valid].astype(float) - a[valid].astype(float)) * 100
+    per = np.bincount(pid, d, minlength=450); cnt = np.bincount(pid, minlength=450)
+    bs = np.array([per[i].sum() / cnt[i].sum() for i in (rng.integers(0, 450, 450) for _ in range(n))])
+    return float(d.mean()), float(np.percentile(bs, 2.5)), float(np.percentile(bs, 97.5))
 
 
 if __name__ == '__main__':

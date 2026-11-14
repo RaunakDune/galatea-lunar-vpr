@@ -50,7 +50,7 @@ def cell(m, s=None, n=1, bold=False):
     return f'\\textbf{{{t}}}' if bold else t
 
 
-BOOT = os.environ.get('GALATEA_BOOT', 'query')   # 'query' or 'place'
+BOOT = os.environ.get('GALATEA_BOOT', 'place')   # 'place' (default) or 'query'
 
 
 def paired_boot(a, b, B=5000, seed=0):
@@ -83,7 +83,7 @@ for key, lab, dim in [('CosPlace-R50', 'CosPlace-R50~\\cite{berton2022cosplace}'
                  {N: np.array(r[f'hits_R{N}']) for N in (1, 5, 10)}))
 heads = {}
 for pre, lab in [('gem', 'GeM'), ('netvlad', 'NetVLAD'), ('lam0', 'OT, $\\lambda{=}0$'), ('salad', 'OT, $\\lambda{=}1$ (SALAD)'),
-                 ('galatea', 'OT, learned $\\lambda$')]:
+                 ('galatea', 'OT, $\\lambda{\\approx}0.5$')]:
     a = agg(pre)
     if a:
         heads[pre] = a
@@ -91,7 +91,7 @@ for pre, lab in [('gem', 'GeM'), ('netvlad', 'NetVLAD'), ('lam0', 'OT, $\\lambda
 
 ftheads = {}
 for pre, lab in [('gem', 'GeM'), ('netvlad', 'NetVLAD'), ('lam0', 'OT, $\\lambda{=}0$'), ('salad', 'OT, $\\lambda{=}1$ (SALAD)'),
-                 ('galatea', 'OT, learned $\\lambda$')]:
+                 ('galatea', 'OT, $\\lambda{\\approx}0.5$')]:
     a = agg('ft1e-4_' + pre, root=RG)
     if a:
         ftheads[pre] = a
@@ -153,8 +153,8 @@ def addabl(label, prefix, seeds=(0, 1, 2)):
     return a
 addabl('$\\lambda=0$ (NetVLAD assignment + dust-bin)', 'lam0')
 addabl('$\\lambda=0.25$ (fixed)', 'lam0.25', (0,))
-addabl('$\\lambda$ learned (Galatea, init.\\ 0.5)', 'galatea')
-addabl('$\\lambda$ learned, $25\\times$ lr on $\\lambda,z$', 'galatea_fast', (0, 1, 2))
+addabl('$\\lambda$ trainable, init.\\ 0.5 (reference head)', 'galatea')
+addabl('$\\lambda$ trainable, $25\\times$ lr on $\\lambda,z$', 'galatea_fast', (0, 1, 2))
 addabl('$\\lambda=0.75$ (fixed)', 'lam0.75', (0,))
 addabl('$\\lambda=1$ (SALAD, balanced)', 'salad')
 abl2 = []
@@ -167,7 +167,7 @@ for label, prefix in [('$L=1$ Sinkhorn iteration', 'galatea_L1'),
         abl2.append((label, a))
 ref0 = agg('galatea', (0,))
 L = ['\\begin{table}[t]', '\\centering',
-     '\\caption{Ablations of the Galatea head (test, \\%, seed~0; hard = mean R@1 over C2, C5, C6). '
+     '\\caption{Ablations of the reference head (test, \\%, seed~0; hard = mean R@1 over C2, C5, C6). '
      'Single-illumination: the training scenes re-rendered with the same poses under the database Sun only.}',
      '\\label{tab:ablation}', '\\footnotesize', '\\setlength{\\tabcolsep}{3.5pt}', '\\begin{tabular}{@{}lccc@{}}',
      '\\toprule', 'Variant & R@1 & R@5 & hard \\\\', '\\midrule']
@@ -227,7 +227,7 @@ if os.path.exists(VALF) and os.path.exists(TESTF):
     sv = np.load(VALF, allow_pickle=True).item()
     st = np.load(TESTF, allow_pickle=True).item()
     g = recall_after(st, 'test', None)
-    rows = [('Global only (Galatea stage 1)', g, g, None)]
+    rows = [('Global only (stage 1)', g, g, None)]
     M('rrGlobRone', g['R@1']); M('rrGlobRfive', g['R@5'])
     names = [('mnn', 'MNN'), ('uot', 'OT, appearance only'), ('lg', 'LightGlue~\\cite{lindenberger2023lightglue} (learned)'),
              ('fgw', 'Partial FGW (ours)')]
@@ -243,7 +243,7 @@ if os.path.exists(VALF) and os.path.exists(TESTF):
             rows.append((lab + sl, loc, fus, (b, k)))
     bestf = max(r[2]['R@1'] for r in rows[1:])
     L = ['\\begin{table}[t]', '\\centering',
-         '\\caption{Stage-2 re-ranking of the top-10 candidates of the frozen Galatea head (seed~0; test, \\%). \\emph{Local}: sort by the local '
+         '\\caption{Stage-2 re-ranking of the top-10 candidates of the frozen reference head (seed~0; test, \\%). \\emph{Local}: sort by the local '
          'score only. \\emph{Fused}: \\cref{eq:fusion} with $(\\beta,\\kappa)$ chosen on the validation scene.}',
          '\\label{tab:rerank}', '\\footnotesize', '\\setlength{\\tabcolsep}{3pt}',
          '\\begin{tabular}{@{}lcccc@{}}', '\\toprule', '& \\multicolumn{2}{c}{Local} & \\multicolumn{2}{c}{Fused} \\\\',
@@ -290,13 +290,13 @@ if os.path.exists(ZV) and os.path.exists(ZT):
 series = {}
 for key in ['CosPlace-R50', 'EigenPlaces-R50', 'DINOv2-SALAD']:
     series[key + ' (zero-shot)'] = [zs[f'test/{key}'][f'R@1_{c}'] for c in CONDS]
-for pre, lab in [('netvlad', 'NetVLAD (frozen)'), ('galatea', 'Galatea (frozen)')]:
+for pre, lab in [('netvlad', 'NetVLAD (frozen)'), ('galatea', 'OT λ≈0.5 (frozen)')]:
     a = agg(pre)
     if a:
         series[lab] = [a[f'R@1_{c}'][0] for c in CONDS]
 if os.path.exists(TESTF):
-    series['Galatea (frozen) + FGW fusion'] = [rr['fgw'][1][f'R@1_{c}'] for c in CONDS]
-for pre, lab in [('netvlad', 'NetVLAD (fine-tuned)'), ('galatea', 'Galatea (fine-tuned)')]:
+    series['OT λ≈0.5 (frozen) + FGW fusion'] = [rr['fgw'][1][f'R@1_{c}'] for c in CONDS]
+for pre, lab in [('netvlad', 'NetVLAD (fine-tuned)'), ('galatea', 'OT λ≈0.5 (fine-tuned)')]:
     a = agg('ft1e-4_' + pre, root=RG)
     if a:
         series[lab] = [a[f'R@1_{c}'][0] for c in CONDS]
@@ -412,7 +412,7 @@ if os.path.exists(fv) and os.path.exists(ft_):
 # cross-hardware reproduction of the frozen-backbone runs (GPU, 5 seeds) -> supplement table
 rep = []
 for pre, lab in [('gem', 'GeM'), ('netvlad', 'NetVLAD'), ('salad', 'SALAD ($\\lambda{=}1$)'),
-                 ('galatea', 'Galatea, learned $\\lambda$'), ('lam0', '$\\lambda=0$')]:
+                 ('galatea', 'OT, $\\lambda{\\approx}0.5$'), ('lam0', '$\\lambda=0$')]:
     cpu = agg(pre); gpu = agg(pre, (0, 1, 2, 3, 4), root=RG)
     if cpu and gpu:
         rep.append((lab, cpu, gpu))
@@ -427,7 +427,7 @@ if rep:
     open(f'{P}/tab_repro.tex', 'w').write('\n'.join(L))
 if sweep:
     L = ['\\begin{table}[t]', '\\centering', '\\caption{Backbone learning rate for joint fine-tuning, selected on the '
-         'validation scene (Galatea head, seed 0, R@1 \\%).}', '\\label{tab:lrsweep}', '\\footnotesize',
+         'validation scene (reference head, seed 0, R@1 \\%).}', '\\label{tab:lrsweep}', '\\footnotesize',
          '\\begin{tabular}{@{}l' + 'c' * len(sweep) + '@{}}', '\\toprule',
          'Backbone lr & ' + ' & '.join('$%s\\cdot10^{-%s}$' % (k.split('e-')[0], k.split('e-')[1]) for k in sweep) + ' \\\\',
          '\\midrule', 'Val.\\ R@1 & ' + ' & '.join(f'{v:.1f}' for v in sweep.values()) + ' \\\\',
@@ -438,12 +438,20 @@ print('fine-tuning macros written')
 
 # ------------------------------------------------------------------ assignment family: frozen vs fine-tuned (GPU, 3 seeds)
 fam = [('$\\lambda=0$, dust-bin', 'lam0'), ('$\\lambda=0$, no dust-bin', 'lam0_nodust'), ('$\\lambda=0.25$', 'lam0.25'),
-       ('$\\lambda=0.5$', 'lam0.5'), ('learned $\\lambda$ (Galatea, init.\\ 0.5)', 'galatea'), ('$\\lambda=0.75$', 'lam0.75'), ('$\\lambda=1$ (SALAD), dust-bin', 'salad'),
-       ('$\\lambda=1$, no dust-bin', 'salad_nodust'), ('NetVLAD (residual, $k$-means)', 'netvlad')]
+       ('$\\lambda=0.5$', 'lam0.5'), ('$\\lambda=0.75$', 'lam0.75'), ('$\\lambda=1$ (SALAD), dust-bin', 'salad'),
+       ('$\\lambda=1$, no dust-bin', 'salad_nodust'),
+       ('trainable $\\lambda$, init.\\ 0.1', 'laminit0.1'), ('trainable $\\lambda$, init.\\ 0.5 (ref.)', 'galatea'),
+       ('trainable $\\lambda$, init.\\ 0.9', 'laminit0.9'),
+       ('\\quad $100\\times$ lr on $\\lambda,z$, init.\\ 0.1', 'lamfast100_init0.1'),
+       ('\\quad $100\\times$ lr on $\\lambda,z$, init.\\ 0.5', 'lamfast100_init0.5'),
+       ('\\quad $100\\times$ lr on $\\lambda,z$, init.\\ 0.9', 'lamfast100_init0.9'),
+       ('NetVLAD (residual, $k$-means)', 'netvlad')]
 L = ['\\begin{table}[t]', '\\centering',
      '\\caption{The assignment family with a frozen and a fine-tuned backbone (test R@1, \\%, mean$\\pm$std over 3 '
      'seeds; hard: mean R@1 over C2, C5, C6). All runs in this table were made on the same GPUs. The OT rows share the '
-     'aggregation architecture and differ only in the assignment; NetVLAD aggregates residuals to $k$-means-initialised '
+     'aggregation architecture and differ only in the assignment. Middle block: $\\lambda$ trainable from three '
+     'initial values, at the default and at a $100\\times$ learning rate on $\\lambda$ and the dust-bin score $z$ '
+     '(final values of $\\lambda$ in \\cref{sec:family,sec:ft}). NetVLAD aggregates residuals to $k$-means-initialised '
      'centroids and has no dust-bin.}', '\\label{tab:family}', '\\footnotesize', '\\setlength{\\tabcolsep}{3pt}',
      '\\begin{tabular}{@{}lcccc@{}}', '\\toprule', '& \\multicolumn{2}{c}{Frozen} & \\multicolumn{2}{c}{Fine-tuned} \\\\',
      '\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}', 'Assignment & R@1 & hard & R@1 & hard \\\\', '\\midrule']
@@ -453,24 +461,37 @@ for lab, pre in fam:
     famres[pre] = (fr, ft)
     c1 = f'{cell(*fr["R@1"])} & {hard(fr):.1f}' if fr else '-- & --'
     c2 = f'{cell(*ft["R@1"])} & {hard(ft):.1f}' if ft else '-- & --'
-    if pre == 'netvlad':
+    if pre in ('netvlad', 'laminit0.1'):
         L.append('\\midrule')
     L.append(f'{lab} & {c1} & {c2} \\\\')
 L += ['\\bottomrule', '\\end{tabular}', '\\end{table}']
 open(f'{P}/tab_family.tex', 'w').write('\n'.join(L))
 fnm = {'lam0': 'LamZero', 'lam0_nodust': 'LamZeroND', 'lam0.25': 'LamQ', 'lam0.5': 'LamH', 'galatea': 'Gal', 'lam0.75': 'LamTQ',
+       'laminit0.1': 'InitLo', 'laminit0.9': 'InitHi', 'lamfast100_init0.1': 'FastLo', 'lamfast100_init0.5': 'FastMid',
+       'lamfast100_init0.9': 'FastHi',
        'salad': 'Sal', 'salad_nodust': 'SalND', 'netvlad': 'Nv'}
 for pre, (fr, ft) in famres.items():
     if fr:
         M('famFr' + fnm[pre], fr['R@1'][0]); M('famFr' + fnm[pre] + 'sd', fr['R@1'][1])
     if ft:
         M('famFt' + fnm[pre], ft['R@1'][0]); M('famFt' + fnm[pre] + 'sd', ft['R@1'][1])
-for (x, y, nm) in [('galatea', 'lam0.5', 'GalVsHalf'), ('galatea', 'salad', 'GalVsSal'), ('lam0_nodust', 'lam0', 'NDvsD'), ('netvlad', 'lam0_nodust', 'NvVsND'), ('salad_nodust', 'salad', 'SalNDvsD')]:
+for (x, y, nm) in [('laminit0.9', 'galatea', 'InitHiVsGal'), ('laminit0.1', 'lam0', 'InitLoVsZero'),
+                   ('laminit0.9', 'salad', 'InitHiVsSal'), ('lamfast100_init0.9', 'lamfast100_init0.1', 'FastHiVsLo'),
+                   ('galatea', 'lam0.5', 'GalVsHalf'), ('galatea', 'salad', 'GalVsSal'), ('lam0_nodust', 'lam0', 'NDvsD'), ('netvlad', 'lam0_nodust', 'NvVsND'), ('salad_nodust', 'salad', 'SalNDvsD')]:
     for k, idx in [('Fr', 0), ('Ft', 1)]:
         a, b = famres.get(x, (None, None))[idx], famres.get(y, (None, None))[idx]
         if a and b:
             d, lo, hi = paired_boot(a['hits'][1], b['hits'][1])
             M('fam' + k + nm + 'Mean', d, '{:+.1f}'); M('fam' + k + nm + 'Lo', lo, '{:+.1f}'); M('fam' + k + nm + 'Hi', hi, '{:+.1f}')
+for pre in ['laminit0.1', 'galatea', 'laminit0.9', 'lamfast100_init0.1', 'lamfast100_init0.5', 'lamfast100_init0.9']:
+    for k, idx in [('Fr', 0), ('Ft', 1)]:
+        a_ = famres.get(pre, (None, None))[idx]
+        if a_ and a_['lams'][0] is not None:
+            ls = [float(json.load(open(f))['info']['lam']) for f in sorted(glob.glob(f"{RG}/runs/{'ft1e-4_' if k == 'Ft' else ''}{pre}_s[012]/results.json"))]
+            M(f'lam{k}{fnm[pre]}', np.mean(ls), '{:.2f}'); M(f'lam{k}{fnm[pre]}Min', min(ls), '{:.2f}'); M(f'lam{k}{fnm[pre]}Max', max(ls), '{:.2f}')
+trn = [famres[p][0]['R@1'][0] for p in ['laminit0.1', 'galatea', 'laminit0.9', 'lamfast100_init0.1', 'lamfast100_init0.5', 'lamfast100_init0.9'] if famres.get(p) and famres[p][0]]
+if trn:
+    M('famFrTrainRange', max(trn) - min(trn)); M('famFrTrainLo', min(trn)); M('famFrTrainHi', max(trn))
 lamfr = [famres[p][0]['R@1'][0] for p in ['lam0', 'lam0.25', 'lam0.5', 'lam0.75', 'salad'] if famres.get(p) and famres[p][0]]
 if len(lamfr) == 5:
     M('famFrLamRange', max(lamfr) - min(lamfr))
@@ -514,7 +535,7 @@ if rb:
     L = ['\\begin{table}[t]', '\\centering',
          '\\caption{Why fusion works: share of test queries (\\%) whose top-1 result re-ranking \\emph{rescues} '
          '(global wrong $\\to$ correct) or \\emph{breaks} (global correct $\\to$ wrong), for local-only ranking '
-         'and for the fused score, on Galatea seed~0.}', '\\label{tab:rescue}', '\\footnotesize', '\\setlength{\\tabcolsep}{3pt}',
+         'and for the fused score, on the reference head, seed~0.}', '\\label{tab:rescue}', '\\footnotesize', '\\setlength{\\tabcolsep}{3pt}',
          '\\begin{tabular}{@{}llcccc@{}}', '\\toprule', '& & \\multicolumn{2}{c}{Local only} & \\multicolumn{2}{c}{Fused} \\\\',
          '\\cmidrule(lr){3-4}\\cmidrule(lr){5-6}', 'Stage 1 & Scorer & resc. & broken & resc. & broken \\\\', '\\midrule']
     for tag, lab in [('Fr', 'frozen'), ('Ft', 'fine-tuned')]:
@@ -638,12 +659,12 @@ if os.path.exists(RBF):
          '\\caption{Robustness to camera tilt and viewpoint: R@1 (\\%) over all seven Sun conditions on the test set '
          '(3150 queries per row; chance $2.2\\%$). Each row re-renders the benchmark queries at the benchmark poses '
          'with one factor changed; the database is the original upright one. Mean$\\pm$std over 3 seeds; fusion on '
-         'the frozen Galatea head, seed 0, with the validation-tuned $(\\beta,\\kappa)$ of the main paper.}',
+         'the frozen reference head, seed 0, with the validation-tuned $(\\beta,\\kappa)$ of the main paper.}',
          '\\label{tab:robust}', '\\footnotesize', '\\begin{tabular}{@{}lcccccccc@{}}', '\\toprule',
          ' & Zero-shot & \\multicolumn{2}{c}{Frozen backbone} & \\multicolumn{2}{c}{Fine-tuned backbone} & '
-         '\\multicolumn{2}{c}{Frozen Galatea + fusion} \\\\',
+         '\\multicolumn{2}{c}{Frozen ref.\\ head + fusion} \\\\',
          '\\cmidrule(lr){3-4}\\cmidrule(lr){5-6}\\cmidrule(l){7-8}',
-         'Variant & SALAD & Galatea & NetVLAD & Galatea & NetVLAD & FGW & MNN+MAGSAC++ \\\\', '\\midrule']
+         'Variant & SALAD & OT & NetVLAD & OT & NetVLAD & FGW & MNN+MAGSAC++ \\\\', '\\midrule']
     for lab, v in rows:
         L.append(f"{lab} & {g(v, 'zs'):.1f} & {sd(v, 'fr_gal')} & {sd(v, 'fr_nv')} & {sd(v, 'ft_gal')} & {sd(v, 'ft_nv')} & "
                  f"{mo(v, 'galatea_s0+fgw'):.1f} & {mo(v, 'galatea_s0+mnn_ransac'):.1f} \\\\")

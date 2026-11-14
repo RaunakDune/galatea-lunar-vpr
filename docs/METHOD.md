@@ -15,7 +15,7 @@ The full derivations are in [`paper/main.pdf`](../paper/main.pdf), and the proof
 
 - **Algorithm** (`ot_assign`). This is log-domain Sinkhorn with the cluster-side update scaled by
   λ = τ/(τ + ε). λ = 1 gives SALAD (balanced OT) and λ = 0 gives the NetVLAD softmax with a dust-bin.
-  Galatea learns λ through `mode='learn'`.
+  `mode='learn'` makes λ trainable; the experiments show the loss does not identify it, so λ should be fixed.
 - **Aggregation.** V_{jk} = Σᵢ P_{ij} h_{ik}, where hᵢ is the 128-d reduced feature of token i. Each cluster row is intra-normalised, the result is
   concatenated with the 256-d scene token, and the whole vector is L2-normalised (8448-d in total).
 

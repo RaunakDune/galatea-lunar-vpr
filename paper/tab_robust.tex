@@ -1,13 +1,13 @@
 \begin{table*}[t]
 \centering
-\caption{Robustness to camera tilt and viewpoint: R@1 (\%) over all seven Sun conditions on the test set (3150 queries per row; chance $2.2\%$). Each row re-renders the benchmark queries at the benchmark poses with one factor changed; the database is the original upright one. Mean$\pm$std over 3 seeds; fusion on the frozen Galatea head, seed 0, with the validation-tuned $(\beta,\kappa)$ of the main paper.}
+\caption{Robustness to camera tilt and viewpoint: R@1 (\%) over all seven Sun conditions on the test set (3150 queries per row; chance $2.2\%$). Each row re-renders the benchmark queries at the benchmark poses with one factor changed; the database is the original upright one. Mean$\pm$std over 3 seeds; fusion on the frozen reference head, seed 0, with the validation-tuned $(\beta,\kappa)$ of the main paper.}
 \label{tab:robust}
 \footnotesize
 \begin{tabular}{@{}lcccccccc@{}}
 \toprule
- & Zero-shot & \multicolumn{2}{c}{Frozen backbone} & \multicolumn{2}{c}{Fine-tuned backbone} & \multicolumn{2}{c}{Frozen Galatea + fusion} \\
+ & Zero-shot & \multicolumn{2}{c}{Frozen backbone} & \multicolumn{2}{c}{Fine-tuned backbone} & \multicolumn{2}{c}{Frozen ref.\ head + fusion} \\
 \cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(l){7-8}
-Variant & SALAD & Galatea & NetVLAD & Galatea & NetVLAD & FGW & MNN+MAGSAC++ \\
+Variant & SALAD & OT & NetVLAD & OT & NetVLAD & FGW & MNN+MAGSAC++ \\
 \midrule
 Upright (baseline) & 35.3 & 59.8{\scriptsize$\pm$1.1} & 58.4{\scriptsize$\pm$0.5} & 71.8{\scriptsize$\pm$1.2} & 77.2{\scriptsize$\pm$0.5} & 67.4 & 68.2 \\
 \addlinespace[2pt]

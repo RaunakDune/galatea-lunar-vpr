@@ -7,7 +7,7 @@ lunar imagery at all ($+\gainZsMean$ points over the best zero-shot model) and c
 than globally pooled aggregation (more than $20$ points). The ranking below assumes both.
 
 \paragraph*{Training data first}
-Illumination diversity in training is worth $\fixIllDrop$ points of R@1 for the Galatea head with a
+Illumination diversity in training is worth $\fixIllDrop$ points of R@1 for the reference head with a
 frozen backbone and $\ftFixIllDrop$ with a fine-tuned one, more than fine-tuning adds to the same head.
 A more adaptable model fits a single training light more closely, so illumination diversity and
 fine-tuning have to go together.
@@ -18,21 +18,20 @@ the aggregation design matters more than the assignment: residual NetVLAD aggreg
 closest OT relative by $\famFrNvVsNDMean$ points on frozen tokens and by $\famFtNvVsNDMean$ once the
 backbone is trained (NetVLAD minus OT). Within the OT family the assignment is a weak design lever:
 with a dust-bin, all values of $\lambda$ are equivalent on a frozen backbone (P1, P2), and on
-a fine-tuned backbone the fixed members stay within $\famFtLamRange$ points of each other while a
-learned $\lambda$ behaves like a fixed $\lambda$ at its initial value. The cheapest
-member, $\lambda=0$, needs no Sinkhorn loop and matches SALAD's balanced assignment within seed noise. A
-learnable $\lambda$ adds a parameter that the loss barely constrains (P2), so it should be fixed;
-$\lambda=0$ is the natural choice for speed, and no fixed value is clearly better than another.
+a fine-tuned backbone the fixed members stay within $\famFtLamRange$ points of each other. A trainable
+$\lambda$ cannot choose among them (\cref{sec:family,sec:ft}), so $\lambda$ should be fixed. The cheapest member, $\lambda=0$, needs no Sinkhorn loop and matches SALAD's balanced assignment
+within seed noise; it is also the assignment of residual NetVLAD aggregation, the best head once the
+backbone is fine-tuned.
 
 \paragraph*{Fusion, not the matcher}
 Local evidence on the Moon is abundant but unreliable, because shadow edges dominate keypoint
-detections. Its value lies in queries where the global ranking is uncertain, and under the fusion rule
-the evidence needed to overturn a global decision grows linearly with the global margin
+detections; under the fusion rule it must grow with the global margin to overturn a global decision
 (\cref{prop:override}). With fusion in place, a training-free OT matcher, plain mutual nearest
 neighbours and a learned terrestrial matcher perform alike, so the cheapest adequate scorer,
 MNN+MAGSAC++, is a sensible default (LightGlue costs $\approx\tLgK$\,ms and FGW $\approx\tFgwK$\,ms per
 query on a CPU); FGW earns its cost mainly where no learned matcher is available or trusted.
 
 \paragraph*{What the theory did and did not predict}
-Predictions (P1)--(P3) held for fixed tokens with a dust-bin. The ordering of heads with trained tokens,
-including the advantage of residual aggregation, is an empirical finding on simulated data.
+Predictions (P1)--(P3) held for fixed tokens with a dust-bin; testing (P2) needed a learning rate at
+which $\lambda$ can move. The ordering of heads with trained tokens, including the advantage of residual aggregation, is an
+empirical finding on simulated data.

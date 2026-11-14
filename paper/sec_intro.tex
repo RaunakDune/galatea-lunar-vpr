@@ -29,19 +29,19 @@ brightness-constancy assumptions built into terrestrial descriptors.
 Two design questions follow. \emph{How should tokens be aggregated} when a large and variable part of
 every image (black sky, featureless regolith, moving shadows) carries no place information? And
 \emph{how should local evidence be used} when local features respond mostly to shadow edges that move
-with the Sun? This paper answers both within one framework, \textbf{Galatea}, which casts each stage
+with the Sun? This paper answers both with a controlled study, \textbf{Galatea}, which casts each stage
 of two-stage VPR as an optimal-transport (OT) problem. Global aggregation becomes an assignment of
 tokens to clusters and a dust-bin; local verification becomes a transport between keypoint sets that
 respects their layout; and the two are combined by a fusion rule whose behaviour can be stated
-exactly. Treating the stages as OT problems makes their design choices explicit and analysable: the
-framework contains the assignments of NetVLAD and SALAD as special cases, its theory predicts when the
-choice between them matters, and our experiments test those predictions with a frozen and with a
-fine-tuned backbone. Our contributions are:
+exactly. Treating the stages as OT problems makes their design choices explicit and analysable: one family
+contains the assignments of NetVLAD and SALAD as special cases, its theory predicts when the choice
+between them matters, and our experiments test those predictions with a frozen and with a fine-tuned
+backbone. We do not propose a new head; we measure which choices matter. Our contributions are:
 \begin{enumerate}
-\item \textbf{An OT family of aggregators} (\cref{sec:uot}). A semi-relaxed unbalanced OT problem
-defines token-to-cluster assignments indexed by one scalar $\lambda\in[0,1]$ that recovers the NetVLAD
-soft-assignment ($\lambda=0$) and the balanced Sinkhorn assignment of SALAD~\cite{izquierdo2024optimal}
-($\lambda=1$) \emph{exactly}; Galatea can also learn $\lambda$. We prove that the Sinkhorn iterations
+\item \textbf{An OT family of assignments as an analysis tool} (\cref{sec:uot}). A semi-relaxed
+unbalanced OT problem defines token-to-cluster assignments indexed by one scalar $\lambda\in[0,1]$ that
+recovers the NetVLAD soft-assignment ($\lambda=0$) and the balanced Sinkhorn assignment of
+SALAD~\cite{izquierdo2024optimal} ($\lambda=1$) \emph{exactly}. We show that the Sinkhorn iterations
 converge linearly with rate $\lambda$, characterise the dust-bin as a logistic gate on cluster
 affinity, and show that intra-normalised descriptors see the transport plan only through per-token
 weights (\cref{prop:uot,prop:contraction,prop:dustbin,prop:colinv}).
@@ -51,21 +51,19 @@ and is invariant to similarity transforms (\cref{prop:inv}). A saturating fusion
 the global similarity; the local evidence it needs to overturn the global ranking provably grows
 linearly with the global margin (\cref{prop:override}).
 \item \textbf{LunarSim-VPR} (\cref{sec:bench})\footnote{Code and data: \url{https://github.com/RaunakDune/galatea-lunar-vpr}. Project website and interactive demo: \url{https://lunarsim.org}.}, an open, procedurally generated benchmark
-with a physically motivated renderer (crater size--frequency statistics, lunar-Lambert photometry
-with opposition surge, cast shadows from local and regional relief) whose protocol separates
-viewpoint change from controlled changes in solar elevation and azimuth.
+with a physically motivated renderer whose protocol separates viewpoint change from controlled
+changes in solar elevation and azimuth.
 \item \textbf{A controlled study of what matters} (\cref{sec:exp,sec:discussion}). Under identical
-training, with three seeds and paired-bootstrap confidence intervals, we evaluate terrestrial models
-zero-shot, the whole assignment family with a frozen and a fine-tuned backbone, four local scorers with
-and without fusion, and the effect of training illumination. We distil the results into design
+training, with three seeds and confidence intervals from a paired bootstrap over places, we evaluate
+terrestrial models zero-shot, the whole assignment family with a frozen and a fine-tuned backbone,
+whether $\lambda$ can be learned, four local scorers with and without fusion, and the effect of
+training illumination. We distil the results into design
 guidelines for lunar VPR.
 \end{enumerate}
 
-The findings do not favour the most flexible model. With a frozen backbone every value of $\lambda$
-performs alike, as predicted from \cref{prop:colinv} (P1); with a fine-tuned backbone a learned
-$\lambda$ is no better than a fixed one, and residual NetVLAD aggregation pulls ahead. Fusion, in
-contrast, helps every stage-1 model, and how local and global evidence are combined matters more than
-which local matcher is used.
+The findings do not favour the most flexible model: the assignment is a weak lever that training
+cannot set, so it is best fixed, while fusion helps every stage-1 model, and how local and global
+evidence are combined matters more than which local matcher is used.
 
 % ======================================================================
 \section{Related Work}\label{sec:related}
@@ -93,11 +91,8 @@ relative keypoint geometry.
 
 \paragraph*{Optimal transport}
 Entropic regularisation and the Sinkhorn algorithm~\cite{cuturi2013sinkhorn,peyre2019computational}
-made OT differentiable and fast. Unbalanced OT replaces hard marginal constraints with divergence
-penalties and keeps Sinkhorn-like scaling algorithms~\cite{chizat2018scaling}. Gromov--Wasserstein
-distances compare metric spaces through their internal distances~\cite{memoli2011gromov} and are
-used for structured matching~\cite{vayer2019fgw}. We use OT in both roles: as a layer inside the
-descriptor and as a training-free matcher between keypoint sets.
+made OT differentiable and fast; unbalanced OT replaces hard marginal constraints with divergence
+penalties and keeps Sinkhorn-like scaling algorithms~\cite{chizat2018scaling}.
 
 \paragraph*{Planetary localisation}
 Rovers rely on visual odometry~\cite{maimone2007mer}, and landers on terrain-relative navigation

@@ -2,21 +2,27 @@
 
 \subsection{The assignment family with a frozen backbone}\label{sec:family}\label{sec:stage1}
 Training only the aggregation head on illumination-diverse LunarSim scenes lifts R@1 from
-$\zsSaladRone\%$ to $\galRone\%$ (Galatea head, three seeds; paired gain $\gainZsMean$ points, 95\% CI
+$\zsSaladRone\%$ to $\galRone\%$ (reference head, three seeds; paired gain $\gainZsMean$ points, 95\% CI
 $[\gainZsLo,\gainZsHi]$) and mean R@1 over the three hardest conditions (C2, C5, C6) from
 $\zsSaladHard\%$ to $\galHard\%$ (\cref{tab:main}). All cluster-based heads clearly beat every
 zero-shot model, whereas GeM pooling of the same frozen tokens does not ($\gemRone\%$), presumably
 because global pooling cannot separate place-specific from illumination-dependent
 tokens~\cite{izquierdo2024optimal}.
 
-\Cref{tab:family} (left) confirms predictions (P1) and (P2). With a dust-bin, every value of $\lambda$
-from $0$ to $1$ reaches the same R@1 within seed noise (spread across fixed $\lambda$:
-$\famFrLamRange$ points), and Galatea's learned head is statistically indistinguishable from SALAD
-($\famFrGalVsSalMean$ points, CI $[\famFrGalVsSalLo,\famFrGalVsSalHi]$). A learned $\lambda$ barely leaves its
-initialisation ($\bar\lambda=\galLam$); even with a $25\times$ larger learning rate on $\lambda$ and
-$z$ it only reaches $\galFastLam$, at unchanged accuracy ($\galFastRone\%$). This happens although the
-heads spend mass very differently: the balanced head sends $\salDust\%$ of the token mass to the
-dust-bin, an amount that tracks the sky fraction of the image ($\rho=\salSkyCorr$), the learned head
+\Cref{tab:family} (left) confirms prediction (P1). With a dust-bin, every value of $\lambda$ from $0$
+to $1$ reaches the same R@1 within seed noise (spread across fixed $\lambda$: $\famFrLamRange$ points).
+
+A trainable $\lambda$ ends where it starts (from $0.1$, $0.5$, $0.9$: $\lamFrInitLo$, $\lamFrGal$,
+$\lamFrInitHi$), which says little about (P2): AdamW moves $\theta$ by about one learning rate per step,
+so $\theta$ can travel only about $0.1$ in $500$ steps, whereas $\lambda=0.9\to0.5$ needs $2.2$. With a $100\times$ learning rate on
+$\lambda$ and $z$, $\lambda$ does move, upward from every start (from $0.1$: $\lamFrFastLoMin$--$\lamFrFastLoMax$;
+from $0.5$: $\lamFrFastMidMin$--$\lamFrFastMidMax$; from $0.9$: $\lamFrFastHiMin$--$\lamFrFastHiMax$),
+but does not converge to a common value, and accuracy does not change (all six trainable rows within
+$\famFrTrainRange$ points; start $0.9$ vs.\ $0.1$ at $100\times$: $\famFrFastHiVsLoMean$, CI
+$[\famFrFastHiVsLoLo,\famFrFastHiVsLoHi]$). The loss has a weak slope in $\lambda$ that does not
+affect retrieval, as (P2) predicts, so training cannot select $\lambda$, although the heads spend mass
+very differently: the balanced head sends $\salDust\%$ of the token mass to the
+dust-bin, an amount that tracks the sky fraction of the image ($\rho=\salSkyCorr$), the reference head
 only $\galDust\%$ (coefficient of variation of cluster mass $\galCV$ vs.\ $\salCV$). Intra-normalisation removes the difference in cluster mass exactly (\cref{prop:colinv}); the
 difference in dust-bin mass survives only as a token re-weighting, which here does not matter.
 
@@ -31,19 +37,18 @@ below the OT heads on frozen tokens ($\famFrNv\%$).
 \subsection{The assignment family with a fine-tuned backbone}\label{sec:ft}
 Fine-tuning the last four backbone blocks together with the head (\cref{tab:main}, bottom) improves
 every head substantially: GeM by $\ftGemGain$, NetVLAD by $\ftNvGain$, SALAD by $\ftSalGain$ and the
-Galatea head by $\ftGalGain$ points R@1 (CI $[\ftGainLo,\ftGainHi]$; hard conditions:
+reference head by $\ftGalGain$ points R@1 (CI $[\ftGainLo,\ftGainHi]$; hard conditions:
 $\galHard\%\to\ftGalHard\%$). Within the OT family the spread stays small (\cref{tab:family},
 right): the fixed values of $\lambda$ lie within $\famFtLamRange$ points of each other, and the dust-bin changes R@1 by about one point at most
 ($\lambda=0$: $\famFtNDvsDMean$ $[\famFtNDvsDLo,\famFtNDvsDHi]$; $\lambda=1$:
 $\famFtSalNDvsDMean$ $[\famFtSalNDvsDLo,\famFtSalNDvsDHi]$), presumably because the backbone learns to
-make uninformative tokens harmless. The learned head is the weakest member ($\famFtGal\%$;
-$\famFtGalVsSalMean$, CI $[\famFtGalVsSalLo,\famFtGalVsSalHi]$ vs.\ SALAD), but the control with
-$\lambda$ fixed at its initial value $0.5$ shows that learning is not the cause: $\lambda$ again stays
-near its initialisation ($\bar\lambda=\ftGalLam$), and the learned head matches the fixed one
-($\famFtLamH\%$; $\famFtGalVsHalfMean$, CI $[\famFtGalVsHalfLo,\famFtGalVsHalfHi]$), as it does on a
-frozen backbone ($\famFrGalVsHalfMean$, CI $[\famFrGalVsHalfLo,\famFrGalVsHalfHi]$). Learning $\lambda$
-therefore neither helps nor hurts: $\lambda$ stays at a value that, with a fine-tuned backbone, sits at
-the low end of a narrow range, a dip that three seeds cannot distinguish from noise.
+make uninformative tokens harmless. A trainable $\lambda$ again stays where it starts ($\lamFtInitLo$,
+$\lamFtGal$, $\lamFtInitHi$), but here the start matters: from $0.9$ the head reaches $\famFtInitHi\%$,
+$\famFtInitHiVsGalMean$ points above the reference head started at $0.5$ (CI
+$[\famFtInitHiVsGalLo,\famFtInitHiVsGalHi]$) and level with SALAD ($\famFtInitHiVsSalMean$, CI
+$[\famFtInitHiVsSalLo,\famFtInitHiVsSalHi]$); from $0.1$ it stays $\famFtInitLoVsZeroMean$ points below
+the fixed $\lambda=0$ member (CI $[\famFtInitLoVsZeroLo,\famFtInitLoVsZeroHi]$). A trainable $\lambda$ thus adds variance
+without a way to find a good value.
 
 The largest difference is not inside the OT family at all. NetVLAD, which aggregates residuals to
 $k$-means-initialised centroids, becomes the best head ($\ftNvRone\pm\ftNvRonesd\%$). Its closest

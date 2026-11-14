@@ -1,23 +1,25 @@
 \begin{abstract}
 Visual place recognition (VPR) on the Moon must cope with black shadows that move with the Sun,
-statistically self-similar crater fields and strongly non-Lambertian regolith. We present
-\emph{Galatea}, a framework that treats both stages of two-stage VPR as optimal transport (OT).
-For global aggregation, a semi-relaxed unbalanced OT problem defines a one-parameter family of
-token-to-cluster assignments with the NetVLAD ($\lambda=0$) and SALAD ($\lambda=1$) assignments as end
-points. We prove that its Sinkhorn iterations converge linearly at rate $\lambda$, characterise the
-dust-bin as a logistic gate, and show that after intra-normalisation the descriptor sees the transport
-plan only through per-token weights. For re-ranking, a training-free partial fused
-Gromov--Wasserstein matcher scores the appearance and layout of keypoints, and a saturating fusion rule
-provably needs local evidence that grows with the global margin to overturn the global ranking. On LunarSim-VPR, a physically motivated benchmark that renders the same query poses
-under seven Sun conditions, the strongest terrestrial model falls from $\zsSaladCzero\%$ to
-$\zsSaladHard\%$ Recall@1 under large Sun changes. With a frozen backbone, all values of $\lambda$
-perform alike (about $60\%$; zero-shot: $\zsSaladRone\%$), as the theory predicts. Fine-tuning adds
-$11$--$19$ points; the OT family then spreads by about two points, a learned $\lambda$ stays at its
-initial value, and residual NetVLAD aggregation pulls ahead ($\ftNvRone\%$). Fusion adds
-$\msnvMnnRGain$--$\msMnnRGain$ points for every stage-1 model and matcher we tested, because it keeps
-about half of the local rescues while breaking few correct global decisions; the full system reaches
-$\msnvFgwRone\%$. In ablations of the Galatea head, illumination-diverse training is worth
-$\fixIllDrop$--$\ftFixIllDrop$ points, more than backbone fine-tuning.
+statistically self-similar crater fields and strongly non-Lambertian regolith. We ask which design
+choices of modern two-stage VPR matter under these conditions, and answer with \emph{Galatea}, a
+controlled study that casts both stages as optimal transport (OT). For aggregation, a semi-relaxed
+unbalanced OT problem defines a one-parameter family of token-to-cluster assignments with the NetVLAD
+($\lambda=0$) and SALAD ($\lambda=1$) assignments as end points. Its Sinkhorn iterations contract at
+rate $\lambda$, its dust-bin acts as a logistic gate, and after intra-normalisation the descriptor sees
+the transport plan only through per-token weights, which predicts that $\lambda$ should matter little.
+For re-ranking, a training-free partial fused Gromov--Wasserstein matcher scores the appearance and
+layout of keypoints, and a saturating fusion rule needs local evidence that grows with the global
+margin to overturn the global ranking. On LunarSim-VPR, an open benchmark that renders the same query
+poses under seven Sun conditions, the strongest terrestrial model falls from $\zsSaladCzero\%$ to
+$\zsSaladHard\%$ Recall@1 under large Sun changes. With a frozen backbone every assignment performs
+alike (about $60\%$; zero-shot: $\zsSaladRone\%$), as predicted, and the loss does not identify a
+trainable $\lambda$: it ends where it starts, and with a $100\times$ learning rate drifts without
+converging, at unchanged accuracy. Fine-tuning adds $11$--$19$ points; the assignment then changes
+Recall@1 by at most about three points, and residual NetVLAD aggregation is best ($\ftNvRone\%$).
+Fusion adds $\msnvMnnRGain$--$\msMnnRGain$ points for every stage-1 model and matcher tested, and the
+full system reaches $\msnvFgwRone\%$. Illumination-diverse training is worth
+$\fixIllDrop$--$\ftFixIllDrop$ points, more than fine-tuning. We therefore recommend a fixed
+assignment, residual aggregation, illumination-diverse training and fusion with a cheap matcher.
 \end{abstract}
 
 \begin{IEEEkeywords}

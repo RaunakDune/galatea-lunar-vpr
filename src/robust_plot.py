@@ -16,9 +16,9 @@ OUTF = sys.argv[2] if len(sys.argv) > 2 else f'{RB}/robustness.pdf'
 # secondary encoding), zero-shot reference in neutral grey
 SERIES = [  # key, label, colour, marker, linestyle
     ('zs', 'DINOv2-SALAD, zero-shot', '#8a8a85', 'x', '--'),
-    ('fr_gal', 'Galatea, frozen', '#2a78d6', 'o', '-'),
-    ('galatea_s0+fgw', 'Galatea, frozen + FGW fusion', '#e87ba4', 'D', '-'),
-    ('ft_gal', 'Galatea, fine-tuned', '#1baf7a', 's', '-'),
+    ('fr_gal', 'OT λ≈0.5, frozen', '#2a78d6', 'o', '-'),
+    ('galatea_s0+fgw', 'OT λ≈0.5, frozen + FGW fusion', '#e87ba4', 'D', '-'),
+    ('ft_gal', 'OT λ≈0.5, fine-tuned', '#1baf7a', 's', '-'),
     ('ft_nv', 'NetVLAD, fine-tuned', '#eb6834', '^', '-'),
 ]
 PANELS = [  # title, x label, [(x, variant)]

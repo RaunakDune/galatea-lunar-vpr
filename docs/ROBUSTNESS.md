@@ -96,7 +96,7 @@ Notes on the variants:
    - At 180°, gravity correction brings frozen Galatea from 7.8% back to 46.9%, and fine-tuned NetVLAD
      from 5.4% to 72.4%.
    - The remaining gap comes from the black regions outside the rolled frame. They cost the frozen
-     Galatea head 11–26 points but the fine-tuned models only 5–18.
+     reference head 11–26 points but the fine-tuned models only 5–18.
    - Cropping to the largest upright rectangle, or training with such masks, would probably close
      much of the remaining gap. This has not been tested.
 3. **Pitch is asymmetric, and the dust-bin helps when looking up.**

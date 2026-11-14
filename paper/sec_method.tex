@@ -19,7 +19,7 @@ Recall@$k$, the fraction of queries with at least one true match among the top-$
 \end{equation}
 
 % ======================================================================
-\section{The Galatea Framework}\label{sec:method}
+\section{Two-Stage VPR as Optimal Transport}\label{sec:method}
 % ======================================================================
 \Cref{fig:arch} gives an overview: two OT components and a fusion rule, each with explicit design
 parameters. Stage~1 aggregates the patch tokens of a vision transformer into a global descriptor by
@@ -99,8 +99,8 @@ augmented with a dust-bin.
 fixed-point equations and $\mathbf{P}^{\tau}\to\mathbf{P}^{\mathrm{bal}}$ of \eqref{eq:balanced}.
 \end{proposition}
 Hence a single scalar $\lambda$ interpolates continuously between NetVLAD-style and
-SALAD-style assignment. $\lambda$ can be fixed, or \emph{learned} as $\lambda=\mathrm{sigmoid}(\theta)$
-jointly with the rest of the head; we call the learned variant the Galatea head. Alternating \eqref{eq:f} and \eqref{eq:g} gives \cref{alg:uot}, which is SALAD's
+SALAD-style assignment. $\lambda$ can be fixed, or made trainable as $\lambda=\mathrm{sigmoid}(\theta)$
+jointly with the rest of the head; \cref{sec:family} tests whether training can find a good value. Alternating \eqref{eq:f} and \eqref{eq:g} gives \cref{alg:uot}, which is SALAD's
 Sinkhorn loop with the cluster-side update multiplied by $\lambda$; it costs $O(Lnm)$.
 
 \begin{proposition}[Linear convergence]\label{prop:contraction}
@@ -116,8 +116,7 @@ For $\lambda=1$ the map is only non-expansive in $\|\cdot\|_\infty$, and balance
 in Hilbert's projective metric with a rate that depends on $\varepsilon$ and
 $\bar{\mathbf{S}}$~\cite{peyre2019computational}; \cref{prop:contraction} gives a data-independent
 rate for every $\lambda<1$. The bound is tight: on random score matrices the error ratio between
-successive iterations approaches $\lambda$. For the learned values $\lambda\approx0.5$
-(\cref{sec:family}), $L=3$ iterations already reduce the initial error by a factor of about $7$--$8$.
+successive iterations approaches $\lambda$. For $\lambda=0.5$, $L=3$ iterations already reduce the initial error by a factor of about $7$--$8$.
 
 \begin{proposition}[Dust-bin gating]\label{prop:dustbin}
 For every $\lambda\in[0,1]$, after any token-side update \eqref{eq:f} (in particular at the
@@ -156,14 +155,15 @@ weights, $w_i=1/(\sum_{j}e^{s_{ij}/\varepsilon}+e^{z/\varepsilon})$.
 of the family can differ only through the token weights $w_i$ of \eqref{eq:colinv}; the cluster masses,
 on which they differ most, never reach the descriptor. We therefore expect, heuristically, that all
 values of $\lambda$ give similar retrieval accuracy. (P2)~For the same reason the loss should be nearly
-flat in $\lambda$, so a learned $\lambda$ should stay close to its initialisation. (P3)~Because the iteration contracts at rate $\lambda$, a few Sinkhorn steps should
+flat in $\lambda$, so a trainable $\lambda$ should not converge to a common value, and accuracy should
+not depend on where it ends. (P3)~Because the iteration contracts at rate $\lambda$, a few Sinkhorn steps should
 suffice, and their number should not matter. None of these statements constrains trained tokens:
 a fine-tuned backbone can adapt to whichever weighting the assignment imposes, so the family may
 separate. Nor does the theory cover the \emph{aggregation} (NetVLAD's residuals or SALAD's reduced
 features), a second design axis. \Cref{sec:family} tests both regimes.
 
 \begin{algorithm}[t]
-\caption{$\lambda$-scaled log-domain Sinkhorn (Galatea assignment)}\label{alg:uot}
+\caption{$\lambda$-scaled log-domain Sinkhorn (OT assignment)}\label{alg:uot}
 \begin{algorithmic}[1]
 \Require scores $\bar{\mathbf{S}}\in\mathbb{R}^{n\times(m+1)}$, marginals $\mathbf{a},\mathbf{b}$, $\lambda\in[0,1]$, iterations $L$
 \State $\mathbf{f}\gets\mathbf{0}_n,\ \mathbf{g}\gets\mathbf{0}_{m+1}$ \Comment{$\varepsilon$ absorbed in $\bar{\mathbf{S}}$}
