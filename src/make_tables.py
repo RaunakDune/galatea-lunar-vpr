@@ -50,12 +50,25 @@ def cell(m, s=None, n=1, bold=False):
     return f'\\textbf{{{t}}}' if bold else t
 
 
+BOOT = os.environ.get('GALATEA_BOOT', 'query')   # 'query' or 'place'
+
+
 def paired_boot(a, b, B=5000, seed=0):
-    """95% CI of mean(a-b) (percentage points) by resampling queries."""
+    """95% CI of mean(a-b) (percentage points).
+    BOOT='query' resamples queries. BOOT='place' resamples places: test queries are ordered by scene, then Sun
+    condition, then place (3 x 7 x 150), so query k belongs to place (k // 1050) * 150 + k % 150, and all seven
+    queries of a resampled place enter together. Each place is one draw, which accounts for the correlation
+    between the seven Sun conditions of a place."""
     rng = np.random.default_rng(seed)
     d = (np.asarray(a, float) - np.asarray(b, float)) * 100
     n = len(d)
-    s = np.array([d[rng.integers(0, n, n)].mean() for _ in range(B)])
+    if BOOT == 'place' and n % 1050 == 0:
+        k = np.arange(n); pid = (k // 1050) * 150 + k % 150
+        npl = pid.max() + 1
+        per = np.bincount(pid, weights=d, minlength=npl); cnt = np.bincount(pid, minlength=npl)
+        s = np.array([(lambda i: per[i].sum() / cnt[i].sum())(rng.integers(0, npl, npl)) for _ in range(B)])
+    else:
+        s = np.array([d[rng.integers(0, n, n)].mean() for _ in range(B)])
     return d.mean(), np.percentile(s, 2.5), np.percentile(s, 97.5)
 
 
