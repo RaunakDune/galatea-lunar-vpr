@@ -64,10 +64,10 @@ head (MNN+MAGSAC++: $\msMnnRGain\pm\msMnnRGainsd$; plain MNN: $\msMnnGain\pm\msM
 $\ftFgwGain\pm\ftFgwGainsd$ to the fine-tuned reference head (MNN+MAGSAC++: $\ftMnnRGain\pm\ftMnnRGainsd$)
 and $\msnvFgwGain\pm\msnvFgwGainsd$ to the fine-tuned NetVLAD head (MNN+MAGSAC++:
 $\msnvMnnRGain\pm\msnvMnnRGainsd$). The gain shrinks as stage~1 improves, since fewer queries remain
-to be rescued, but never vanishes. The complete system, fine-tuned NetVLAD with FGW fusion, reaches
+to be rescued, and stays positive for every model. The complete system, fine-tuned NetVLAD with FGW fusion, reaches
 $\msnvFgwRone\pm\msnvFgwRonesd\%$ R@1 and $\msnvFgwRfive\%$ R@5 ($\msnvFgwHard\%$ on the hardest
-conditions), against $\zsSaladRone\%$ for the best terrestrial model. On the Moon, \emph{how local and
-global evidence are combined matters more than which local matcher is used}.
+conditions), against $\zsSaladRone\%$ for the best terrestrial model. Under fusion the local scorers differ by under two
+points, a smaller effect than fusion itself.
 
 
 \subsection{Training illumination and other ablations}\label{sec:ablation}

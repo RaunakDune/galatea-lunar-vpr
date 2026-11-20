@@ -50,12 +50,12 @@ $[\famFtInitHiVsSalLo,\famFtInitHiVsSalHi]$); from $0.1$ it stays $\famFtInitLoV
 the fixed $\lambda=0$ member (CI $[\famFtInitLoVsZeroLo,\famFtInitLoVsZeroHi]$). A trainable $\lambda$ thus adds variance
 without a way to find a good value.
 
-The largest difference is not inside the OT family at all. NetVLAD, which aggregates residuals to
+The largest difference among the heads lies outside the OT family. NetVLAD, which aggregates residuals to
 $k$-means-initialised centroids, becomes the best head ($\ftNvRone\pm\ftNvRonesd\%$). Its closest
 OT relative, $\lambda=0$ without a dust-bin, uses the same softmax assignment and no dust-bin, yet
 falls behind (NetVLAD minus OT: $\famFtNvVsNDMean$ points, CI $[\famFtNvVsNDLo,\famFtNvVsNDHi]$).
 NetVLAD, however, sums residuals of $\ell_2$-normalised reduced features to centroids and initialises
 centroids and assignment scores by $k$-means, whereas the OT heads sum the features themselves and
-score tokens with a randomly initialised MLP. With trainable tokens this \emph{aggregation} design, not the assignment rule, is
-therefore the axis that matters; on frozen tokens the same comparison favours
-the OT head ($\famFrNvVsNDMean$ points for NetVLAD).
+score tokens with a randomly initialised MLP. With trainable tokens the difference between the two heads therefore lies in this
+\emph{aggregation} design, since both use the same assignment; on frozen tokens the same
+comparison favours the OT head ($\famFrNvVsNDMean$ points for NetVLAD).

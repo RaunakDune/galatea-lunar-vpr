@@ -1,32 +1,37 @@
 % ======================================================================
-\section{Discussion: What Matters for Lunar VPR}\label{sec:discussion}
+\section{Discussion}\label{sec:discussion}
 % ======================================================================
-We rank the design decisions by their measured effect on LunarSim-VPR. Two choices are prerequisites and are assumed below: training on
-lunar imagery ($+\gainZsMean$ points over the best zero-shot model) and cluster-based aggregation
-(more than $20$ points over global pooling).
+On LunarSim-VPR, training on lunar imagery ($+\gainZsMean$ points over the best zero-shot model) and
+cluster-based aggregation (over $20$ points above global pooling) are prerequisites; the points below assume
+both.
 
-\paragraph*{Training data first}
+\paragraph*{1) Training data}
 Illumination diversity in training is worth $\fixIllDrop$ points of R@1 for the reference head with a
-frozen backbone and $\ftFixIllDrop$ with a fine-tuned one, more than fine-tuning adds to the same head,
-so illumination diversity and fine-tuning have to go together.
+frozen backbone and $\ftFixIllDrop$ with a fine-tuned one, more than fine-tuning adds to the same head.
+Fine-tuning should be combined with illumination-diverse training.
 
-\paragraph*{Then backbone adaptation, then aggregation}
-Fine-tuning the last four blocks adds $11$--$19$ points for every head. Among the cluster-based heads,
-the aggregation design matters more than the assignment: residual NetVLAD aggregation differs from its
-closest OT relative by $\famFrNvVsNDMean$ points on frozen tokens and by $\famFtNvVsNDMean$ once the
-backbone is trained (NetVLAD minus OT). Within the OT family the assignment is a weak lever:
-all values of $\lambda$ are equivalent on a frozen backbone (P1, P2), the fixed members stay within
-$\famFtLamRange$ points of each other once it is fine-tuned, and training cannot choose among them
-(\cref{sec:family,sec:ft}). The cheapest member, $\lambda=0$, needs no Sinkhorn loop and is the
-assignment of residual NetVLAD aggregation, the best fine-tuned head.
+\paragraph*{2) Backbone adaptation}
+Fine-tuning the last four blocks adds $11$--$19$ points for every head. On real panoramas this gain does
+not appear (\cref{sec:real}).
 
-\paragraph*{Fusion, not the matcher}
-Local evidence on the Moon is abundant but unreliable, because shadow edges dominate keypoint
-detections; under the fusion rule it must grow with the global margin to overturn a global decision
-(\cref{prop:override}). With fusion, all four local scorers perform alike, so the cheapest,
-MNN+MAGSAC++, is a sensible default; FGW ($\approx\tFgwK$\,ms per query on a CPU) is worth using only
-where no learned matcher can be trusted.
+\paragraph*{3) Aggregation}
+Among the cluster-based heads the aggregation design has a larger effect than the assignment. Residual
+NetVLAD aggregation differs from its closest OT relative by $\famFrNvVsNDMean$ points on frozen tokens and by
+$\famFtNvVsNDMean$ once the backbone is trained (NetVLAD minus OT), and is the best fine-tuned head.
 
-\paragraph*{What the theory did and did not predict}
-Predictions (P1)--(P3) held for fixed tokens with a dust-bin. The ordering of heads with trained tokens is an empirical finding on simulated data; on real photographs
-(\cref{sec:real}) only the weakness of GeM is confirmed.
+\paragraph*{4) Assignment}
+Within the OT family all values of $\lambda$ are equivalent on a frozen backbone (P1, P2), the fixed members
+stay within $\famFtLamRange$ points of each other after fine-tuning, and training cannot choose among them
+(\cref{sec:family,sec:ft}). The cheapest member, $\lambda=0$, needs no Sinkhorn loop.
+
+\paragraph*{5) Re-ranking}
+Local evidence on the Moon is abundant but unreliable, because shadow edges dominate keypoint detections;
+under fusion it must grow with the global margin to overturn a global decision (\cref{prop:override}), and
+all four local scorers perform alike. The cheapest, MNN+MAGSAC++, is a
+sensible default; FGW ($\approx\tFgwK$\,ms per query on a CPU) is worth using only where no learned matcher
+can be trusted.
+
+\paragraph*{6) Theory}
+Predictions (P1)--(P3) held for fixed tokens with a dust-bin. The ordering of heads with trained tokens is an
+empirical finding on simulated data; on real photographs (\cref{sec:real}) only the weakness of GeM is
+confirmed.
