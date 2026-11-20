@@ -1,0 +1,196 @@
+{
+ "note": "Apollo 15 real frames against views rendered from NAC_DTM_APOLLO15 (run of 2026-11-19). Values copied from the apollo_r2r.py run log; regenerate with src/apollo/apollo_r2r_report.py.",
+ "n_queries": 261,
+ "n_query_pans": 14,
+ "n_stations": 9,
+ "n_views": 108,
+ "chance_R1": 11.1,
+ "families": {
+  "salad_zs": {
+   "seeds": 1,
+   "despina": {
+    "R1": [
+     11.1,
+     4.8,
+     18.4
+    ],
+    "R5": 44.8
+   },
+   "shaded": {
+    "R1": [
+     15.3,
+     6.4,
+     25.3
+    ],
+    "R5": 52.9
+   },
+   "despina_minus_shaded_R1": [
+    -4.2,
+    -12.5,
+    2.7
+   ]
+  },
+  "galatea": {
+   "seeds": 3,
+   "despina": {
+    "R1": [
+     11.9,
+     6.6,
+     18.2
+    ],
+    "R5": 46.2
+   },
+   "shaded": {
+    "R1": [
+     11.7,
+     6.5,
+     17.9
+    ],
+    "R5": 39.2
+   }
+  },
+  "netvlad": {
+   "seeds": 3,
+   "despina": {
+    "R1": [
+     12.1,
+     7.2,
+     18.0
+    ],
+    "R5": 42.3
+   },
+   "shaded": {
+    "R1": [
+     11.2,
+     4.7,
+     18.8
+    ],
+    "R5": 42.0
+   }
+  },
+  "salad": {
+   "seeds": 3,
+   "despina": {
+    "R1": [
+     13.7,
+     7.4,
+     21.0
+    ],
+    "R5": 42.4
+   },
+   "shaded": {
+    "R1": [
+     12.9,
+     5.9,
+     22.2
+    ],
+    "R5": 46.9
+   }
+  },
+  "gem": {
+   "seeds": 3,
+   "despina": {
+    "R1": [
+     12.4,
+     8.7,
+     16.3
+    ],
+    "R5": 43.2
+   },
+   "shaded": {
+    "R1": [
+     10.6,
+     5.1,
+     17.5
+    ],
+    "R5": 38.6
+   }
+  },
+  "lam0": {
+   "seeds": 3,
+   "despina": {
+    "R1": [
+     11.4,
+     6.6,
+     17.1
+    ],
+    "R5": 43.6
+   },
+   "shaded": {
+    "R1": [
+     12.6,
+     7.6,
+     18.3
+    ],
+    "R5": 45.6
+   }
+  },
+  "salad_fixedillum": {
+   "seeds": 1,
+   "despina": {
+    "R1": [
+     15.3,
+     8.0,
+     23.3
+    ],
+    "R5": 46.0
+   },
+   "shaded": {
+    "R1": [
+     10.7,
+     4.5,
+     18.2
+    ],
+    "R5": 39.8
+   }
+  },
+  "rft_galatea": {
+   "seeds": 3,
+   "despina": {
+    "R1": [
+     17.2,
+     10.7,
+     24.9
+    ],
+    "R5": 52.6
+   },
+   "shaded": {
+    "R1": [
+     18.0,
+     9.8,
+     27.4
+    ],
+    "R5": 49.3
+   },
+   "despina_minus_shaded_R1": [
+    -0.8,
+    -7.5,
+    5.5
+   ]
+  },
+  "rft_netvlad": {
+   "seeds": 3,
+   "despina": {
+    "R1": [
+     20.6,
+     13.4,
+     28.7
+    ],
+    "R5": 51.7
+   },
+   "shaded": {
+    "R1": [
+     12.9,
+     6.3,
+     20.6
+    ],
+    "R5": 37.2
+   },
+   "despina_minus_shaded_R1": [
+    7.7,
+    -0.8,
+    14.6
+   ]
+  }
+ }
+}

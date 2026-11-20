@@ -3,9 +3,11 @@
 \usepackage{xr}
 \usepackage{url}
 \newcommand{\cref}[1]{Proposition~\ref{#1}}
+\newcommand{\Cref}[1]{Algorithm~\ref{#1}}
 % import labels from the main paper, but not its citation numbers (the supplement has its own bibliography)
 \makeatletter\begingroup\let\bibcite\@gobbletwo\externaldocument{main}\endgroup\makeatother
 \input{numbers}
+\input{numbers_apollo}
 \DeclareMathOperator*{\argmax}{arg\,max}
 
 \begin{document}
@@ -32,6 +34,12 @@ added two seeds for the four main heads (Table~\ref{tab:repro}). All means agree
 and every conclusion of the paper holds. The single-seed ablations also reproduce: single-illumination
 training gives $47.8\%$ (CPU: $\fixIllRone\%$).
 \input{tab_repro}
+
+\paragraph*{Ablations} Table~\ref{tab:ablation} lists the single-seed ablations of Section~\ref{sec:ablation}.
+\input{tab_ablation}
+\input{sec_ablation_sinkhorn}
+\paragraph*{Run time}
+\input{sec_runtime_text}
 
 
 \section{Robustness to camera tilt and viewpoint}\label{sec:robust}
@@ -103,6 +111,39 @@ rotation-invariant (\cref{prop:inv}), but its appearance term is not.
 
 \paragraph*{Implications} A rover should level its images with the IMU before retrieval. Its database should
 be recorded at the operating camera height and with several headings per place. Offsets of a few metres
-cost little ($\rbOffFourDrop$ points at $4$\,m).
+cost little ($\rbOffFourDrop$ points at $4$\,m). The FGW structural term uses image-plane distances, which
+large viewpoint changes do not preserve.
+
+\section{Real-imagery protocols}\label{sec:realsupp}
+\paragraph*{Panorama benchmark} The image library of the Apollo Lunar Surface Journal~\cite{alsj} lists, for
+each assembled panorama, its frames and the station where it was taken. We parsed these lists for all six
+landing missions and kept ordinary $60$\,mm surface pans taken from one standpoint, dropping $500$\,mm
+telephoto series, traverse sequences shot from the moving rover, window pans from inside the lunar module,
+detail crops and duplicate re-assemblies. A pan is labelled with its mission and station; pans around the
+lunar module (the o'clock pans) share the label LM. This leaves $79$ pans with $1{,}640$ frames at $47$
+stations. Frames are the ASU scans~\cite{asuapollo} at about $1100$ pixels, cropped to the film frame with the
+DESPINA pre-processing, converted to grey, centre-cropped to the $3{:}4$ training aspect and resized to
+$280\times210$. A query's database is every frame of every other pan of the same mission; a query is scored
+when its station has another pan. Apollo~11 has one station and Apollo~12's queries are almost all LM pans,
+so the main score uses Apollo~15--17 ($\reNq$ queries, $\reNpans$ pans, $\reNst$ stations). Uncropped frames
+give the same picture (DINOv2-SALAD $\reZsFull\%$, fine-tuned OT $\reFtGalFull\%$), as does leaving out the
+$204$ queries taken at the LM ($\reNoLMNq$ queries; DINOv2-SALAD $\reZsNoLM\%$, fine-tuned OT
+$\reFtGalNoLM\%$, random $\reNoLMChance\%$).
+
+\paragraph*{Rendered-map benchmark} Station positions are those of the Apollo Analyst's
+Notebook~\cite{apolloanalyst}, which places the traverse stations on LROC images; the LM uses its position in
+the LROC map of human features. Each station is rendered from NAC\_DTM\_APOLLO15 (2\,m) with the DESPINA ray
+caster at $1.6$\,m eye height, $49^\circ$ horizontal field of view, $-5^\circ$ pitch and headings every
+$30^\circ$. The Sun direction is computed from the DE421 ephemeris and the lunar principal-axis frame at the
+median time of the station's pans (at landing this gives $12.0^\circ$ elevation). DESPINA generates one
+$1024$\,px image per view (seed $0$, $30$ steps, depth and soft-edge control). Station~8 is the ALSEP site;
+Station~6 lies about $50$\,m outside the valid area of the elevation model and is left out, as are the pans
+taken from the LM hatch. This leaves $\rrNviews$ views at $\rrNst$ stations and $\rrNq$ queries from
+$\rrNpans$ pans.
+
+\paragraph*{Models} The frozen heads are the GPU runs of Table~\ref{tab:repro}; the fine-tuned models are
+those of Section~\ref{sec:robust}, whose backbones were stored. Intervals resample query pans ($2000$
+bootstrap draws). Table~\ref{tab:real_ci} gives all intervals.
+\input{tab_real_ci}
 
 \end{document}

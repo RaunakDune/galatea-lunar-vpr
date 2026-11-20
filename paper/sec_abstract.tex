@@ -18,8 +18,10 @@ converging, at unchanged accuracy. Fine-tuning adds $11$--$19$ points; the assig
 Recall@1 by at most about three points, and residual NetVLAD aggregation is best ($\ftNvRone\%$).
 Fusion adds $\msnvMnnRGain$--$\msMnnRGain$ points for every stage-1 model and matcher tested, and the
 full system reaches $\msnvFgwRone\%$. Illumination-diverse training is worth
-$\fixIllDrop$--$\ftFixIllDrop$ points, more than fine-tuning. We therefore recommend a fixed
-assignment, residual aggregation, illumination-diverse training and fusion with a cheap matcher.
+$\fixIllDrop$--$\ftFixIllDrop$ points, more than fine-tuning. In simulation we therefore recommend a fixed
+assignment, residual aggregation, illumination-diverse training and fusion with a cheap matcher. On real
+Apollo photographs these gains largely disappear: no lunar-trained head is clearly better than the zero-shot model, and against a map
+rendered with DESPINA only fine-tuned heads exceed chance.
 \end{abstract}
 
 \begin{IEEEkeywords}

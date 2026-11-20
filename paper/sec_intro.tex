@@ -59,11 +59,15 @@ terrestrial models zero-shot, the whole assignment family with a frozen and a fi
 whether $\lambda$ can be learned, four local scorers with and without fusion, and the effect of
 training illumination. We distil the results into design
 guidelines for lunar VPR.
+\item \textbf{A first test on real imagery} (\cref{sec:real}) on Apollo surface panoramas, retrieved
+against other pans and against a map rendered with DESPINA from orbital elevation data.
 \end{enumerate}
 
 The findings do not favour the most flexible model: the assignment is a weak lever that training
 cannot set, so it is best fixed, while fusion helps every stage-1 model, and how local and global
-evidence are combined matters more than which local matcher is used.
+evidence are combined matters more than which local matcher is used. On real Apollo photographs, however, the
+lunar-trained heads do no better than a terrestrial model used zero-shot, so these guidelines describe
+simulated data until the gap between simulation and real imagery is closed.
 
 % ======================================================================
 \section{Related Work}\label{sec:related}
@@ -87,12 +91,8 @@ SuperPoint~\cite{detone2018superpoint} features. They are trained on terrestrial
 that the descriptors carry enough appearance information. Our training-free re-ranker adds a
 Gromov--Wasserstein structural term~\cite{memoli2011gromov,peyre2016gromov}, in the fused form of
 \cite{vayer2019fgw} and with partial mass~\cite{chapel2020partial}, so that matches must preserve
-relative keypoint geometry.
-
-\paragraph*{Optimal transport}
-Entropic regularisation and the Sinkhorn algorithm~\cite{cuturi2013sinkhorn,peyre2019computational}
-made OT differentiable and fast; unbalanced OT replaces hard marginal constraints with divergence
-penalties and keeps Sinkhorn-like scaling algorithms~\cite{chizat2018scaling}.
+relative keypoint geometry. It and our aggregator rely on entropic OT and Sinkhorn
+scaling~\cite{cuturi2013sinkhorn,peyre2019computational}, here in unbalanced form~\cite{chizat2018scaling}.
 
 \paragraph*{Planetary localisation}
 Rovers rely on visual odometry~\cite{maimone2007mer}, and landers on terrain-relative navigation

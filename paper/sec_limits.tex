@@ -1,28 +1,20 @@
 \subsection{Limitations}\label{sec:limits}
-All quantitative results come from simulation. LunarSim reproduces the statistical character of
-lunar relief and the dominant photometric effects, but it omits several things: resolved near-field rocks below the $0.3$\,m DEM spacing (\cref{fig:apollo}), multiple
-scattering beyond a constant ambient term, rover self-shadowing and dust, lens flare, exposure
-bracketing, and the full range of geological units. Absolute recall values are therefore not predictions of on-Moon
-performance; the relative comparisons should carry over better, but this must be confirmed on real
-imagery. Fine-tuning used a single learning rate selected on one
-validation scene and four of twelve blocks; full fine-tuning or larger backbones were not explored,
-and the ranking of heads under fine-tuning may depend on these choices. The test set has $450$
-places in three scenes, each matched against the $150$ database images of its own scene. The FGW structural term uses image-plane
-distances, which large viewpoint changes do not preserve. Finally, the queries are upright and near the database poses. In further tests (supplement), a $5^\circ$ roll
-lowers the frozen reference head from $\rbBase$ to $\rbRollFive\%$ R@1, and fine-tuned models lose nearly as much; levelling the
-image with gravity recovers most of this, while a $30^\circ$ heading change costs $\rbHeadThirtyDrop$ points.
+Apart from \cref{sec:real}, all quantitative results come from simulation. LunarSim reproduces the statistical character of
+lunar relief and the dominant photometric effects, but it omits near-field rocks below the $0.3$\,m DEM spacing (\cref{fig:apollo}), multiple
+scattering, rover self-shadowing, dust, lens effects and the full range of geological units. Absolute recall values are not predictions of on-Moon
+performance, and on real photographs even the gains of lunar training largely disappear
+(\cref{sec:real}); those tests are small, with station-level ground truth and no re-ranking. Fine-tuning used one learning rate and four of twelve
+blocks; other choices may change the ranking of fine-tuned heads. Finally, the queries are upright and near the database poses. A $5^\circ$ roll
+lowers the frozen reference head from $\rbBase$ to $\rbRollFive\%$ R@1 and a $30^\circ$ heading change costs
+$\rbHeadThirtyDrop$ points (supplement); levelling the image with gravity recovers most of the roll loss.
 
 % ======================================================================
 \section{Conclusion}\label{sec:conclusion}
 % ======================================================================
-Galatea studies lunar visual place recognition by casting both stages as optimal transport: a family
-of semi-relaxed unbalanced assignments that contains the NetVLAD and SALAD assignments, and a partial
-fused Gromov--Wasserstein matcher whose evidence is fused with the global score by a rule with bounded
-override. As the theory predicted, the members of the family are equivalent on a frozen backbone, and
-the loss does not identify a trainable relaxation; once the backbone is fine-tuned, a trainable
-$\lambda$ ends wherever it starts, and residual aggregation is best. The assignment should therefore be
-a fixed design choice. Global--local fusion improved every stage-1 model and every local matcher we
-tested, because it keeps about half of what local evidence rescues while rarely overturning a correct
-global decision, and illumination-diverse training had a larger effect than backbone fine-tuning or any
-choice of assignment. Next steps are real imagery, with DESPINA-synthesised reference
-views of real sites~\cite{nelsonarcher2026despina}, and 3-D structural terms from DEM depth.
+Galatea casts both stages of lunar VPR as optimal transport. In simulation the members of the assignment
+family are equivalent on a frozen backbone, training cannot set $\lambda$, residual aggregation is best
+once the backbone is fine-tuned, fusion improves every stage-1 model and matcher, and illumination-diverse
+training matters more than fine-tuning or the assignment. On real Apollo photographs these gains largely
+disappear, and against a map rendered with DESPINA only fine-tuned heads exceed chance. Next steps are
+larger real benchmarks at the Apollo~15--17 sites, training on DESPINA renders of real
+terrain~\cite{nelsonarcher2026despina}, and 3-D structural terms from DEM depth.

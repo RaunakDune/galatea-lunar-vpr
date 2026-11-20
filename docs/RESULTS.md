@@ -144,3 +144,22 @@ Global ranking alone gives R@1 60.8 / R@5 88.0. Across the three stage-1 seeds, 
 | OT matching per pair (200 kp) | 8.3 |
 | LightGlue per pair | 19.2 |
 | Partial FGW per pair | 42.7 |
+
+## Real Apollo imagery (station-level Recall@1 %, see [`APOLLO.md`](APOLLO.md))
+
+Panoramas: Apollo 15 to 17, 958 queries, random 6.5%. Rendered map: Apollo 15, 261 queries against 108 views,
+random 11.1%. Means over three seeds (one for DINOv2-SALAD); 95% intervals resample query pans.
+
+| Model | Panoramas | Rendered map, DESPINA | Rendered map, shaded |
+|---|---|---|---|
+| DINOv2-SALAD, zero-shot | 34.4 [26.8, 42.7] | 11.1 [4.8, 18.4] | 15.3 [6.4, 25.3] |
+| GeM, frozen | 24.7 [20.0, 30.0] | 12.4 [8.7, 16.3] | 10.6 [5.1, 17.5] |
+| NetVLAD, frozen | 33.0 [25.0, 41.6] | 12.1 [7.2, 18.0] | 11.2 [4.7, 18.8] |
+| OT, lambda = 0, frozen | 33.4 [26.5, 40.4] | 11.4 [6.6, 17.1] | 12.6 [7.6, 18.3] |
+| OT, lambda = 1 (SALAD), frozen | 36.5 [28.9, 43.9] | 13.7 [7.4, 21.0] | 12.9 [5.9, 22.2] |
+| OT, lambda ~ 0.5, frozen | 31.8 [24.5, 39.2] | 11.9 [6.6, 18.2] | 11.7 [6.5, 17.9] |
+| NetVLAD, fine-tuned | 34.6 [27.0, 42.4] | 20.6 [13.4, 28.7] | 12.9 [6.3, 20.6] |
+| OT, lambda ~ 0.5, fine-tuned | 36.1 [29.4, 43.0] | 17.2 [10.7, 24.9] | 18.0 [9.8, 27.4] |
+
+DESPINA minus shaded, fine-tuned NetVLAD: +7.7 [-0.8, +14.6].
+

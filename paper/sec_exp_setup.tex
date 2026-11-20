@@ -24,7 +24,7 @@ Images are resized to $210\times280$ for the ViT ($n=300$ tokens). Heads are tra
 (learning rate $4\cdot10^{-4}$, one-cycle schedule, weight decay $10^{-4}$) for $500$ steps of $24$
 places $\times$ $4$ views, using the multi-similarity loss (positive and negative scales $1$ and $50$,
 miner margin $0.1$). Sinkhorn uses $L=3$ iterations, $m=64$ clusters and $d_h=128$. All heads in \cref{tab:main,tab:family}
-are run with three seeds (mean $\pm$ standard deviation); the ablations of \cref{tab:ablation} use one
+are run with three seeds (mean $\pm$ standard deviation); the ablations use one
 seed. Confidence intervals are 95\% paired bootstraps over the $450$ test places: each place is resampled
 with all seven of its queries, because the queries of one place under different Suns are correlated. For stage~2, the structural weight $\alpha\in\{0,0.3,0.6\}$ (chosen: $0.3$) and the fusion
 parameters $\beta,\kappa$ are selected on the validation scene only. $\varepsilon_\ell=0.05$ and the

@@ -63,8 +63,9 @@ C5 (shadows reversed) and C6 (both). The main findings:
 
 The full tables and ablations are in [`docs/RESULTS.md`](docs/RESULTS.md).
 
-> **Limitation.** All results come from simulation. The relative comparisons use paired queries on unseen
-> scenes, but the absolute numbers are not on-Moon predictions. Frozen-backbone runs were done on a 2-core CPU
+> **Limitation.** The results above come from simulation. On real Apollo photographs (two small
+> station-level tests, [`docs/APOLLO.md`](docs/APOLLO.md)) no lunar-trained head is clearly better than
+> DINOv2-SALAD used zero-shot, and against a map rendered with DESPINA only the fine-tuned heads exceed chance. Frozen-backbone runs were done on a 2-core CPU
 > and reproduced on GPUs; fine-tuning runs used NVIDIA Tesla P40 GPUs.
 
 ## Repository layout
@@ -73,6 +74,7 @@ The full tables and ablations are in [`docs/RESULTS.md`](docs/RESULTS.md).
 src/            Python modules and entry points (renderer, models, training, re-ranking, analysis)
 scripts/        setup.sh (third-party code and weights), run_experiments.sh, reproduce_all.sh
 data/lunarsim/  LunarSim-VPR rendered images + metadata (features are NOT included; regenerate them)
+data/apollo/    station labels of the Apollo surface panoramas used in the real-imagery tests
 results/        per-run metrics, trained aggregation heads (head.pt), re-ranking scores, summaries
 paper/          LaTeX source of the manuscript and supplement, figures, compiled PDFs
 docs/           BENCHMARK.md, METHOD.md, RESULTS.md, REPRODUCE.md
@@ -152,10 +154,9 @@ soft-edge ControlNets). DESPINA and LunarSim complement each other:
 Code: [UH-DAIS/DESPINA_technical_details](https://github.com/UH-DAIS/DESPINA_technical_details) ·
 Data: [UH-DAIS/DESPINA_dataset](https://github.com/UH-DAIS/DESPINA_dataset)
 
-**Planned:** a real-imagery evaluation of Galatea. Its reference database will be DESPINA-synthesised
-views of LRO elevation-model poses at the Apollo 17 Taurus–Littrow site, and its queries will be Apollo 17
-surface photographs taken at stations with published coordinates. This depends on the DESPINA diffusion
-weights, which are not yet public.
+**Real-imagery test:** Apollo 15 surface photographs retrieved against DESPINA views rendered from the
+LROC NAC elevation model of the site, and against plain shaded renders of the same views. See
+[`docs/APOLLO.md`](docs/APOLLO.md).
 
 ## Documentation
 
@@ -163,6 +164,7 @@ weights, which are not yet public.
 - [`docs/METHOD.md`](docs/METHOD.md): the formulation and the six propositions, with pointers into the code.
 - [`docs/RESULTS.md`](docs/RESULTS.md): all result tables and how they are generated.
 - [`docs/ROBUSTNESS.md`](docs/ROBUSTNESS.md): robustness to camera roll, pitch, position, heading and height.
+- [`docs/APOLLO.md`](docs/APOLLO.md): the real Apollo imagery tests.
 - [`docs/REPRODUCE.md`](docs/REPRODUCE.md): step-by-step reproduction, compute budget, troubleshooting.
 
 ## Citation

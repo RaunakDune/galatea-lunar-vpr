@@ -1,0 +1,25 @@
+\begin{table}[t]
+\centering
+\setlength{\tabcolsep}{4pt}
+\caption{Station-level Recall@1 (\%) on real Apollo photographs: against other pans (random 6.5\%) and against a rendered Apollo~15 map (random 11.1\%). Mean over three seeds; 95\% intervals resample query pans.}
+\label{tab:real_ci}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+ & Panoramas & \multicolumn{2}{c}{Rendered map (A15)} \\
+\cmidrule(lr){3-4}
+Model & (A15--17) & DESPINA & shaded \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Earth-trained, zero-shot}} \\
+DINOv2-SALAD & 34.4 {\scriptsize[26.8, 42.7]} & 11.1 {\scriptsize[4.8, 18.4]} & 15.3 {\scriptsize[6.4, 25.3]} \\
+\multicolumn{4}{@{}l}{\emph{Lunar-trained head, frozen backbone}} \\
+GeM & 24.7 {\scriptsize[20.0, 30.0]} & 12.4 {\scriptsize[8.7, 16.3]} & 10.6 {\scriptsize[5.1, 17.5]} \\
+NetVLAD & 33.0 {\scriptsize[25.0, 41.6]} & 12.1 {\scriptsize[7.2, 18.0]} & 11.2 {\scriptsize[4.7, 18.8]} \\
+OT, $\lambda=0$ & 33.4 {\scriptsize[26.5, 40.4]} & 11.4 {\scriptsize[6.6, 17.1]} & 12.6 {\scriptsize[7.6, 18.3]} \\
+OT, $\lambda=1$ (SALAD) & 36.5 {\scriptsize[28.9, 43.9]} & 13.7 {\scriptsize[7.4, 21.0]} & 12.9 {\scriptsize[5.9, 22.2]} \\
+OT, $\lambda\approx0.5$ & 31.8 {\scriptsize[24.5, 39.2]} & 11.9 {\scriptsize[6.6, 18.2]} & 11.7 {\scriptsize[6.5, 17.9]} \\
+\multicolumn{4}{@{}l}{\emph{Lunar-trained, backbone fine-tuned}} \\
+NetVLAD & 34.6 {\scriptsize[27.0, 42.4]} & 20.6 {\scriptsize[13.4, 28.7]} & 12.9 {\scriptsize[6.3, 20.6]} \\
+OT, $\lambda\approx0.5$ & 36.1 {\scriptsize[29.4, 43.0]} & 17.2 {\scriptsize[10.7, 24.9]} & 18.0 {\scriptsize[9.8, 27.4]} \\
+\bottomrule
+\end{tabular}
+\end{table}
