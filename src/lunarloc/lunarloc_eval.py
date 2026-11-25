@@ -149,6 +149,9 @@ def local_scores(spec):
     """Local scores for (query traverse, db traverse, list of (qi, di)) pairs."""
     tq, td, prs = spec
     torch.set_num_threads(1)
+    cache = f'{args.out}/cache_{args.tag}/{tq}__{td}__{prs[0][0]}_{prs[0][1]}_{len(prs)}.pt'
+    if os.path.exists(cache):
+        return tq, td, torch.load(cache, weights_only=False)
     from rerank_lib import topk_kp, mnn_matches, mutual_matches, fgw_match, clipper_matches, ransac_inliers
     Fq, Fd = torch.load(f'{args.feat}/{tq}.pt', weights_only=False), torch.load(f'{args.feat}/{td}.pt', weights_only=False)
     Mq = json.load(open(f'{args.ext}/{tq}/meta.json'))['images']
@@ -158,11 +161,14 @@ def local_scores(spec):
         kq, _, dq = topk_kp(Fq['sp'][qi], 384)
         kd, _, dd = topk_kp(Fd['sp'][di], 384)
         s = {}
-        mm = mnn_matches(dq, dd)
-        s['mnn_ransac'] = ransac_inliers(kq[mm[:, 0]].numpy(), kd[mm[:, 1]].numpy()) if len(mm) else 0
-        s['fgw'] = len(mutual_matches(fgw_match(kq, dq, kd, dd)))
-        s['clipper16'] = len(clipper_matches(kq, dq, kd, dd, eps=16.0))
         bq, bd = np.array(Mq[qi]['boulders']), np.array(Md[di]['boulders'])
+        if len(kq) < 2 or len(kd) < 2:                     # frames with (almost) no keypoints
+            s.update({'mnn_ransac': 0, 'fgw': 0, 'clipper16': 0})
+        else:
+            mm = mnn_matches(dq, dd)
+            s['mnn_ransac'] = ransac_inliers(kq[mm[:, 0]].numpy(), kd[mm[:, 1]].numpy()) if len(mm) else 0
+            s['fgw'] = len(mutual_matches(fgw_match(kq, dq, kd, dd)))
+            s['clipper16'] = len(clipper_matches(kq, dq, kd, dd, eps=16.0))
         for e in (0.05, 0.1, 0.2, 0.4):
             key = f'boulder_e{e:g}'
             if len(bq) < 3 or len(bd) < 3:
@@ -170,6 +176,8 @@ def local_scores(spec):
             s[key] = len(clipper_matches(None, torch.ones(len(bq), 1), None, torch.ones(len(bd), 1),
                                          P1=torch.from_numpy(bq), P2=torch.from_numpy(bd), eps=e, topk=len(bd), simthr=-1))
         out[(qi, di)] = s
+    os.makedirs(os.path.dirname(cache), exist_ok=True)
+    torch.save(out, cache)
     return tq, td, out
 
 
