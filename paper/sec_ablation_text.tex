@@ -11,6 +11,4 @@ the query light matches its training light (C0: $\fixIllCzero\%$ vs.\ $\galSzero
 three hardest conditions it falls to $\fixIllHardVal\%$, against $\galSzeroHard\%$. Fine-tuning makes
 this worse: with a single training Sun the fine-tuned reference head reaches $\ftFixIllRone\%$
 ($-\ftFixIllDrop$ points) and SALAD $\ftSalFixIllRone\%$.
-
-\paragraph*{Run time} On a 2-core CPU the frozen backbone takes $\tBackbone$\,ms per image and the heads
-add $\tNv$--$\tGal$\,ms, so the Sinkhorn loop is negligible; re-ranking costs are in the supplement.
+On a 2-core CPU the frozen backbone takes $\tBackbone$\,ms per image and the heads add $\tNv$--$\tGal$\,ms.

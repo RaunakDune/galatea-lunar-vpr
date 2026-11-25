@@ -49,28 +49,32 @@ regolith are dominated by shadow edges, so a wrong candidate photographed under 
 collect more matches than the right one. The overrides that break a correct result are those against
 a confident global ranking: the median global similarity margin they overturn is $\marginBroken$,
 twice that of the overrides that rescue a query ($\marginRescued$). Under fusion, overturning a
-larger margin requires proportionally more local evidence (\cref{prop:override}(i)); the hard limit
-(ii) binds for fewer than $0.1\%$ of the queries with the frozen head (supplement). Fusion keeps about half of the rescues ($\rbFrFgwFusRes\%$) while
-breaking only $\rbFrFgwFusBrk\%$, and the same pattern holds for every scorer and for the fine-tuned
-stage~1, where local-only ranking breaks up to $\rbFtLgLocBrk\%$ of the queries and fusion at most
-$\rbFtMnnRFusBrk\%$.
+larger margin requires proportionally more local evidence (\cref{prop:override}(i)). Fusion keeps about half
+of the rescues ($\rbFrFgwFusRes\%$) while breaking only $\rbFrFgwFusBrk\%$, and the same holds for every scorer
+and stage~1 model (supplement).
 
 \paragraph*{Robustness across stage-1 models}
 Repeating the protocol on all three seeds of each stage-1 model, and re-tuning $\beta,\kappa$ on
 validation each time, fusion with FGW adds $\msFgwGain\pm\msFgwGainsd$ points to the frozen reference
-head (MNN+MAGSAC++: $\msMnnRGain\pm\msMnnRGainsd$; plain MNN: $\msMnnGain\pm\msMnnGainsd$),
-$\ftFgwGain\pm\ftFgwGainsd$ to the fine-tuned reference head (MNN+MAGSAC++: $\ftMnnRGain\pm\ftMnnRGainsd$)
-and $\msnvFgwGain\pm\msnvFgwGainsd$ to the fine-tuned NetVLAD head (MNN+MAGSAC++:
-$\msnvMnnRGain\pm\msnvMnnRGainsd$). The gain shrinks as stage~1 improves, since fewer queries remain
-to be rescued, and stays positive for every model. The complete system, fine-tuned NetVLAD with FGW fusion, reaches
-$\msnvFgwRone\pm\msnvFgwRonesd\%$ R@1 and $\msnvFgwRfive\%$ R@5 ($\msnvFgwHard\%$ on the hardest
-conditions), against $\zsSaladRone\%$ for the best terrestrial model. Under fusion the local scorers differ by at most a few
-points, a smaller effect than fusion itself.
+head (MNN+MAGSAC++: $\msMnnRGain\pm\msMnnRGainsd$), $\ftFgwGain\pm\ftFgwGainsd$ to the fine-tuned one and
+$\msnvFgwGain\pm\msnvFgwGainsd$ to fine-tuned NetVLAD; the gain shrinks as stage~1 improves. The complete
+system, fine-tuned NetVLAD with FGW fusion, reaches $\msnvFgwRone\pm\msnvFgwRonesd\%$ R@1
+($\msnvFgwHard\%$ on the hardest conditions), against $\zsSaladRone\%$ for the best terrestrial model.
 
 
 \subsection{Training illumination and other ablations}\label{sec:ablation}
 \input{sec_ablation_text}
 
+
+\subsection{A second simulator}\label{sec:lunarloc}
+The LunarLoc traverses~\cite{thomas2026lunarloc} test the same heads on a simulator we did not build, under
+LunarLoc's three conditions (supplement). Along
+repeated straight lines every head but GeM reaches $\llStFtGal$--$\llStNv\%$ R@1, and fusion with MNN+MAGSAC++
+adds $\llStMnnGainLo$--$\llStMnnGainHi$ points. Under a lighting change the frozen OT head is highest
+($\llLiGal\%$; zero-shot $\llLiZs\%$, with overlapping intervals), the fine-tuned heads fall to
+$\llLiFtGal$--$\llLiFtNv\%$, and CLIPPER fusion adds $\llLiClipGainLo$--$\llLiClipGainHi$ points where
+MNN+MAGSAC++ adds at most $\llLiMnnGainHi$. With the start flipped, counting views of the same ground as
+matches, the frozen OT head is again highest ($\llFlGal\%$).
 
 \subsection{Real lunar imagery}\label{sec:real}
 \input{sec_real}

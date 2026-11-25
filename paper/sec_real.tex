@@ -14,12 +14,11 @@ $\reFtGalVsZsMean$ points ($[\reFtGalVsZsLo,\reFtGalVsZsHi]$), so the fine-tunin
 does not appear. GeM is again the weakest head. Against the
 rendered map the zero-shot model is at chance, and only the fine-tuned heads are above it (NetVLAD
 $\rrFtNvD\%$, $[\rrFtNvDLo,\rrFtNvDHi]$). DESPINA views raise fine-tuned NetVLAD by $\rrFtNvDmS$ points over
-shaded renders, but the interval $[\rrFtNvDmSLo,\rrFtNvDmSHi]$ includes zero. Station positions from 1971 navigation, nearby ground filling
-most frames and one map position per station make it hard.
+shaded renders, but the interval $[\rrFtNvDmSLo,\rrFtNvDmSHi]$ includes zero.
 
 \paragraph*{Re-ranking}
 We re-ranked each head's top~10 on the panoramas with the parameters tuned on LunarSim. Fusion adds
-$\apGainLo$--$\apGainHi$ points for every head and scorer, all intervals above zero (zero-shot model with FGW:
-$\apZsGlob$ to $\apZsFgw\%$, $[\apZsFgwGainLo,\apZsFgwGainHi]$); tuned on the other two missions instead, it adds
-$\apLomoLo$--$\apLomoHi$. The scorers lie within $\apScorerSpread$ points of each other, and unlike in simulation the
-local score alone also helps ($+\apLocGainLo$ to $+\apLocGainHi$).
+$\apGainLo$--$\apGainHi$ points for every head and scorer, all intervals above zero; tuned on the other two
+missions instead, it adds $\apLomoLo$--$\apLomoHi$. The scorers lie within $\apScorerSpread$ points of each other, and unlike in simulation the
+local score alone also helps ($+\apLocGainLo$ to $+\apLocGainHi$). Boulder segments in the style of LunarLoc,
+matched with CLIPPER, change R@1 by $\apBoulderLo$ to $+\apBoulderHi$ points.

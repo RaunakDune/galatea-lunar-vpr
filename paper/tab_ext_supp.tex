@@ -1,0 +1,63 @@
+\begin{table*}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Second simulator: R@1 (\%) on the LunarLoc traverses~\cite{thomas2026lunarloc} (release v2.0.0), before and after fusion of the top~10 with each local scorer ($(\beta,\kappa)$ and CLIPPER tolerance from the LunarSim validation scene). Straight line and lighting change: within 1\,m and $30^\circ$ (random 9.8 and 11.1\%). Flipped start: no query has a positive under that definition, so a database frame counts when the ground both cameras see overlaps by at least $30\%$ (random 20.0\%). Mean over seeds; 95\% intervals in the result files.}
+\label{tab:lunarloc}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+ & \multicolumn{2}{c}{Straight line (2201)} & \multicolumn{4}{c}{Lighting change (1080)} & \multicolumn{2}{c}{Flipped start (405)} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-7}\cmidrule(lr){8-9}
+Model & global & +MNN+M. & global & +MNN+M. & +FGW & +CLIPPER & global & +CLIPPER \\
+\midrule
+DINOv2-SALAD (zero-shot) & 88.4 & 96.6 & 52.4 & 53.1 & 56.8 & 61.8 & 40.7 & 48.4 \\
+GeM & 73.8 & 90.2 & 39.9 & 41.4 & 44.2 & 50.3 & 49.1 & 53.9 \\
+NetVLAD & 89.8 & 96.9 & 56.7 & 57.3 & 61.1 & 68.8 & 57.8 & 61.0 \\
+OT, $\lambda=1$ & 88.8 & 96.1 & 53.5 & 54.3 & 57.2 & 64.3 & 35.1 & 44.4 \\
+OT, $\lambda\approx0.5$ & 86.0 & 94.9 & 58.6 & 59.7 & 61.2 & 67.3 & 59.3 & 64.0 \\
+NetVLAD, fine-tuned & 87.2 & 94.5 & 49.8 & 51.0 & 55.1 & 63.5 & 42.9 & 51.1 \\
+OT, fine-tuned & 84.7 & 94.0 & 47.1 & 49.0 & 53.1 & 59.9 & 43.8 & 53.0 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\caption{Boulders as local evidence: R@1 (\%) before and after fusion. LunarLoc v1 repeat traverses (2414 queries): LunarLoc\textquotesingle s own 3-D boulder detections matched with CLIPPER, tolerance and $(\beta,\kappa)$ tuned leave one pair out; keypoints (MNN+MAGSAC++) for comparison. Apollo panoramas: FastSAM boulder segments, CLIPPER on image-plane centroids, $(\beta,\kappa)$ tuned leave one mission out.}
+\label{tab:boulders}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+ & \multicolumn{3}{c}{LunarLoc v1} & \multicolumn{2}{c}{Apollo} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-6}
+Model & global & +MNN+M. & +boulders & global & +boulders \\
+\midrule
+DINOv2-SALAD (zero-shot) & 86.0 & 91.1 & 87.0 & 34.4 & 35.8 \\
+GeM & 78.0 & 88.1 & 80.3 & 24.7 & 24.7 \\
+NetVLAD & 86.2 & 91.8 & 87.4 & 33.0 & 33.2 \\
+OT, $\lambda=1$ & 86.9 & 91.6 & 87.8 & 36.5 & 36.7 \\
+OT, $\lambda\approx0.5$ & 87.3 & 91.3 & 87.5 & 31.8 & 32.6 \\
+NetVLAD, fine-tuned & 87.0 & 91.5 & 87.5 & 34.6 & 33.6 \\
+OT, fine-tuned & 87.1 & 91.5 & 88.1 & 36.1 & 36.6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\caption{Metric pose after retrieval on the LunarSim test scenes (3150 queries): PnP with RANSAC on matches to the database image\textquotesingle s exact 3-D points. Success: within 1\,m and 5$^\circ$ (\%). Top-1: image ranked first after MNN+MAGSAC++ fusion (R@1 67.2\%); true place: the database image of the query\textquotesingle s own place. Median errors are over successful queries.}
+\label{tab:pose}
+\begin{tabular}{@{}llcccccc@{}}
+\toprule
+Matcher & Image & all & $C_0$ & hard & PnP fails & $t$ (m) & $R$ ($^\circ$) \\
+\midrule
+MNN & top-1 & 13.9 & 49.6 & 0.1 & 44.1 & 0.21 & 0.33 \\
+ & true place & 15.3 & 55.8 & 0.1 & 44.6 & 0.20 & 0.35 \\
+LightGlue & top-1 & 17.8 & 47.3 & 2.4 & 34.6 & 0.22 & 0.36 \\
+ & true place & 23.0 & 55.3 & 5.9 & 32.5 & 0.24 & 0.38 \\
+\bottomrule
+\end{tabular}
+\end{table}

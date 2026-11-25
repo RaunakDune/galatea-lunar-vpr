@@ -9,6 +9,7 @@
 \input{numbers}
 \input{numbers_apollo}
 \input{numbers_stage2}
+\input{numbers_ext}
 \DeclareMathOperator*{\argmax}{arg\,max}
 
 \begin{document}
@@ -201,5 +202,37 @@ reference head, applied unchanged to every head; the leave-one-mission-out colum
 queries of the other two missions with the same grid and criterion. Table~\ref{tab:apollorr} gives all heads and
 scorers.
 \input{tab_stage2_supp}
+
+\section{Second simulator, metric pose and boulders}\label{sec:extsupp}
+\paragraph*{LunarLoc traverses} LunarLoc~\cite{thomas2026lunarloc} released its runs of the Lunar Autonomy
+Challenge simulator. Its v2.0.0 release (the runs of that paper) holds straight-line traverses on nine terrain presets:
+two runs in the same direction per preset for presets 1--6, a run from the opposite end for presets 1--3, and
+runs under two Sun directions (azimuth $100^\circ$ at $2^\circ$ elevation and azimuth $210^\circ$ at $10^\circ$) for
+presets 7--9. We pair them as LunarLoc does: straight line (presets 1--6), flipped start (presets 1--3) and
+lighting change (presets 7--9), and use each pair in both directions, one run as the database and the other as
+the queries. We keep every fifth FrontLeft frame (about $8$\,cm apart; $1280\times720$, $70^\circ$ field of
+view), crop it to $4{:}3$ ($55^\circ$) and process it exactly like an Apollo frame. A database frame is a match
+when its camera lies within $1$\,m and $30^\circ$ of the query. Flipped runs face the opposite way, so no frame
+has such a match; for them a frame counts when the ground both cameras see ($1$--$15$\,m ahead, within the crop)
+overlaps by at least $30\%$ (intersection over union). Fusion parameters and the CLIPPER tolerance are those of
+the LunarSim validation scene. Table~\ref{tab:lunarloc} gives all heads.
+
+\paragraph*{Metric pose} For every LunarSim test query we matched its keypoints to the image ranked first after
+fusion, took the 3-D points of the database keypoints from the renderer and solved the query pose with PnP and
+RANSAC (EPnP, $2$-pixel threshold, then Levenberg--Marquardt refinement). Reprojecting the database points with
+their own true pose reproduces $95\%$ of the keypoints to within $0.004$ pixels, so the camera model is exact.
+Table~\ref{tab:pose} compares MNN and LightGlue matches, for the retrieved image and for the true place. Successful
+poses are accurate (about $0.2$\,m and $0.35^\circ$), but under Sun changes few queries have enough correct matches.
+
+\paragraph*{Boulders} The v1.0.0 release of LunarLoc (earlier runs, apparently all on one terrain) includes the boulders
+LunarLoc detected in each frame, as 3-D centroids from FastSAM and stereo. On seven pairs of runs that repeat the
+same route we scored each candidate with CLIPPER on these centroids (all-to-all associations, tolerance
+$\epsilon\in\{0.05,0.1,0.2,0.4\}$\,m); $\epsilon$ and $(\beta,\kappa)$ were tuned on the other pairs. On the Apollo
+panoramas we ran FastSAM (FastSAM-x) on every frame and kept masks with LunarLoc's position, size and shape filters,
+with the size limits in pixels (area $0.05$--$5\%$ of the frame, eigenvalue ratio at most $3$, compactness at least
+$0.5$), which leaves a median of $5$ segments per frame; CLIPPER then compares segment centroids in the image
+($\epsilon=16$ pixels). Table~\ref{tab:boulders} gives the results. Boulders add little in either setting, partly because
+many frames show fewer than three of them.
+\input{tab_ext_supp}
 
 \end{document}

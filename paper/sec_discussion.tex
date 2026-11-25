@@ -7,26 +7,26 @@ On LunarSim-VPR, lunar training ($+\gainZsMean$ points over zero-shot) and clust
 \paragraph*{1) Training data}
 Illumination diversity in training is worth $\fixIllDrop$ points of R@1 for the reference head with a
 frozen backbone and $\ftFixIllDrop$ with a fine-tuned one, more than fine-tuning adds to the same head.
-Fine-tuning should be combined with illumination-diverse training.
 
 \paragraph*{2) Backbone adaptation}
-Fine-tuning four blocks adds $11$--$19$ points to every head, a gain absent on real panoramas (\cref{sec:real}).
+Fine-tuning four blocks adds $11$--$19$ points to every head in LunarSim, a gain absent on real panoramas and
+in the second simulator (\cref{sec:real,sec:lunarloc}).
 
 \paragraph*{3) Aggregation}
-Among the cluster-based heads the aggregation design has a larger effect than the assignment. Residual
-NetVLAD aggregation differs from its closest OT relative by $\famFrNvVsNDMean$ points on frozen tokens and by
-$\famFtNvVsNDMean$ once the backbone is trained (NetVLAD minus OT), and is the best fine-tuned head.
+Residual NetVLAD aggregation differs from its closest OT relative by $\famFrNvVsNDMean$ points on frozen
+tokens and by $\famFtNvVsNDMean$ once the backbone is trained, more than the assignment changes.
 
 \paragraph*{4) Assignment}
 Within the OT family all values of $\lambda$ are equivalent on a frozen backbone (P1, P2), the fixed members
 stay within $\famFtLamRange$ points of each other after fine-tuning, and training cannot choose among them
-(\cref{sec:family,sec:ft}). The cheapest member, $\lambda=0$, needs no Sinkhorn loop.
+(\cref{sec:family,sec:ft}); $\lambda=0$ needs no Sinkhorn loop.
 
 \paragraph*{5) Re-ranking}
-Local evidence on the Moon is abundant but unreliable, because shadow edges dominate keypoint detections;
-under fusion it must grow with the global margin to overturn a global decision (\cref{prop:override}).
-Fusion is the one result that holds on real panoramas ($+\apGainLo$ to $+\apGainHi$ points). Fused scorers differ
-by a few points: CLIPPER with MAGSAC++ is best in simulation and MNN+MAGSAC++ the cheapest.
+Shadow edges dominate keypoint detections, so local evidence must grow with the global margin to
+overturn a global decision (\cref{prop:override}). Fusion is the one result that holds on real panoramas ($+\apGainLo$ to $+\apGainHi$ points). CLIPPER is the
+best fused scorer in LunarSim (with MAGSAC++) and gains most under the second simulator's lighting change. Retrieval does not yet give a metric pose: PnP on LightGlue
+matches with exact database depth is within $1$\,m and $5^\circ$ for $\poLgSucc\%$ of queries
+($\poLgSuccCzero\%$ under the database Sun, $\poLgSuccHard\%$ under the hardest conditions).
 
 \paragraph*{6) Theory}
 Predictions (P1)--(P3) held for fixed tokens with a dust-bin; the ordering of heads with trained tokens is
