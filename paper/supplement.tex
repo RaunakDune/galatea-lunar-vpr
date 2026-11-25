@@ -24,7 +24,8 @@
 \paragraph*{Backbone learning rate} For joint fine-tuning (Section~\ref{sec:ft}) the backbone learning rate was
 selected on the validation scene only, with the reference head and seed~0 (Table~\ref{tab:lrsweep}). The head
 learning rate, schedule, sampler and loss are those of the frozen-backbone runs; training lasts $1000$ steps.
-Test results were not consulted. The largest rate diverges.
+Test results were not consulted. The largest rate diverges. Only one learning rate and the last four of
+twelve blocks were used for the main results; other choices may change the ranking of fine-tuned heads.
 \input{tab_lrsweep}
 
 \paragraph*{Cross-hardware reproduction} All frozen-backbone runs of the main paper were executed on a

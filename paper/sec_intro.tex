@@ -96,8 +96,12 @@ scaling~\cite{cuturi2013sinkhorn,peyre2019computational}, here in unbalanced for
 
 \paragraph*{Planetary localisation}
 Rovers rely on visual odometry~\cite{maimone2007mer}, and landers on terrain-relative navigation
-against orbital maps~\cite{johnson2008trn}. Synthetic optical images rendered from DTMs support lunar
+against orbital maps~\cite{johnson2008trn}. Lunar rovers can match craters to orbital maps~\cite{daftry2023lunarnav} or
+localise in darkness~\cite{atha2024shadownav}, with metre-level error. LunarLoc~\cite{thomas2026lunarloc}
+matches stereo-located boulders to an earlier traverse by consistent 3-D distances~\cite{lusk2021clipper},
+reaching centimetre-level error in simulation where a terrestrial NetVLAD fails. Synthetic optical images rendered from DTMs support lunar
 navigation~\cite{ceresoli2025optical}. Our DESPINA~\cite{nelsonarcher2026despina} synthesises
 photorealistic horizon views for a given location and heading with DEM-conditioned diffusion.
 Lunar crater images have been retrieved with visual and depth features~\cite{lunarcomplexfeatures}.
-Surface-level place recognition under controlled illumination change remains largely unstudied.
+Place recognition with lunar-trained descriptors under controlled illumination change remains largely
+unstudied.

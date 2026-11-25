@@ -1,9 +1,8 @@
 % ======================================================================
 \section{Discussion}\label{sec:discussion}
 % ======================================================================
-On LunarSim-VPR, training on lunar imagery ($+\gainZsMean$ points over the best zero-shot model) and
-cluster-based aggregation (over $20$ points above global pooling) are prerequisites; the points below assume
-both.
+On LunarSim-VPR, lunar training ($+\gainZsMean$ points over zero-shot) and cluster-based aggregation
+($>20$ points over global pooling) are prerequisites, assumed below.
 
 \paragraph*{1) Training data}
 Illumination diversity in training is worth $\fixIllDrop$ points of R@1 for the reference head with a
@@ -11,8 +10,7 @@ frozen backbone and $\ftFixIllDrop$ with a fine-tuned one, more than fine-tuning
 Fine-tuning should be combined with illumination-diverse training.
 
 \paragraph*{2) Backbone adaptation}
-Fine-tuning the last four blocks adds $11$--$19$ points for every head. On real panoramas this gain does
-not appear (\cref{sec:real}).
+Fine-tuning four blocks adds $11$--$19$ points to every head, a gain absent on real panoramas (\cref{sec:real}).
 
 \paragraph*{3) Aggregation}
 Among the cluster-based heads the aggregation design has a larger effect than the assignment. Residual
@@ -32,6 +30,5 @@ sensible default; FGW ($\approx\tFgwK$\,ms per query on a CPU) is worth using on
 can be trusted.
 
 \paragraph*{6) Theory}
-Predictions (P1)--(P3) held for fixed tokens with a dust-bin. The ordering of heads with trained tokens is an
-empirical finding on simulated data; on real photographs (\cref{sec:real}) only the weakness of GeM is
-confirmed.
+Predictions (P1)--(P3) held for fixed tokens with a dust-bin; the ordering of heads with trained tokens is
+empirical, and on real photographs (\cref{sec:real}) only the weakness of GeM is confirmed.

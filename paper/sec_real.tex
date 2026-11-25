@@ -2,18 +2,17 @@ We ran two station-level tests of global retrieval on Apollo Hasselblad surface
 photographs~\cite{asuapollo} (\cref{tab:real}; protocols in the supplement). \emph{Panoramas}: the
 Apollo Lunar Surface Journal~\cite{alsj} lists the frames of each station pan. We query each
 frame of $79$ pans ($47$ stations) against the other pans of its mission, which differ in photographer,
-standpoint, heading and usually Sun elevation ($\reNq$ queries at $\reNst$ stations of Apollo~15--17). \emph{Rendered map}: for Apollo~15 we rendered $12$ headings at each of $\rrNst$ stations
-from the $2$\,m LROC NAC elevation model~\cite{robinson2010lroc}, with the Sun as it stood at each station,
-made the views photographic with DESPINA~\cite{nelsonarcher2026despina}, and kept shaded renders as a
-control; $\rrNq$ frames from $\rrNpans$ pans are the queries.
+standpoint, heading and usually Sun elevation ($\reNq$ queries at $\reNst$ stations of Apollo~15--17). \emph{Rendered map}: we rendered $12$ headings at $\rrNst$ Apollo~15 stations from the $2$\,m LROC
+NAC elevation model~\cite{robinson2010lroc} under the Sun of each station, with DESPINA~\cite{nelsonarcher2026despina}
+and as shaded renders; $\rrNq$ frames from $\rrNpans$ pans are the queries.
 
 \input{tab_real}
 
 On the panoramas no lunar-trained head is clearly better than the zero-shot DINOv2-SALAD ($\reZs\%$, 95\% CI
-$[\reZsLo,\reZsHi]$). The frozen cluster-based heads score $\reGal$--$\reSal\%$, and the fine-tuned OT head
-differs from the zero-shot model by $\reFtGalVsZsMean$ points ($[\reFtGalVsZsLo,\reFtGalVsZsHi]$), so the
-fine-tuning gain seen on LunarSim does not appear. GeM is again the weakest head. Against the
+$[\reZsLo,\reZsHi]$). The fine-tuned OT head differs from it by
+$\reFtGalVsZsMean$ points ($[\reFtGalVsZsLo,\reFtGalVsZsHi]$), so the fine-tuning gain seen on LunarSim
+does not appear. GeM is again the weakest head. Against the
 rendered map the zero-shot model is at chance, and only the fine-tuned heads are above it (NetVLAD
 $\rrFtNvD\%$, $[\rrFtNvDLo,\rrFtNvDHi]$). DESPINA views raise fine-tuned NetVLAD by $\rrFtNvDmS$ points over
 shaded renders, but the interval $[\rrFtNvDmSLo,\rrFtNvDmSHi]$ includes zero. Station positions from 1971 navigation, nearby ground filling
-most frames and one map position per station make this test hard.
+most frames and one map position per station make it hard.
