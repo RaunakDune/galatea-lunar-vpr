@@ -8,6 +8,7 @@ A pair is scored once even when several models retrieve it.
 
   --stage sp     SuperPoint for all frames (one GPU)           -> <out_dir>/apollo_sp.pt
   --stage score  local scores for the union of top-K pairs (CPU) -> <out_dir>/apollo_rr_<methods>.pt
+                 methods: mnn, fgw, lg, clipper<eps> (image-plane CLIPPER with tolerance eps pixels)
 usage: python apollo_rerank.py --stage sp --res ~/apollo_bench/apollo_center.pt --img_dir ~/apollo_bench/processed
        python apollo_rerank.py --stage score --methods mnn,fgw,lg --procs 16
 """
@@ -71,7 +72,7 @@ def score_chunk(spec):
     if 'lg' in methods and _LG is None:
         import nets
         _LG = nets.lightglue()
-    if 'clipper' in methods or 'clipper_ransac' in methods:
+    if any(m.startswith('clipper') for m in methods):
         from rerank_lib import clipper_matches
     P = np.load(f'{args.out_dir}/apollo_pairs.npy')[lo:hi]
     out = {m: np.zeros(len(P), np.float32) for m in methods}
@@ -95,8 +96,8 @@ def score_chunk(spec):
                 o = _LG({'image0': {'keypoints': kq[None], 'descriptors': dq[None], 'image_size': s},
                          'image1': {'keypoints': kc[None], 'descriptors': dc[None], 'image_size': s}})
                 mm = o['matches'][0].numpy()
-            elif m == 'clipper':
-                mm = clipper_matches(kq, dq, kc, dc)
+            elif m.startswith('clipper'):            # clipper<eps>: image-plane CLIPPER, eps in pixels
+                mm = clipper_matches(kq, dq, kc, dc, eps=float(m[len('clipper'):]))
             out[m][n] = len(mm)
             if len(mm):
                 out[m + '_ransac'][n] = ransac_inliers(kq[mm[:, 0]].numpy(), kc[mm[:, 1]].numpy())
