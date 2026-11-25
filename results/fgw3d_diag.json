@@ -1,0 +1,13 @@
+{
+ "n_queries": 100,
+ "median_keypoints": 155.0,
+ "median_true_corr": 28.0,
+ "median_corr_fraction": 0.1649984986487839,
+ "distortion_median": {
+  "2d": 0.2052,
+  "3d": 0.003,
+  "3dlog": 0.0211,
+  "3dclip": 0.0014,
+  "3dlogfix": 0.0031
+ }
+}
