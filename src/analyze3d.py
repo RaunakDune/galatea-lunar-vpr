@@ -2,7 +2,7 @@
 
 Benchmark: for every scorer, (beta, kappa) of the fusion s_g + beta * s / (s + kappa) are tuned on the
 validation scene (same grid as the paper's Table IV) and applied to the test scenes. The 3-D variant
-(mode, alpha) is selected on validation as well. Differences in R@1 carry a 95% bootstrap CI over the
+(mode, alpha) is selected on validation as well (fused score without RANSAC, the criterion of tune()). Differences in R@1 carry a 95% bootstrap CI over the
 450 test places (all queries of a place resampled together), as in make_tables.py.
 Robustness: the same fusion parameters, applied to the heading, offset and pitch variants.
 Writes <RESULTS>/fgw3d_summary.json.
@@ -70,10 +70,11 @@ for k in ['fgw', 'fgw_ransac'] + keys3d:
     r = recall_after(sv, 'val', k, 'fused', b, kap)
     fus[k] = (b, kap)
     out['val'][k] = {'beta': b, 'kappa': kap, 'R@1': round(r['R@1'], 2), 'R@5': round(r['R@5'], 2)}
-best = {}
-for suf in ('', '_ransac'):
-    cands = [k for k in keys3d if k.endswith('_ransac') == (suf == '_ransac')]
-    best[suf] = max(cands, key=lambda k: out['val'][k]['R@1'] + 0.5 * out['val'][k]['R@5'])
+# one structure (mode, alpha) is selected on its fused validation score without RANSAC and reported both
+# with and without RANSAC verification
+plain = [k for k in keys3d if not k.endswith('_ransac')]
+b0 = max(plain, key=lambda k: out['val'][k]['R@1'] + 0.5 * out['val'][k]['R@5'])
+best = {'': b0, '_ransac': b0 + '_ransac'}
 out['selected'] = best
 # 2. test
 g1, g5, cond = hits(st, 'test', None)
