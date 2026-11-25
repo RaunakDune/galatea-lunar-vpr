@@ -9,7 +9,8 @@ Camera poses: database images use the stored pose and the default camera height 
 val query poses are stored without their camera height, so the generator's random stream is replayed
 (as in gen_robust.benchmark_poses) and checked against meta.json. The robustness variants store their
 full pose (including pitch). Pixels that see the sky (no ground hit) get a point at SKY_RANGE metres
-along their ray at camera height.
+along their ray at camera height, except that keypoints within 3 px of the skyline take the point of the
+nearest ground pixel (snap()).
 
 Output: <RESULTS>/geom3d/<split>_<terrain>.pt (list aligned with feats.pt 'sp') and
         <RESULTS>/geom3d/robust_<variant>_<terrain>.pt (list aligned with <variant>_sp.pt[terrain]).
@@ -93,6 +94,18 @@ def geometry_tilted(T, x0, y0, yaw_deg, cam_h=1.5, roll=0.0, pitch=0.0):
     return P, sky
 
 
+def snap(P, sky, max_px=3.0):
+    """Keypoints on the skyline often round to a sky pixel; give every sky pixel within max_px of the
+    ground the 3-D point of its nearest ground pixel (the ridge it belongs to)."""
+    if not sky.any() or sky.all():
+        return P
+    dist, (ri, ci) = ndimage.distance_transform_edt(sky, return_indices=True)
+    ok = sky & (dist <= max_px)
+    P = P.copy()
+    P[ok] = P[ri[ok], ci[ok]]
+    return P
+
+
 def kp3d(P, kp):
     kp = kp.float().numpy()
     c = np.clip(np.round(kp[:, 0]).astype(int), 0, P.shape[1] - 1)
@@ -141,13 +154,14 @@ def job_split(spec):
             m = meta['q'][k - ndb]; key = ('q', m['place'])
             pose = jit[m['place']]
         if key not in cache:
-            cache[key] = geometry(T, pose[0], pose[1], pose[2], cam_h=pose[3])
+            P, sky = geometry(T, pose[0], pose[1], pose[2], cam_h=pose[3])
+            cache[key] = (snap(P, sky), sky & (ndimage.distance_transform_edt(sky) > 3.0))
         P, sky = cache[key]
         res.append(kp3d(P, sp['kp']))
         kp = sp['kp'].float().numpy()
         nsky += int(sky[np.clip(np.round(kp[:, 1]).astype(int), 0, 239), np.clip(np.round(kp[:, 0]).astype(int), 0, 319)].sum())
     torch.save(res, out)
-    return f'{split} {tn}: {len(res)} images, {nsky} sky keypoints, {time.time() - t0:.0f}s'
+    return f'{split} {tn}: {len(res)} images, {nsky} keypoints >3 px into the sky, {time.time() - t0:.0f}s'
 
 
 def job_robust(spec):
@@ -165,7 +179,7 @@ def job_robust(spec):
     for m, sp in zip(meta['q'], sps):
         key = (round(m['x'], 9), round(m['y'], 9), round(m['yaw'], 9), m['cam_h'], m['roll'], m['pitch'])
         if key not in cache:
-            cache[key] = geometry_tilted(T, m['x'], m['y'], m['yaw'], m['cam_h'], m['roll'], m['pitch'])[0]
+            cache[key] = snap(*geometry_tilted(T, m['x'], m['y'], m['yaw'], m['cam_h'], m['roll'], m['pitch']))
         res.append(kp3d(cache[key], sp['kp']))
     torch.save(res, out)
     return f'robust {v} {tn}: {len(res)} images, {len(cache)} poses, {time.time() - t0:.0f}s'
