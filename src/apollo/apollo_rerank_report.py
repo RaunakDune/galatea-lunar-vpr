@@ -75,7 +75,7 @@ boot = [np.concatenate([by[p] for p in rng.choice(upans, len(upans))]) for _ in 
 
 def ci(x):
     s = np.array([x[b].mean() for b in boot]) * 100
-    return [round(float(x.mean() * 100), 2), round(float(np.percentile(s, 2.5)), 2), round(float(np.percentile(s, 97.5)), 2)]
+    return [round(float(x.mean() * 100), 4), round(float(np.percentile(s, 2.5)), 4), round(float(np.percentile(s, 97.5)), 4)]
 
 
 def lomo(names, s):
