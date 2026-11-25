@@ -20,8 +20,9 @@ Fusion adds $\msnvMnnRGain$--$\msMnnRGain$ points for every stage-1 model and ma
 full system reaches $\msnvFgwRone\%$. Illumination-diverse training is worth
 $\fixIllDrop$--$\ftFixIllDrop$ points, more than fine-tuning. In simulation we therefore recommend a fixed
 assignment, residual aggregation, illumination-diverse training and fusion with a cheap matcher. On real
-Apollo photographs these gains largely disappear: no lunar-trained head is clearly better than the zero-shot model, and against a map
-rendered with DESPINA only fine-tuned heads exceed chance.
+Apollo photographs the gains of lunar training largely disappear: no lunar-trained head is clearly better than the
+zero-shot model, and against a map rendered with DESPINA only fine-tuned heads exceed chance. Fusion
+carries over: it adds $\apGainLo$--$\apGainHi$ points to every head on real panoramas.
 \end{abstract}
 
 \begin{IEEEkeywords}

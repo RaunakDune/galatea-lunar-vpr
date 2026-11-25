@@ -1,0 +1,76 @@
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\caption{Partial FGW with 3-D structure matrices (oracle depth): fused R@1 (\%) on validation and test, and the test difference to image-plane FGW (95\% CI over places). \emph{3d}: Euclidean distance, normalised to mean~1; \emph{3dlog}: $\log(1+d)$, mean~1; \emph{3dclip}: $\min(d,200\,\mathrm{m})$ and \emph{3dlogfix}: $\log(1+d)$, each divided by one fixed scale. Selected on validation: 3dclip, $\alpha=0.6$.}
+\label{tab:fgw3d}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Structure & $\alpha$ & Val. & Test & $\Delta$ vs.\ image plane \\
+\midrule
+image plane & 0.3 & 67.0 & 66.0 & -- \\
+3d & 0.3 & 65.1 & 64.3 & -1.6 [-2.8, -0.5] \\
+3d & 0.6 & 63.4 & 61.9 & -4.1 [-5.4, -2.9] \\
+3d & 0.9 & 62.4 & 60.4 & -5.6 [-6.9, -4.3] \\
+3dclip & 0.3 & 65.6 & 65.8 & -0.2 [-1.3, +0.9] \\
+3dclip & 0.6 & 66.3 & 64.2 & -1.8 [-3.3, -0.4] \\
+3dlog & 0.3 & 65.4 & 64.4 & -1.6 [-2.7, -0.5] \\
+3dlog & 0.6 & 63.1 & 62.5 & -3.5 [-4.7, -2.3] \\
+3dlog & 0.9 & 61.7 & 60.8 & -5.2 [-6.4, -3.9] \\
+3dlogfix & 0.3 & 65.4 & 65.7 & -0.3 [-1.5, +0.9] \\
+3dlogfix & 0.6 & 65.7 & 63.0 & -3.0 [-4.4, -1.6] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\caption{Robustness variants: R@1 (\%) of the frozen reference head before and after fusion with image-plane and 3-D FGW (3dclip, $\alpha=0.6$), and the 3-D minus image-plane difference (95\% CI over places).}
+\label{tab:fgw3drob}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Variant & Global & FGW & FGW 3-D & $\Delta$ \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{heading $\pm{}^\circ$}} \\
+\quad 15 & 44.0 & 47.8 & 46.4 & -1.4 [-2.9, +0.1] \\
+\quad 30 & 18.3 & 19.6 & 20.7 & +1.0 [-0.1, +2.2] \\
+\quad 45 & 7.3 & 7.8 & 7.8 & +0.0 [-0.8, +0.8] \\
+\multicolumn{5}{@{}l}{\emph{offset (m)}} \\
+\quad 0 & 64.0 & 72.2 & 70.1 & -2.1 [-3.5, -0.5] \\
+\quad 2 & 60.0 & 65.4 & 63.5 & -2.0 [-3.5, -0.5] \\
+\quad 4 & 55.8 & 61.0 & 57.5 & -3.5 [-4.9, -2.1] \\
+\quad 6 & 49.9 & 53.3 & 49.9 & -3.4 [-4.9, -1.8] \\
+\quad 8 & 43.6 & 47.4 & 44.1 & -3.3 [-4.8, -1.7] \\
+\multicolumn{5}{@{}l}{\emph{pitch ($^\circ$)}} \\
+\quad -30 & 4.4 & 4.6 & 4.5 & -0.1 [-0.4, +0.3] \\
+\quad -15 & 33.3 & 39.4 & 39.8 & +0.5 [-0.4, +1.4] \\
+\quad -5 & 54.8 & 59.6 & 58.6 & -0.9 [-2.3, +0.4] \\
+\quad 5 & 54.4 & 58.9 & 59.1 & +0.2 [-1.2, +1.6] \\
+\quad 15 & 50.1 & 54.8 & 55.4 & +0.6 [-0.7, +1.9] \\
+\quad 30 & 32.1 & 36.0 & 36.0 & -0.0 [-1.3, +1.3] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table*}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\caption{Apollo panoramas (A15--17, 958 queries): station-level R@1 (\%) of the global ranking and after fusion of the top~10 with each local scorer, with $(\beta,\kappa)$ transferred from the LunarSim validation scene. Last column: FGW fusion with $(\beta,\kappa)$ tuned on the other two missions (leave one mission out). Top~10: queries whose top~10 contain the right station. Mean over seeds.}
+\label{tab:apollorr}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+Model & Global & Top~10 & MNN+M. & LG+M. & FGW & CLIPPER & FGW (LOMO) \\
+\midrule
+DINOv2-SALAD (zero-shot) & 34.4 & 73.0 & 41.1 & 41.9 & 42.3 & 42.3 & 42.1 \\
+GeM & 24.7 & 64.1 & 31.8 & 31.2 & 31.3 & 30.6 & 31.6 \\
+NetVLAD & 33.0 & 69.3 & 38.9 & 39.0 & 39.0 & 39.1 & 40.3 \\
+OT, $\lambda=1$ & 36.5 & 75.9 & 42.6 & 42.2 & 42.1 & 43.1 & 42.8 \\
+OT, $\lambda\approx0.5$ & 31.8 & 68.9 & 38.2 & 37.9 & 37.3 & 38.5 & 38.0 \\
+NetVLAD, fine-tuned & 34.6 & 70.3 & 41.6 & 41.9 & 41.1 & 42.1 & 41.4 \\
+OT, fine-tuned & 36.1 & 74.5 & 42.9 & 43.5 & 42.3 & 42.7 & 42.6 \\
+\bottomrule
+\end{tabular}
+\end{table*}

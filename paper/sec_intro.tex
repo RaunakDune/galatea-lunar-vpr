@@ -56,18 +56,21 @@ changes in solar elevation and azimuth.
 \item \textbf{A controlled study of what matters} (\cref{sec:exp,sec:discussion}). Under identical
 training, with three seeds and confidence intervals from a paired bootstrap over places, we evaluate
 terrestrial models zero-shot, the whole assignment family with a frozen and a fine-tuned backbone,
-whether $\lambda$ can be learned, four local scorers with and without fusion, and the effect of
+whether $\lambda$ can be learned, five local scorers with and without fusion and with exact 3-D
+distances, and the effect of
 training illumination. We distil the results into design
 guidelines for lunar VPR.
 \item \textbf{A first test on real imagery} (\cref{sec:real}) on Apollo surface panoramas, retrieved
-against other pans and against a map rendered with DESPINA from orbital elevation data.
+against other pans and against a map rendered with DESPINA from orbital elevation data, with
+global--local fusion on the panoramas.
 \end{enumerate}
 
 In simulation the assignment is a weak lever that training cannot set and is best fixed, fusion helps
 every stage-1 model, and the fusion rule has a larger effect than the choice of local matcher. On real
 Apollo photographs, however, the
 lunar-trained heads do no better than a terrestrial model used zero-shot, so these guidelines describe
-simulated data until the gap between simulation and real imagery is closed.
+simulated data until the gap between simulation and real imagery is closed. Fusion is the exception: it
+improves every head on the real panoramas.
 
 % ======================================================================
 \section{Related Work}\label{sec:related}

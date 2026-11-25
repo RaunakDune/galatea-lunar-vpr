@@ -3,7 +3,7 @@ Apart from \cref{sec:real}, all quantitative results come from simulation. Lunar
 lunar relief and the dominant photometric effects, but it omits near-field rocks below the $0.3$\,m DEM spacing (\cref{fig:apollo}), dust, lens
 effects and most geological units. Absolute recall values are not predictions of on-Moon
 performance, and on real photographs even the gains of lunar training largely disappear
-(\cref{sec:real}); those tests are small, with station-level ground truth and no re-ranking. Finally, the queries are upright and near the database poses. A $5^\circ$ roll
+(\cref{sec:real}); those tests are small, with station-level ground truth. Finally, the queries are upright and near the database poses. A $5^\circ$ roll
 lowers the frozen reference head from $\rbBase$ to $\rbRollFive\%$ R@1 and a $30^\circ$ heading change costs
 $\rbHeadThirtyDrop$ points (supplement); levelling the image with gravity recovers most of the roll loss.
 
@@ -12,7 +12,6 @@ $\rbHeadThirtyDrop$ points (supplement); levelling the image with gravity recove
 % ======================================================================
 With both stages of lunar VPR cast as optimal transport, illumination-diverse training, residual
 aggregation with a fixed assignment and global--local fusion matter most in simulation. On real
-Apollo photographs these gains largely disappear, and against a map rendered with DESPINA only
-fine-tuned heads exceed chance. Next steps are larger real benchmarks at the Apollo~15--17 sites,
-training on DESPINA renders of real terrain~\cite{nelsonarcher2026despina}, and 3-D structural terms as
-in LunarLoc~\cite{thomas2026lunarloc}.
+Apollo photographs only fusion carries over. Next steps are larger real benchmarks at the Apollo~15--17 sites, training on DESPINA renders
+of real terrain~\cite{nelsonarcher2026despina}, and object-level local evidence such as the boulders of
+LunarLoc~\cite{thomas2026lunarloc}.

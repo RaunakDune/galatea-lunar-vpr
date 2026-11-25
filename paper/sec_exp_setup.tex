@@ -13,11 +13,12 @@ $\lambda$ initialised at $0.1$, $0.5$ or $0.9$. The re-ranking, ablation and rob
 the \emph{reference head}: the trainable head initialised at $0.5$, whose $\lambda$ stays at $0.50$
 (\cref{sec:family}), so that it behaves as the fixed $\lambda=0.5$ member. All $8448$-D heads have almost identical parameter
 counts. Each head is trained either on a \emph{frozen} backbone or \emph{fine-tuned} jointly with the
-last four ViT blocks, as in SALAD. For stage~2 we compare four local scorers on the same
+last four ViT blocks, as in SALAD. For stage~2 we compare five local scorers on the same
 SuperPoint keypoints (top $384$ by score) and top-$K=10$ candidates: mutual nearest neighbours
 with cosine $>0.7$ (MNN), training-free entropic OT with dust-bins (UOT, appearance only), the learned LightGlue
-matcher~\cite{lindenberger2023lightglue}, and our partial FGW. Each is used with and without
-MAGSAC++ verification.
+matcher~\cite{lindenberger2023lightglue}, our partial FGW, and CLIPPER~\cite{lusk2021clipper}, the
+matcher of LunarLoc~\cite{thomas2026lunarloc}, which keeps the largest set of descriptor matches whose
+pairwise distances agree. Each is used with and without MAGSAC++ verification.
 
 \paragraph*{Implementation}
 Images are resized to $210\times280$ for the ViT ($n=300$ tokens). Heads are trained with AdamW

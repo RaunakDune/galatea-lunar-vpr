@@ -8,6 +8,7 @@
 \makeatletter\begingroup\let\bibcite\@gobbletwo\externaldocument{main}\endgroup\makeatother
 \input{numbers}
 \input{numbers_apollo}
+\input{numbers_stage2}
 \DeclareMathOperator*{\argmax}{arg\,max}
 
 \begin{document}
@@ -38,6 +39,14 @@ training gives $47.8\%$ (CPU: $\fixIllRone\%$).
 
 \paragraph*{Ablations} Table~\ref{tab:ablation} lists the single-seed ablations of Section~\ref{sec:ablation}.
 \input{tab_ablation}
+\input{tab_rescue}
+
+\paragraph*{Rescued and broken queries} Table~\ref{tab:rescue} gives the shares of test queries whose top-1
+result re-ranking rescues or breaks (Section~\ref{sec:rerank}). With the tuned $(\beta,\kappa)$ and $s_{\max}$ the largest
+observed local score, $\beta\phi_{\max}=\ovCapLo$--$\ovCapHi$, against a median margin of
+$\ovMarginLo$--$\ovMarginHi$ between a query's two best candidates, so the limit of
+Proposition~\ref{prop:override}(ii) binds for fewer than $0.1\%$ of the queries with the frozen head and at most
+$\ovBindMax\%$ in any configuration.
 \input{sec_ablation_sinkhorn}
 \paragraph*{Run time}
 \input{sec_runtime_text}
@@ -113,7 +122,7 @@ rotation-invariant (\cref{prop:inv}), but its appearance term is not.
 \paragraph*{Implications} A rover should level its images with the IMU before retrieval. Its database should
 be recorded at the operating camera height and with several headings per place. Offsets of a few metres
 cost little ($\rbOffFourDrop$ points at $4$\,m). The FGW structural term uses image-plane distances, which
-large viewpoint changes do not preserve.
+large viewpoint changes do not preserve; exact 3-D distances do not recover the loss (Section~\ref{sec:stage2supp}).
 
 \section{Real-imagery protocols}\label{sec:realsupp}
 \paragraph*{Panorama benchmark} The image library of the Apollo Lunar Surface Journal~\cite{alsj} lists, for
@@ -146,5 +155,51 @@ $\rrNpans$ pans.
 those of Section~\ref{sec:robust}, whose backbones were stored. Intervals resample query pans ($2000$
 bootstrap draws). Table~\ref{tab:real_ci} gives all intervals.
 \input{tab_real_ci}
+
+\section{Stage-2 extensions}\label{sec:stage2supp}
+\paragraph*{3-D keypoint positions} For every test, validation and robustness image we re-ran the
+LunarSim ray caster without shading at the image's camera pose. This gives the world point seen by each
+pixel, and a keypoint takes the point of its nearest pixel. The benchmark does not store the camera
+heights of the queries, so we recovered them by replaying the generator's random stream and checked the
+replay against the stored positions and headings. Keypoints within $3$ pixels of the skyline take the
+point of the nearest ground pixel; pixels farther into the sky get a point $3$\,km away. The positions are
+exact up to pixel rounding, an upper bound for what stereo depth would give a rover.
+
+\paragraph*{FGW with 3-D structure} The 3-D structure matrices replace the image-plane distances in
+Eq.~(\ref{eq:fgw}) and nothing else changes. With mean normalisation far-field pairs dominate (the per-image
+mean 3-D distance has a median of about $2$\,km on validation), so we also tried two variants with one
+fixed scale for all images: distances clipped at $200$\,m, and $\log(1+d)$.
+Table~\ref{tab:fgw3d} lists all variants. The one selected on validation loses $\fgwThreeVsTwoMean$ points on the
+test scenes; the best on test, which validation did not select, ties with the image plane
+($\fgwThreeBestTestVsTwoMean$, $[\fgwThreeBestTestVsTwoLo,\fgwThreeBestTestVsTwoHi]$), and a larger weight
+$\alpha$ on the structural term always lowers R@1. Table~\ref{tab:fgw3drob} repeats the comparison on the
+robustness variants of Section~\ref{sec:robust}: 3-D distances lose under position offsets and are within
+$\rbThreeHPMax$ points of the image plane under heading and pitch changes.
+
+\paragraph*{Correspondences} For the $100$ validation queries under the database Sun we paired each query
+with its own database image and called two keypoints a true correspondence when their 3-D points are mutual
+nearest neighbours within $0.3$\,m plus $1\%$ of the range. A median of $\diagCorr$ of $\diagKp$ keypoints
+($\diagCorrFrac\%$) have a true partner. Over pairs of true correspondences the structure matrices of query
+and database image differ on average by $\diagDistTwo\%$ of their mean in the image plane and by
+$\diagDistThree\%$ in 3-D. The 3-D term is thus nearly exact where it applies, but the transport plan is
+dominated by keypoints that have no partner.
+
+\paragraph*{CLIPPER} We use the authors' C++ implementation~\cite{lusk2021clipper} through a small C
+wrapper. Putative associations are the three nearest database keypoints in descriptor space of every
+query keypoint, with cosine above $0.3$. Two associations are consistent when their distances differ by less
+than $\epsilon$, with weight $\exp(-\Delta^2/2\sigma^2)$ and $\sigma=\epsilon/2$; the solver uses its default
+rounding. The score is the number of associations CLIPPER keeps, or the MAGSAC++ inliers among them. We chose
+$\epsilon\in\{4,8,16,32\}$ pixels and $\{0.5,1,2,4\}$\,m per row on validation, which gave $\clTwoEps$ and
+$\clTwoREps$ pixels (the latter the largest value tried) and $\clThreeREps$\,m. With 3-D distances and
+MAGSAC++, CLIPPER is the best local-only scorer ($\clThreeRLocRone\%$), and it reaches the same fused R@1
+as with image-plane distances.
+
+\paragraph*{Apollo re-ranking} The panorama frames get the crop of Section~\ref{sec:realsupp} and are resized to
+$320\times240$, the LunarSim resolution, before SuperPoint. Every (query, candidate) pair in the top~10 of
+any head is scored once. $(\beta,\kappa)$ are those tuned on the LunarSim validation scene for the frozen
+reference head, applied unchanged to every head; the leave-one-mission-out column tunes them on the
+queries of the other two missions with the same grid and criterion. Table~\ref{tab:apollorr} gives all heads and
+scorers.
+\input{tab_stage2_supp}
 
 \end{document}

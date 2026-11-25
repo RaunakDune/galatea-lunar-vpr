@@ -1,23 +1,23 @@
 \begin{table}[t]
 \centering
 \setlength{\tabcolsep}{5pt}
-\caption{Station-level Recall@1 (\%) on real Apollo photographs: against other pans (random 6.5\%) and against a rendered Apollo~15 map (random 11.1\%). Mean over three seeds; more heads and intervals in the supplement.}
+\caption{Station-level Recall@1 (\%) on real Apollo photographs: against other pans (random 6.5\%) and against a rendered Apollo~15 map (random 11.1\%). Mean over three seeds; more heads and intervals in the supplement. \emph{Fused}: top~10 re-ranked with FGW fusion, $(\beta,\kappa)$ from LunarSim.}
 \label{tab:real}
-\begin{tabular}{@{}lccc@{}}
+\begin{tabular}{@{}lcccc@{}}
 \toprule
- & Panoramas & \multicolumn{2}{c}{Rendered map (A15)} \\
-\cmidrule(lr){3-4}
-Model & (A15--17) & DESPINA & shaded \\
+ & \multicolumn{2}{c}{Panoramas (A15--17)} & \multicolumn{2}{c}{Rendered map (A15)} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Model & global & fused & DESPINA & shaded \\
 \midrule
-\multicolumn{4}{@{}l}{\emph{Earth-trained, zero-shot}} \\
-DINOv2-SALAD & 34.4 & 11.1 & 15.3 \\
-\multicolumn{4}{@{}l}{\emph{Lunar-trained head, frozen backbone}} \\
-GeM & 24.7 & 12.4 & 10.6 \\
-NetVLAD & 33.0 & 12.1 & 11.2 \\
-OT, $\lambda\approx0.5$ & 31.8 & 11.9 & 11.7 \\
-\multicolumn{4}{@{}l}{\emph{Lunar-trained, backbone fine-tuned}} \\
-NetVLAD & 34.6 & 20.6 & 12.9 \\
-OT, $\lambda\approx0.5$ & 36.1 & 17.2 & 18.0 \\
+\multicolumn{5}{@{}l}{\emph{Earth-trained, zero-shot}} \\
+DINOv2-SALAD & 34.4 & 42.3 & 11.1 & 15.3 \\
+\multicolumn{5}{@{}l}{\emph{Lunar-trained head, frozen backbone}} \\
+GeM & 24.7 & 31.3 & 12.4 & 10.6 \\
+NetVLAD & 33.0 & 39.0 & 12.1 & 11.2 \\
+OT, $\lambda\approx0.5$ & 31.8 & 37.3 & 11.9 & 11.7 \\
+\multicolumn{5}{@{}l}{\emph{Lunar-trained, backbone fine-tuned}} \\
+NetVLAD & 34.6 & 41.1 & 20.6 & 12.9 \\
+OT, $\lambda\approx0.5$ & 36.1 & 42.3 & 17.2 & 18.0 \\
 \bottomrule
 \end{tabular}
 \end{table}

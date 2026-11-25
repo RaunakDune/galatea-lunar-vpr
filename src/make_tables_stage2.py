@@ -4,9 +4,8 @@ re-ranking on the Apollo panoramas.
 Reads results/{rerank_summary,clipper_summary,fgw3d_summary,fgw3d_diag}.json and
 results/apollo/apollo_rerank_summary.json. Writes
   paper/numbers_stage2.tex   macros
-  paper/tab_rerank.tex       adds the CLIPPER and 3-D rows to the table written by make_tables.py
-                             (between '% stage2' markers, so it can be re-run) and re-bolds the best
-                             fused R@1
+  paper/tab_rerank.tex       the main re-ranking table in a compact form (R@1 only, MAGSAC++ as columns),
+                             replacing the version of make_tables.py, with the CLIPPER and 3-D rows
   paper/tab_stage2_supp.tex  supplement: 3-D variants, robustness sets, Apollo re-ranking per head
 usage: python src/make_tables_stage2.py   (after make_tables.py)
 """
@@ -81,29 +80,34 @@ spread = [max(FAM[f]['scorers'][s]['fused_sim_R1'][0] for s in SC) - min(FAM[f][
 mac['apScorerSpread'] = f1(max(spread))
 open(f'{P}/numbers_stage2.tex', 'w').write('\n'.join(f'\\newcommand{{\\{k}}}{{{v}}}' for k, v in sorted(mac.items())) + '\n')
 
-# ---------------------------------------------------------------- rows of the main re-ranking table
-T = open(f'{P}/tab_rerank.tex').read()
-T = re.sub(r'% stage2-begin.*?% stage2-end\n', '', T, flags=re.S)
-T = re.sub(r'\\textbf\{([\d.]+)\}', r'\1', T)
-row = lambda lab, loc, fus: f'{lab} & {loc["R@1"]:.1f} & {loc["R@5"]:.1f} & {fus["R@1"]:.1f} & {fus["R@5"]:.1f} \\\\'
-new = ['% stage2-begin', r'\midrule',
-       row(r'CLIPPER~\cite{lusk2021clipper}', cl['rows']['clipper2d']['local'], cl['rows']['clipper2d']['fused']),
-       row(r'CLIPPER~\cite{lusk2021clipper} + MAGSAC++', cl['rows']['clipper2d_ransac']['local'], cl['rows']['clipper2d_ransac']['fused']),
-       row(r'Partial FGW, 3-D$^\dagger$', t3['local'], t3['fused']),
-       row(r'CLIPPER, 3-D$^\dagger$ + MAGSAC++', cl['rows']['clipper3d_ransac']['local'], cl['rows']['clipper3d_ransac']['fused']),
-       '% stage2-end']
-T = T.replace('\\bottomrule', '\n'.join(new) + '\n\\bottomrule', 1)
-lines = T.split('\n')
-vals = [(i, float(l.split('&')[3])) for i, l in enumerate(lines) if l.count('&') == 4 and re.fullmatch(r'[\d.]+', l.split('&')[3].strip())]
-best_v = max(v for _, v in vals)
-for i, v in vals:
-    if abs(v - best_v) < 0.05:
-        p = lines[i].split('&'); p[3] = ' \\textbf{%.1f} ' % v; lines[i] = '&'.join(p)
-T = '\n'.join(lines)
-if r'$^\dagger$Distances' not in T:
-    T = T.replace(r'chosen on the validation scene.}', r'chosen on the validation scene, as are the CLIPPER tolerances. '
-                  r'$^\dagger$Distances between oracle 3-D keypoint positions from the renderer.}')
-open(f'{P}/tab_rerank.tex', 'w').write(T)
+# ---------------------------------------------------------------- main re-ranking table (rebuilt, compact)
+rs = json.load(open(f'{R}/rerank_summary.json'))
+c3 = {'local_R1': t3['local']['R@1'], 'fused_R1': t3['fused']['R@1']}
+c3r = {'local_R1': f3['test'][sel + '_ransac']['local']['R@1'], 'fused_R1': f3['test'][sel + '_ransac']['fused']['R@1']}
+cr = lambda k: {'local_R1': cl['rows'][k]['local']['R@1'], 'fused_R1': cl['rows'][k]['fused']['R@1']}
+ROWS = [('MNN', rs['mnn'], rs['mnn_ransac']), ('OT, appearance only', rs['uot'], rs['uot_ransac']),
+        (r'LightGlue~\cite{lindenberger2023lightglue} (learned)', rs['lg'], rs['lg_ransac']),
+        ('Partial FGW (ours)', rs['fgw'], rs['fgw_ransac']),
+        (r'CLIPPER~\cite{lusk2021clipper}', cr('clipper2d'), cr('clipper2d_ransac')),
+        (r'Partial FGW, 3-D$^\dagger$', c3, c3r),
+        (r'CLIPPER, 3-D$^\dagger$', cr('clipper3d'), cr('clipper3d_ransac'))]
+bestf = max(max(a['fused_R1'], b['fused_R1']) for _, a, b in ROWS)
+bf = lambda v: ('\\textbf{%.1f}' if abs(v - bestf) < 0.05 else '%.1f') % v
+T = [r'\begin{table}[t]', r'\centering',
+     r'\caption{Stage-2 re-ranking of the top-10 candidates of the frozen reference head (seed~0; test R@1, \%). '
+     r'\emph{Local}: sort by the local score only. \emph{Fused}: \cref{eq:fusion} with $(\beta,\kappa)$ chosen on the '
+     r'validation scene, as are the CLIPPER tolerances. +M: with MAGSAC++ verification. '
+     r'$^\dagger$Distances between exact 3-D keypoint positions from the renderer.}',
+     r'\label{tab:rerank}', r'\footnotesize', r'\setlength{\tabcolsep}{3pt}', r'\begin{tabular}{@{}lcccc@{}}', r'\toprule',
+     r'& \multicolumn{2}{c}{Local} & \multicolumn{2}{c}{Fused} \\', r'\cmidrule(lr){2-3}\cmidrule(lr){4-5}',
+     r'Local scorer & & +M & & +M \\', r'\midrule',
+     f'none (global ranking) & \\multicolumn{{2}}{{c}}{{--}} & \\multicolumn{{2}}{{c}}{{{f3["test"]["global"]["R@1"]:.1f}}} \\\\']
+for i, (lab, a, b) in enumerate(ROWS):
+    if i == 5:
+        T.append(r'\midrule')
+    T.append(f'{lab} & {a["local_R1"]:.1f} & {b["local_R1"]:.1f} & {bf(a["fused_R1"])} & {bf(b["fused_R1"])} \\\\')
+T += [r'\bottomrule', r'\end{tabular}', r'\end{table}', '']
+open(f'{P}/tab_rerank.tex', 'w').write('\n'.join(T))
 
 # ---------------------------------------------------------------- supplement tables
 L = [r'\begin{table}[t]', r'\centering', r'\footnotesize', r'\setlength{\tabcolsep}{3pt}',
@@ -136,7 +140,7 @@ for kind, vals_, lab in VAR:
 L += [r'\bottomrule', r'\end{tabular}', r'\end{table}', '']
 NAMES = [('salad_zs', 'DINOv2-SALAD (zero-shot)'), ('gem', 'GeM'), ('netvlad', 'NetVLAD'), ('salad', r'OT, $\lambda=1$'),
          ('galatea', r'OT, $\lambda\approx0.5$'), ('rft_netvlad', 'NetVLAD, fine-tuned'), ('rft_galatea', r'OT, fine-tuned')]
-L += [r'\begin{table}[t]', r'\centering', r'\footnotesize', r'\setlength{\tabcolsep}{2.5pt}',
+L += [r'\begin{table*}[t]', r'\centering', r'\footnotesize', r'\setlength{\tabcolsep}{5pt}',
       r'\caption{Apollo panoramas (A15--17, ' + str(apo['n_queries']) + r' queries): station-level R@1 (\%) of the '
       r'global ranking and after fusion of the top~10 with each local scorer, with $(\beta,\kappa)$ transferred from '
       r'the LunarSim validation scene. Last column: FGW fusion with $(\beta,\kappa)$ tuned on the other two missions '
@@ -148,6 +152,6 @@ for f, lab in NAMES:
     L.append(f'{lab} & {e["global_R1"][0]:.1f} & {e["top10_contains_positive"][0]:.1f} & ' +
              ' & '.join(f'{e["scorers"][s]["fused_sim_R1"][0]:.1f}' for s in SC) +
              f' & {e["scorers"]["fgw"]["fused_lomo_R1"][0]:.1f} \\\\')
-L += [r'\bottomrule', r'\end{tabular}', r'\end{table}', '']
+L += [r'\bottomrule', r'\end{tabular}', r'\end{table*}', '']
 open(f'{P}/tab_stage2_supp.tex', 'w').write('\n'.join(L))
 print(len(mac), 'macros; tables written')

@@ -13,6 +13,7 @@ P = os.path.join(ROOT, 'paper')
 pano = json.load(open(f'{R}/apollo_panos_center_summary.json'))['subsets']
 full = json.load(open(f'{R}/apollo_panos_full_summary.json'))['subsets']
 r2r = json.load(open(f'{R}/r2r_a15_summary.json'))
+rr = json.load(open(f'{R}/apollo_rerank_summary.json'))['families'] if os.path.exists(f'{R}/apollo_rerank_summary.json') else None
 
 ROWS = [('Earth-trained, zero-shot', None, None),
         ('DINOv2-SALAD', 'salad_zs', 'salad_zs'),
@@ -35,19 +36,23 @@ SHORT = {'lam0', 'salad'}  # left out of the main-paper table (page limit); kept
 
 
 def table(with_ci):
+    FUS = bool(rr) and not with_ci
     m = pano['main']
     L = [r'\begin{table}[t]', r'\centering', r'\setlength{\tabcolsep}{4pt}' if with_ci else r'\setlength{\tabcolsep}{5pt}',
          r'\caption{Station-level Recall@1 (\%) on real Apollo photographs: against other pans (random '
          + f1(m['chance_R1']) + r'\%) and against a rendered Apollo~15 map (random ' + f1(r2r['chance_R1']) + r'\%). '
          r'Mean over three seeds' + (r'; 95\% intervals resample query pans.' if with_ci else
-                                    r'; more heads and intervals in the supplement.') + '}',
+                                    r'; more heads and intervals in the supplement.')
+         + (r' \emph{Fused}: top~10 re-ranked with FGW fusion, $(\beta,\kappa)$ from LunarSim.' if rr and not with_ci else '') + '}',
          r'\label{tab:real_ci}' if with_ci else r'\label{tab:real}',
-         r'\begin{tabular}{@{}lccc@{}}', r'\toprule',
-         r' & Panoramas & \multicolumn{2}{c}{Rendered map (A15)} \\', r'\cmidrule(lr){3-4}',
-         r'Model & (A15--17) & DESPINA & shaded \\', r'\midrule']
+         r'\begin{tabular}{@{}lcccc@{}}' if FUS else r'\begin{tabular}{@{}lccc@{}}', r'\toprule',
+         (r' & \multicolumn{2}{c}{Panoramas (A15--17)} & \multicolumn{2}{c}{Rendered map (A15)} \\' if FUS else
+          r' & Panoramas & \multicolumn{2}{c}{Rendered map (A15)} \\'),
+         r'\cmidrule(lr){2-3}\cmidrule(lr){4-5}' if FUS else r'\cmidrule(lr){3-4}',
+         r'Model & global & fused & DESPINA & shaded \\' if FUS else r'Model & (A15--17) & DESPINA & shaded \\', r'\midrule']
     for name, kp, kr in ROWS:
         if kp is None:
-            L.append(r'\multicolumn{4}{@{}l}{\emph{' + name + r'}} \\')
+            L.append(r'\multicolumn{%d}{@{}l}{\emph{' % (5 if FUS else 4) + name + r'}} \\')
             continue
         if not with_ci and kp in SHORT:
             continue
@@ -57,7 +62,8 @@ def table(with_ci):
         if with_ci:
             L.append(f'{name} & {ci(a)} & {ci(d)} & {ci(s)} \\\\')
         else:
-            L.append(f'{name} & {f1(a[0])} & {f1(d[0])} & {f1(s[0])} \\\\')
+            fu = f' & {f1(rr[kp]["scorers"]["fgw"]["fused_sim_R1"][0])}' if FUS else ''
+            L.append(f'{name} & {f1(a[0])}{fu} & {f1(d[0])} & {f1(s[0])} \\\\')
     L += [r'\bottomrule', r'\end{tabular}', r'\end{table}']
     return '\n'.join(L) + '\n'
 

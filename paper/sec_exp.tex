@@ -24,24 +24,25 @@ at all.
 
 \input{fig_percond}
 \input{tab_rerank}
-\input{tab_rescue}
 
 \subsection{Global--local fusion}\label{sec:rerank}
 \Cref{tab:rerank} re-ranks the top-10 candidates of the frozen reference head (seed~0, R@1
-$\rrGlobRone\%$) with four local scorers. Two findings stand out. First, ranking by the local score
-alone barely helps and can hurt: no scorer improves R@1 by more than about two points, and several
+$\rrGlobRone\%$) with five local scorers. Two findings stand out. First, ranking by the local score
+alone barely helps and can hurt: no image-plane scorer improves R@1 by more than about three points, and several
 lose ground. Second, fusing local and global evidence with \cref{eq:fusion} helps every scorer. With
 partial FGW, R@1 rises to $\rrFgwRone\%$, a gain of $\rrGainMean$ points (95\% CI
-$[\rrGainLo,\rrGainHi]$), and on the hardest conditions from $\galSzeroHard\%$ to $\rrFgwHard\%$, the
-best of all scorers on that subset. Differences between scorers in the fused setting are small and
+$[\rrGainLo,\rrGainHi]$), and on the hardest conditions from $\galSzeroHard\%$ to $\rrFgwHard\%$. Among the first four scorers, differences in the fused setting are small and
 within the confidence intervals: FGW vs.\ LightGlue $\fgwVsLgMean$ $[\fgwVsLgLo,\fgwVsLgHi]$, and FGW
 vs.\ appearance-only OT $\fgwVsUotMean$ $[\fgwVsUotLo,\fgwVsUotHi]$. The training-free structural
 matcher thus performs as well as a learned terrestrial matcher. In the fused setting, MAGSAC++ helps
 MNN and LightGlue but not the OT matchers, presumably because their dust-bins already reject most
-outliers.
+outliers. Fused, CLIPPER with MAGSAC++ is the strongest scorer ($\clTwoRRone\%$), $\clTwoRVsFgwMean$ points
+above FGW ($[\clTwoRVsFgwLo,\clTwoRVsFgwHi]$) and $\clTwoRVsMnnRMean$ above MNN+MAGSAC++
+($[\clTwoRVsMnnRLo,\clTwoRVsMnnRHi]$). Exact 3-D keypoint positions ($\dagger$) help neither structural matcher, since
+only about $\diagCorrFrac\%$ of the keypoints of a query and its place have a true partner (supplement).
 
 \paragraph*{Why local-only re-ranking fails and fusion works}
-\Cref{tab:rescue} splits the effect of re-ranking into queries it \emph{rescues} (wrong global top-1,
+We split the effect of re-ranking (supplement) into queries it \emph{rescues} (wrong global top-1,
 correct after re-ranking) and queries it \emph{breaks} (the reverse). Local-only ranking rescues many
 queries, $\rbFrFgwLocRes\%$ with FGW, but breaks as many ($\rbFrFgwLocBrk\%$): SuperPoint responses on
 regolith are dominated by shadow edges, so a wrong candidate photographed under similar light can
@@ -49,10 +50,7 @@ collect more matches than the right one. The overrides that break a correct resu
 a confident global ranking: the median global similarity margin they overturn is $\marginBroken$,
 twice that of the overrides that rescue a query ($\marginRescued$). Under fusion, overturning a
 larger margin requires proportionally more local evidence (\cref{prop:override}(i)); the hard limit
-(ii) hardly matters. With the tuned $(\beta,\kappa)$ and $s_{\max}$ the largest observed local score,
-$\beta\phi_{\max}=\ovCapLo$--$\ovCapHi$, against a median margin of $\ovMarginLo$--$\ovMarginHi$ between
-a query's two best candidates, so the limit binds for fewer than $0.1\%$ of the queries with the frozen
-head and at most $\ovBindMax\%$ in any configuration. Fusion keeps about half of the rescues ($\rbFrFgwFusRes\%$) while
+(ii) binds for fewer than $0.1\%$ of the queries with the frozen head (supplement). Fusion keeps about half of the rescues ($\rbFrFgwFusRes\%$) while
 breaking only $\rbFrFgwFusBrk\%$, and the same pattern holds for every scorer and for the fine-tuned
 stage~1, where local-only ranking breaks up to $\rbFtLgLocBrk\%$ of the queries and fusion at most
 $\rbFtMnnRFusBrk\%$.
@@ -66,7 +64,7 @@ and $\msnvFgwGain\pm\msnvFgwGainsd$ to the fine-tuned NetVLAD head (MNN+MAGSAC++
 $\msnvMnnRGain\pm\msnvMnnRGainsd$). The gain shrinks as stage~1 improves, since fewer queries remain
 to be rescued, and stays positive for every model. The complete system, fine-tuned NetVLAD with FGW fusion, reaches
 $\msnvFgwRone\pm\msnvFgwRonesd\%$ R@1 and $\msnvFgwRfive\%$ R@5 ($\msnvFgwHard\%$ on the hardest
-conditions), against $\zsSaladRone\%$ for the best terrestrial model. Under fusion the local scorers differ by under two
+conditions), against $\zsSaladRone\%$ for the best terrestrial model. Under fusion the local scorers differ by at most a few
 points, a smaller effect than fusion itself.
 
 

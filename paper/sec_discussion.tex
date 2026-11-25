@@ -24,10 +24,9 @@ stay within $\famFtLamRange$ points of each other after fine-tuning, and trainin
 
 \paragraph*{5) Re-ranking}
 Local evidence on the Moon is abundant but unreliable, because shadow edges dominate keypoint detections;
-under fusion it must grow with the global margin to overturn a global decision (\cref{prop:override}), and
-all four local scorers perform alike. The cheapest, MNN+MAGSAC++, is a
-sensible default; FGW ($\approx\tFgwK$\,ms per query on a CPU) is worth using only where no learned matcher
-can be trusted.
+under fusion it must grow with the global margin to overturn a global decision (\cref{prop:override}).
+Fusion is the one result that holds on real panoramas ($+\apGainLo$ to $+\apGainHi$ points). Fused scorers differ
+by a few points: CLIPPER with MAGSAC++ is best in simulation and MNN+MAGSAC++ the cheapest.
 
 \paragraph*{6) Theory}
 Predictions (P1)--(P3) held for fixed tokens with a dust-bin; the ordering of heads with trained tokens is
