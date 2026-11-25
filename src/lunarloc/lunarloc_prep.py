@@ -19,6 +19,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument('--lac_dir', default=os.path.expanduser('~/lunarloc/v1'))
 ap.add_argument('--out', default=os.path.expanduser('~/lunarloc/ext'))
 ap.add_argument('--dirs', default='')
+ap.add_argument('--stride', type=int, default=1, help='keep every n-th camera frame')
 args = ap.parse_args()
 
 
@@ -46,7 +47,7 @@ def process(name, d, get_rows, image_names, read_image):
     except (StopIteration, FileNotFoundError):
         bl = {}
     recs = []
-    for c in cam:
+    for c in cam[::args.stride]:
         if c.get('enable', 'True') != 'True' or not c['grayscale'] or c['grayscale'] not in image_names:
             continue
         t = float(c['frame']); r = fr[t]

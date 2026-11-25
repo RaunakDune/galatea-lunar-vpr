@@ -1,0 +1,12 @@
+{"straight": [["orbslam_straight_line_preset1_default_20250917_102024", "orbslam_straight_line_preset1_default_20250917_103626"],
+              ["orbslam_straight_line_preset2_default_20250917_105941", "orbslam_straight_line_preset2_default_20250917_111242"],
+              ["orbslam_straight_line_preset3_default_20250917_112119", "orbslam_straight_line_preset3_default_20250917_113009"],
+              ["orbslam_straight_line_preset4_default_20250917_204746", "orbslam_straight_line_preset4_default_20250917_210041"],
+              ["orbslam_straight_line_preset5_default_20250917_211001", "orbslam_straight_line_preset5_default_20250917_211908"],
+              ["orbslam_straight_line_preset6_default_20250917_213005", "orbslam_straight_line_preset6_default_20250917_214158"]],
+ "lighting": [["orbslam_straight_line_preset7_az100_alt2_20250917_165348", "orbslam_straight_line_preset7_az210_alt10_20250917_114517"],
+              ["orbslam_straight_line_preset8_az100_alt2_20250917_164359", "orbslam_straight_line_preset8_az210_alt10_20250917_115805"],
+              ["orbslam_straight_line_preset9_az100_alt2_20250917_125939", "orbslam_straight_line_preset9_az210_alt10_20250917_120719"]],
+ "flipped": [["orbslam_straight_line_preset1_default_20250917_102024", "orbslam_straight_line_preset1_default_20250926_173432"],
+             ["orbslam_straight_line_preset2_default_20250917_105941", "orbslam_straight_line_preset2_default_20250926_174338"],
+             ["orbslam_straight_line_preset3_default_20250917_112119", "orbslam_straight_line_preset3_default_20250926_180120"]]}
