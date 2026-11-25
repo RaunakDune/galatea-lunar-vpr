@@ -103,3 +103,32 @@ def mnn_matches(dq, dc, thr=0.7):
     a, b = s.argmax(1), s.argmax(0)
     i = torch.arange(len(a)); ok = (b[a] == i) & (s[i, a] > thr)
     return torch.stack([i[ok], a[ok]], 1).numpy()
+
+
+def clipper_matches(k1, d1, k2, d2, P1=None, P2=None, eps=8.0, sigma=None, topk=3, simthr=0.3):
+    """CLIPPER (Lusk et al., ICRA 2021; the matcher of LunarLoc): putative associations are the topk
+    descriptor neighbours of every keypoint of image 1 (cosine > simthr); CLIPPER keeps the densest set
+    that is consistent in pairwise Euclidean distance (|d1 - d2| < eps, weight exp(-(d1 - d2)^2 / 2 sigma^2)).
+    Distances are image-plane (pixels) by default, or between the 3-D points P1, P2 (metres) when given.
+    Returns the selected associations [m, 2] (indices into image 1 and image 2)."""
+    import clipperpy
+    s = d1 @ d2.T
+    if s.numel() == 0:
+        return np.zeros((0, 2), int)
+    v, j = s.topk(min(topk, s.shape[1]), dim=1)
+    i = torch.arange(s.shape[0])[:, None].expand_as(j)
+    keep = (v > simthr).flatten()
+    A = torch.stack([i.flatten(), j.flatten()], 1)[keep].numpy().astype(np.int32)
+    if len(A) < 3:
+        return np.zeros((0, 2), int)
+    X1 = (k1 if P1 is None else P1).double().numpy().T.copy()
+    X2 = (k2 if P2 is None else P2).double().numpy().T.copy()
+    ip = clipperpy.invariants.EuclideanDistanceParams()
+    ip.epsilon = eps
+    ip.sigma = eps / 2 if sigma is None else sigma
+    params = clipperpy.Params()
+    params.rounding = clipperpy.Rounding.DSD_HEU
+    cl = clipperpy.CLIPPER(clipperpy.invariants.EuclideanDistance(ip), params)
+    cl.score_pairwise_consistency(X1, X2, A)
+    cl.solve()
+    return np.asarray(cl.get_selected_associations(), dtype=int).reshape(-1, 2)
