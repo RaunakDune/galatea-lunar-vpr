@@ -16,12 +16,23 @@ def topk_kp(sp, k):
     return kp, sc, torch.nn.functional.normalize(de, dim=1)
 
 
+# Fixed scales of the metric 3-D modes: medians over the validation images of the per-image mean of
+# min(d, 200 m) and of log(1 + d) (geom3d.py points, top-384 keypoints).
+S3D_CLIP, S3D_LOG = 133.0, 5.96
+
+
 def structure(x, mode='2d'):
-    """Intra-image structure matrix of the FGW term, normalised to mean 1.
-    2d: image-plane distances between keypoints x [n, 2] (pixels).
-    3d: Euclidean distances between the keypoints' 3-D points x [n, 3] (metres).
-    3dlog: log(1 + d) of the 3-D distances, which compresses the long tail of far-field pairs."""
+    """Intra-image structure matrix of the FGW term.
+    2d: image-plane distances between keypoints x [n, 2] (pixels), normalised to mean 1.
+    3d: Euclidean distances between the keypoints' 3-D points x [n, 3] (metres), normalised to mean 1.
+    3dlog: log(1 + d) of the 3-D distances, normalised to mean 1.
+    3dclip, 3dlogfix: metric variants with one fixed scale for all images (3-D distances have a known
+    scale, which per-image normalisation discards): min(d, 200 m) / S3D_CLIP and log(1 + d) / S3D_LOG."""
     C = torch.cdist(x, x)
+    if mode == '3dclip':
+        return C.clamp(max=200.0) / S3D_CLIP
+    if mode == '3dlogfix':
+        return torch.log1p(C) / S3D_LOG
     if mode == '3dlog':
         C = torch.log1p(C)
     return C / (C.mean() + 1e-9)
