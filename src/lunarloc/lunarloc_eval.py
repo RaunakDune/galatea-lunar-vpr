@@ -37,10 +37,11 @@ ap.add_argument('--ft', default='rft_galatea_s0,rft_galatea_s1,rft_galatea_s2,rf
 ap.add_argument('--device', default='cuda:0')
 ap.add_argument('--sim_params', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'results', 'rerank_summary.json'))
 ap.add_argument('--procs', type=int, default=16)
+ap.add_argument('--pairs', default='', help='JSON file {kind: [[traverse_a, traverse_b], ...]} (default: PAIRS below)')
+ap.add_argument('--tag', default='lunarloc')
 args = ap.parse_args()
 
-PAIRS = {'straight': [(1, 2), (3, 4), (5, 6), (7, 8)], 'lighting': [(9, 10), (11, 12), (13, 14)],
-         'flipped': [(1, 15), (2, 16), (3, 17)]}
+PAIRS = json.load(open(args.pairs)) if args.pairs else {}
 CROP_HFOV = 2 * np.degrees(np.arctan((960 / 2) / ((1280 / 2) / np.tan(np.radians(35)))))
 K = 10
 
@@ -92,7 +93,7 @@ def stage_desc():
         return z[:, 1:].reshape(B, DS[0] // 14, DS[1] // 14, -1).permute(0, 3, 1, 2), z[:, 0]
 
     os.makedirs(args.feat, exist_ok=True)
-    for d in sorted(os.listdir(args.ext), key=lambda s: int(s.split('_')[1])):
+    for d in sorted(os.listdir(args.ext)):
         out = f'{args.feat}/{d}.pt'
         if os.path.exists(out) or not os.path.exists(f'{args.ext}/{d}/meta.json'):
             continue
@@ -149,9 +150,9 @@ def local_scores(spec):
     tq, td, prs = spec
     torch.set_num_threads(1)
     from rerank_lib import topk_kp, mnn_matches, mutual_matches, fgw_match, clipper_matches, ransac_inliers
-    Fq, Fd = torch.load(f'{args.feat}/traverse_{tq}.pt', weights_only=False), torch.load(f'{args.feat}/traverse_{td}.pt', weights_only=False)
-    Mq = json.load(open(f'{args.ext}/traverse_{tq}/meta.json'))['images']
-    Md = json.load(open(f'{args.ext}/traverse_{td}/meta.json'))['images']
+    Fq, Fd = torch.load(f'{args.feat}/{tq}.pt', weights_only=False), torch.load(f'{args.feat}/{td}.pt', weights_only=False)
+    Mq = json.load(open(f'{args.ext}/{tq}/meta.json'))['images']
+    Md = json.load(open(f'{args.ext}/{td}/meta.json'))['images']
     out = {}
     for qi, di in prs:
         kq, _, dq = topk_kp(Fq['sp'][qi], 384)
@@ -173,8 +174,8 @@ def local_scores(spec):
 
 
 def stage_eval():
-    meta = {k: json.load(open(f'{args.ext}/traverse_{k}/meta.json'))['images'] for kind in PAIRS for p in PAIRS[kind] for k in p}
-    feat = {k: torch.load(f'{args.feat}/traverse_{k}.pt', weights_only=False) for k in meta}
+    meta = {k: json.load(open(f'{args.ext}/{k}/meta.json'))['images'] for kind in PAIRS for p in PAIRS[kind] for k in p}
+    feat = {k: torch.load(f'{args.feat}/{k}.pt', weights_only=False) for k in meta}
     models = list(next(iter(feat.values()))['desc'])
     runs = []                                     # (kind, q traverse, db traverse)
     for kind, ps in PAIRS.items():
@@ -200,14 +201,14 @@ def stage_eval():
         for tq, td, o in p.imap_unordered(local_scores, specs):
             LS.setdefault((tq, td), {}).update(o)
             print(f'scored {tq}->{td} [{time.time() - t0:.0f}s]', flush=True)
-    torch.save({'cand': cand, 'pos': pos, 'ovl': ovl, 'LS': LS, 'runs': runs, 'models': models}, f'{args.out}/lunarloc_eval.pt')
+    torch.save({'cand': cand, 'pos': pos, 'ovl': ovl, 'LS': LS, 'runs': runs, 'models': models}, f'{args.out}/{args.tag}_eval.pt')
     report()
 
 
 def report():
     import re
     from collections import defaultdict
-    E = torch.load(f'{args.out}/lunarloc_eval.pt', weights_only=False)
+    E = torch.load(f'{args.out}/{args.tag}_eval.pt', weights_only=False)
     cand, pos, ovl, LS, runs, models = E['cand'], E['pos'], E['ovl'], E['LS'], E['runs'], E['models']
     sim_p = {k: (v['beta'], v['kappa']) for k, v in json.load(open(args.sim_params)).items()}
     sim_p['clipper16'] = (1, 80)
@@ -225,7 +226,7 @@ def report():
             if scorer is None:
                 sc = g
             else:
-                l = np.array([[LS[(tq, td)][(int(i), int(j))][scorer] for j in c[i]] for i in range(len(c))], float)
+                l = locmat(tq, td, n, scorer)
                 sc = g + bk[0] * l / (l + bk[1])
             o = np.argsort(-sc, 1, kind='stable')
             pp = P[(tq, td)]
@@ -235,25 +236,53 @@ def report():
         return np.concatenate(h1), np.concatenate(h5), np.concatenate(valid), np.concatenate(block)
 
     rng = np.random.default_rng(0)
+    _LM = {}
+
+    def locmat(tq, td, n, key):
+        if (tq, td, n, key) not in _LM:
+            c = cand[(tq, td, n)][0]
+            _LM[(tq, td, n, key)] = np.array([[LS[(tq, td)][(int(i), int(j))][key] for j in c[i]] for i in range(len(c))], float)
+        return _LM[(tq, td, n, key)]
 
     def ci(x, blocks):
         ub = np.unique(blocks); by = {b: np.where(blocks == b)[0] for b in ub}
         s = [x[np.concatenate([by[b] for b in rng.choice(ub, len(ub))])].mean() * 100 for _ in range(1000)]
         return [round(float(x.mean() * 100), 3), round(float(np.percentile(s, 2.5)), 3), round(float(np.percentile(s, 97.5)), 3)]
 
-    # boulder CLIPPER: tolerance and fusion on the straight-line pairs (development set)
-    best = None
-    for e in (0.05, 0.1, 0.2, 0.4):
-        for b in BET:
-            for k in KAP:
-                v = np.mean([hits('straight', n, pos, f'boulder_e{e:g}', (b, k))[0][hits('straight', n, pos)[2]].mean()
-                             for n in fam['galatea']])
-                if best is None or v > best[0]:
-                    best = (v, e, b, k)
-    sim_p['boulder'] = (best[2], best[3])
-    bkey = f'boulder_e{best[1]:g}'
-    out = {'pairs': PAIRS, 'crop_hfov_deg': CROP_HFOV, 'boulder_dev': {'eps': best[1], 'beta': best[2], 'kappa': best[3]},
-           'kinds': {}}
+    has_b = any(len(m['boulders']) for k in {t for _, tq, td in runs for t in (tq, td)}
+                for m in json.load(open(f'{args.ext}/{k}/meta.json'))['images'])
+    EPS = (0.05, 0.1, 0.2, 0.4)
+
+    def boulder_lopo(kind, n, P):
+        """Per-query hits of boulder fusion, (eps, beta, kappa) tuned on the other pairs of this kind."""
+        pairs = [(tq, td) for k2, tq, td in runs if k2 == kind]
+        out = []
+        for tq, td in pairs:
+            grp = {tq, td}
+            best = None
+            for e in EPS:
+                for b in BET:
+                    for k in KAP:
+                        v = []
+                        for tq2, td2 in pairs:
+                            if {tq2, td2} == grp:
+                                continue
+                            c, g = cand[(tq2, td2, n)]
+                            l = locmat(tq2, td2, n, f'boulder_e{e:g}')
+                            o = np.argsort(-(g + b * l / (l + k)), 1, kind='stable')
+                            pp = P[(tq2, td2)]
+                            hc = np.take_along_axis(np.take_along_axis(pp, c, 1), o, 1)
+                            v.append(hc[pp.any(1), 0])
+                        v = np.concatenate(v).mean() if v and len(np.concatenate(v)) else 0
+                        if best is None or v > best[0]:
+                            best = (v, e, b, k)
+            c, g = cand[(tq, td, n)]
+            l = locmat(tq, td, n, f'boulder_e{best[1]:g}')
+            o = np.argsort(-(g + best[2] * l / (l + best[3])), 1, kind='stable')
+            out.append(np.take_along_axis(np.take_along_axis(P[(tq, td)], c, 1), o, 1)[:, 0])
+        return np.concatenate(out)
+
+    out = {'pairs': PAIRS, 'crop_hfov_deg': CROP_HFOV, 'kinds': {}}
     for kind in PAIRS:
         for defn, P in (('pose', pos), ('overlap', ovl)):
             if defn == 'overlap' and kind != 'flipped':
@@ -271,16 +300,19 @@ def report():
                 valid, blocks = hh[0][2], hh[0][3]
                 g1 = np.mean([h[0] for h in hh], 0)[valid]; g5 = np.mean([h[1] for h in hh], 0)[valid]
                 r = {'R1': ci(g1, blocks[valid]), 'R5': ci(g5, blocks[valid]), 'fused': {}}
-                for s, key in (('mnn_ransac', 'mnn_ransac'), ('fgw', 'fgw'), ('clipper16', 'clipper16'), ('boulder', bkey)):
-                    f1 = np.mean([hits(kind, n, P, key, sim_p[s])[0] for n in names], 0)[valid]
-                    r['fused'][s] = {'R1': ci(f1, blocks[valid]), 'd': ci(f1 - g1, blocks[valid])}
+                for s_, key in (('mnn_ransac', 'mnn_ransac'), ('fgw', 'fgw'), ('clipper16', 'clipper16')):
+                    f1 = np.mean([hits(kind, n, P, key, sim_p[s_])[0] for n in names], 0)[valid]
+                    r['fused'][s_] = {'R1': ci(f1, blocks[valid]), 'd': ci(f1 - g1, blocks[valid])}
+                if has_b and len(PAIRS[kind]) > 1:
+                    f1 = np.mean([boulder_lopo(kind, n, P) for n in names], 0)[valid]
+                    r['fused']['boulder_lopo'] = {'R1': ci(f1, blocks[valid]), 'd': ci(f1 - g1, blocks[valid])}
                 res[f] = r
             out['kinds'][f'{kind}_{defn}'] = {'n_queries': nq, 'n_valid': nv,
                                               'chance_R1': float(100 * np.concatenate(chance).mean()), 'families': res}
             for f, r in res.items():
                 print(f'{f:12s} R@1 {r["R1"][0]:5.1f} [{r["R1"][1]:.1f},{r["R1"][2]:.1f}]  ' +
                       '  '.join(f'{s}: {v["R1"][0]:.1f} ({v["d"][0]:+.1f})' for s, v in r['fused'].items()), flush=True)
-    json.dump(out, open(f'{args.out}/lunarloc_summary.json', 'w'), indent=1)
+    json.dump(out, open(f'{args.out}/{args.tag}_summary.json', 'w'), indent=1)
 
 
 if __name__ == '__main__':
