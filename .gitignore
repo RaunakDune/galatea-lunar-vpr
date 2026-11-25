@@ -23,3 +23,5 @@ results/gpu/runs/**/head.pt
 results/gpu/runs/**/desc_*.pt
 results/gpu/rerank/partial_*.npy
 /logs/
+results/geom3d/
+results/rerank/partial3d_*.npy

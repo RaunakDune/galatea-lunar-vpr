@@ -2,12 +2,29 @@
 import numpy as np, torch, cv2
 
 
+def topk_idx(sp, k):
+    """Indices of the keypoints that topk_kp keeps (all of them, in stored order, if there are <= k)."""
+    sc = sp['sc'].float()
+    return torch.argsort(sc, descending=True)[:k] if len(sc) > k else torch.arange(len(sc))
+
+
 def topk_kp(sp, k):
     kp, sc, de = sp['kp'].float(), sp['sc'].float(), sp['desc'].float()
     if len(sc) > k:
         idx = torch.argsort(sc, descending=True)[:k]
         kp, sc, de = kp[idx], sc[idx], de[idx]
     return kp, sc, torch.nn.functional.normalize(de, dim=1)
+
+
+def structure(x, mode='2d'):
+    """Intra-image structure matrix of the FGW term, normalised to mean 1.
+    2d: image-plane distances between keypoints x [n, 2] (pixels).
+    3d: Euclidean distances between the keypoints' 3-D points x [n, 3] (metres).
+    3dlog: log(1 + d) of the 3-D distances, which compresses the long tail of far-field pairs."""
+    C = torch.cdist(x, x)
+    if mode == '3dlog':
+        C = torch.log1p(C)
+    return C / (C.mean() + 1e-9)
 
 
 def ransac_inliers(p1, p2):
@@ -52,11 +69,12 @@ def uot_match(d1, d2, eps=0.05, z=None):
     return log_sinkhorn_dustbin(sim / eps, z)
 
 
-def fgw_match(k1, d1, k2, d2, alpha=0.3, eps=0.05, outer=5, cbin=0.25):
-    """Partial fused Gromov-Wasserstein (square loss) with dust-bins, entropic mirror descent."""
+def fgw_match(k1, d1, k2, d2, alpha=0.3, eps=0.05, outer=5, cbin=0.25, C1=None, C2=None):
+    """Partial fused Gromov-Wasserstein (square loss) with dust-bins, entropic mirror descent.
+    C1, C2: optional structure matrices (see structure()); default: image-plane distances of k1, k2."""
     M = 1 - d1 @ d2.T                                        # appearance cost in [0,2]
-    C1 = torch.cdist(k1, k1); C1 = C1 / (C1.mean() + 1e-9)
-    C2 = torch.cdist(k2, k2); C2 = C2 / (C2.mean() + 1e-9)
+    C1 = structure(k1) if C1 is None else C1
+    C2 = structure(k2) if C2 is None else C2
     z = -cbin / eps                                          # a pair beats the bin if fused cost < cbin
     T = log_sinkhorn_dustbin(-M / eps, z)
     for _ in range(outer):
