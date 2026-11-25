@@ -105,30 +105,44 @@ def mnn_matches(dq, dc, thr=0.7):
     return torch.stack([i[ok], a[ok]], 1).numpy()
 
 
+_CLIPPER = None
+
+
+def _clipper_lib():
+    """ctypes handle to clipper_c (scripts/clipper_c.cpp, a C wrapper around mit-acl/clipper)."""
+    global _CLIPPER
+    if _CLIPPER is None:
+        import ctypes, os
+        lib = ctypes.CDLL(os.environ.get('CLIPPER_C', os.path.expanduser('~/clipper_c/libclipper_c.so')))
+        dp, ip = ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_int)
+        lib.clipper_select.argtypes = [dp, ctypes.c_int, dp, ctypes.c_int, ctypes.c_int, ip, ctypes.c_int,
+                                       ctypes.c_double, ctypes.c_double, ip]
+        lib.clipper_select.restype = ctypes.c_int
+        _CLIPPER = (lib, dp, ip)
+    return _CLIPPER
+
+
 def clipper_matches(k1, d1, k2, d2, P1=None, P2=None, eps=8.0, sigma=None, topk=3, simthr=0.3):
     """CLIPPER (Lusk et al., ICRA 2021; the matcher of LunarLoc): putative associations are the topk
     descriptor neighbours of every keypoint of image 1 (cosine > simthr); CLIPPER keeps the densest set
-    that is consistent in pairwise Euclidean distance (|d1 - d2| < eps, weight exp(-(d1 - d2)^2 / 2 sigma^2)).
+    that is consistent in pairwise Euclidean distance (|d1 - d2| < eps, weight exp(-(d1 - d2)^2 / 2 sigma^2),
+    sigma = eps / 2), with its default DSD_HEU rounding.
     Distances are image-plane (pixels) by default, or between the 3-D points P1, P2 (metres) when given.
     Returns the selected associations [m, 2] (indices into image 1 and image 2)."""
-    import clipperpy
     s = d1 @ d2.T
     if s.numel() == 0:
         return np.zeros((0, 2), int)
     v, j = s.topk(min(topk, s.shape[1]), dim=1)
     i = torch.arange(s.shape[0])[:, None].expand_as(j)
     keep = (v > simthr).flatten()
-    A = torch.stack([i.flatten(), j.flatten()], 1)[keep].numpy().astype(np.int32)
+    A = np.ascontiguousarray(torch.stack([i.flatten(), j.flatten()], 1)[keep].numpy().astype(np.int32))
     if len(A) < 3:
         return np.zeros((0, 2), int)
-    X1 = (k1 if P1 is None else P1).double().numpy().T.copy()
-    X2 = (k2 if P2 is None else P2).double().numpy().T.copy()
-    ip = clipperpy.invariants.EuclideanDistanceParams()
-    ip.epsilon = eps
-    ip.sigma = eps / 2 if sigma is None else sigma
-    params = clipperpy.Params()
-    params.rounding = clipperpy.Rounding.DSD_HEU
-    cl = clipperpy.CLIPPER(clipperpy.invariants.EuclideanDistance(ip), params)
-    cl.score_pairwise_consistency(X1, X2, A)
-    cl.solve()
-    return np.asarray(cl.get_selected_associations(), dtype=int).reshape(-1, 2)
+    X1 = np.ascontiguousarray((k1 if P1 is None else P1).double().numpy())
+    X2 = np.ascontiguousarray((k2 if P2 is None else P2).double().numpy())
+    lib, dp, ip = _clipper_lib()
+    out = np.zeros((len(A), 2), np.int32)
+    n = lib.clipper_select(X1.ctypes.data_as(dp), len(X1), X2.ctypes.data_as(dp), len(X2), X1.shape[1],
+                           A.ctypes.data_as(ip), len(A), float(eps), float(eps / 2 if sigma is None else sigma),
+                           out.ctypes.data_as(ip))
+    return out[:n].astype(int)
